@@ -5,7 +5,7 @@ import { TagService } from '@/server/services/tag-service';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,8 +13,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { fileId } = await params;
     const tagService = new TagService({ userId: session.user.id });
-    const tags = await tagService.getFileTags(params.fileId);
+    const tags = await tagService.getFileTags(fileId);
 
     return NextResponse.json({ tags });
   } catch (error) {
@@ -28,7 +29,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,8 +47,9 @@ export async function POST(
       );
     }
 
+    const { fileId } = await params;
     const tagService = new TagService({ userId: session.user.id });
-    await tagService.addTagsToFile(params.fileId, tagNames);
+    await tagService.addTagsToFile(fileId, tagNames);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -61,7 +63,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -72,9 +74,10 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const tagIds = searchParams.get('tagIds')?.split(',');
 
+    const { fileId } = await params;
     const tagService = new TagService({ userId: session.user.id });
     await tagService.removeTagsFromFile(
-      params.fileId,
+      fileId,
       tagIds && tagIds.length > 0 ? tagIds : undefined
     );
 
