@@ -69,7 +69,7 @@ const FileList: React.FC<FileListProps> = (props) => {
 
   const uppyFiles = useUppyState(uppy, (s) => s.files);
   const [uploadingFilesIds, setUploadingFilesIds] = React.useState<string[]>(
-    [],
+    []
   );
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -79,7 +79,7 @@ const FileList: React.FC<FileListProps> = (props) => {
         (e) => {
           if (e[0].intersectionRatio > 0.1) fetchNextPage();
         },
-        { threshold: 0.1 },
+        { threshold: 0.1 }
       );
 
       observer.observe(bottomRef.current);
@@ -188,7 +188,7 @@ const FileList: React.FC<FileListProps> = (props) => {
       {isPending && <div className="text-center">Loading...</div>}
       <div
         className={cn(
-          'grid @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4 gap-4 relative container',
+          'grid @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4 gap-4 relative container'
         )}
       >
         {uploadingFilesIds.length > 0 &&

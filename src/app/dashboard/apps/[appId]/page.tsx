@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
-import { useMemo, use, useState, useEffect, ReactNode } from 'react';
+import { useMemo, use, useState, ReactNode } from 'react';
 import { usePasteFile } from '@/app/hooks/userPasteFile';
 import UploadPreview from '@/components/feature/UploadPreview';
 import FileList from '@/components/feature/FileList';
@@ -153,8 +153,8 @@ export default function AppPage(props: AppPageProps) {
               <UploadPreview uppy={uppy} />
             </TabsContent>
 
-            <TabsContent value="content">
-              <PeopleList />
+            <TabsContent value="people">
+              <PeopleList appId={appId} />
             </TabsContent>
           </Tabs>
         </div>
