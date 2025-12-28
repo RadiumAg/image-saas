@@ -22,7 +22,7 @@ export default function AppPage(props: AppPageProps) {
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-    },
+    }
   );
   const currentApp = apps?.find((app) => app.id === appId);
 
@@ -49,7 +49,7 @@ export default function AppPage(props: AppPageProps) {
       uppy.addFiles(
         files.map((file) => {
           return { data: file, name: file.name };
-        }),
+        })
       );
     },
   });
@@ -64,7 +64,9 @@ export default function AppPage(props: AppPageProps) {
   let children: ReactNode;
 
   if (isPending) {
-    children = <div className="flex items-center justify-center">Loading...</div>;
+    children = (
+      <div className="flex items-center justify-center">Loading...</div>
+    );
   } else if (currentApp == null) {
     children = (
       <div className="flex flex-col mt-10 p-4 border rounded-md max-w-48 mx-auto items-center">

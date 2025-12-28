@@ -218,25 +218,37 @@ const fileRoutes = router({
         orderBy = { field: 'createdAt', order: 'desc' },
       } = ctx.input;
 
-      const appFilter = and(eq(files.appId, ctx.input.appId));
+      const tagFilter = eq(files_tags.tagId, ctx.input.tagId);
       const deletedFilter = isNull(files.deleteAt);
       const userFilter = eq(files.userId, ctx.ctx.session.user.id);
 
       const statement = db
-        .select()
+        .select({
+          id: files.id,
+          name: files.name,
+          type: files.type,
+          createdAt: files.createdAt,
+          deleteAt: files.deleteAt,
+          path: files.path,
+          url: files.url,
+          userId: files.userId,
+          contentType: files.contentType,
+          appId: files.appId,
+        })
         .from(files_tags)
+        .innerJoin(files, eq(files_tags.fileId, files.id))
         .limit(limit)
         .where(
           cursor
             ? and(
-                sql`("files"."created_at", "files"."id") < (${new Date(
-                  cursor.createAt
-                ).toISOString()}, ${cursor.id})`,
+                tagFilter,
                 deletedFilter,
                 userFilter,
-                appFilter
+                sql`("files"."created_at", "files"."id") < (${new Date(
+                  cursor.createAt
+                ).toISOString()}, ${cursor.id})`
               )
-            : and(deletedFilter, userFilter, appFilter)
+            : and(tagFilter, deletedFilter, userFilter)
         );
 
       statement.orderBy(

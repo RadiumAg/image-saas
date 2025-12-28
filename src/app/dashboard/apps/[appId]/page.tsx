@@ -15,6 +15,7 @@ import { MoveUp, MoveDown, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
+import PeopleList from './PeopleList';
 
 interface AppPageProps {
   params: Promise<{ appId: string }>;
@@ -152,7 +153,9 @@ export default function AppPage(props: AppPageProps) {
               <UploadPreview uppy={uppy} />
             </TabsContent>
 
-            <TabsContent value="content"></TabsContent>
+            <TabsContent value="content">
+              <PeopleList />
+            </TabsContent>
           </Tabs>
         </div>
       </div>

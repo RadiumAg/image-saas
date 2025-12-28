@@ -25,7 +25,7 @@ export default function StoragePage(props: Props) {
                 ...p,
                 storageId: variables.storageId,
               }
-            : p,
+            : p
         );
       });
     },
