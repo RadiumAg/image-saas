@@ -1,0 +1,265 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2025-12-28T14:26:45.879Z
+provider: 
+---
+
+# tRPC API 架构规范
+
+## 规则描述
+所有 API 必须通过 tRPC 方式实现，并从 `src/server/trpc-middlewares/router.ts` 中统一暴露出来，确保 API 调用的一致性和类型安全。
+
+## 具体要求
+
+### 1. tRPC 路由文件结构
+
+每个 API 功能模块都应该有独立的路由文件，位于 `src/server/routes/` 目录下：
+
+```
+src/server/routes/
+├── app.ts          # 应用相关 API
+├── api-keys.ts     # API 密钥相关 API
+├── file.ts         # 文件处理相关 API
+├── storages.ts     # 存储相关 API
+├── tags.ts         # 标签相关 API
+└── ...
+```
+
+### 2. 路由文件格式
+
+每个路由文件必须按照以下格式创建：
+
+```typescript
+// src/server/routes/example.ts
+import { z } from 'zod';
+import { router, protectedProcedure } from '../trpc-middlewares/trpc';
+
+export const exampleRouter = router({
+  // 查询操作
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // 实现逻辑
+      return { /* 返回数据 */ };
+    }),
+
+  // 创建操作
+  create: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      description: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // 创建逻辑
+      return { /* 返回数据 */ };
+    }),
+
+  // 更新操作
+  update: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      data: z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // 更新逻辑
+      return { /* 返回数据 */ };
+    }),
+
+  // 删除操作
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // 删除逻辑
+      return { success: true };
+    }),
+});
+```
+
+### 3. 主路由文件配置
+
+所有路由必须在 `src/server/trpc-middlewares/router.ts` 中注册：
+
+```typescript
+// src/server/trpc-middlewares/router.ts
+import { apiKeysRouter } from '../routes/api-keys';
+import { appsRouter } from '../routes/app';
+import { fileRoutes } from '../routes/file';
+import { storageRouter } from '../routes/storages';
+import { tagsRouter } from '../routes/tags';
+import { exampleRouter } from '../routes/example'; // 新增路由
+import { router } from './trpc';
+
+const appRouter = router({
+  file: fileRoutes,
+  apps: appsRouter,
+  tags: tagsRouter,
+  storages: storageRouter,
+  apiKeys: apiKeysRouter,
+  example: exampleRouter, // 注册新路由
+});
+
+export { appRouter };
+export type AppRouter = typeof appRouter;
+```
+
+### 4. 禁止的 API 实现方式
+
+以下 API 实现方式是被禁止的：
+
+```typescript
+// ❌ 错误 - 直接使用 Next.js API Routes
+// pages/api/example.ts
+export default function handler(req, res) {
+  // 禁止直接使用 Next.js API Routes
+}
+
+// ❌ 错误 - 创建独立的 Express 路由
+// custom-api.ts
+import express from 'express';
+const router = express.Router();
+router.get('/example', (req, res) => {
+  // 禁止使用 Express 路由
+});
+
+// ❌ 错误 - 在组件中直接调用数据库
+// components/Example.tsx
+const Component = () => {
+  useEffect(() => {
+    // 禁止在组件中直接调用数据库或外部 API
+    fetch('/api/example');
+  }, []);
+};
+```
+
+### 5. 客户端调用方式
+
+客户端必须通过 tRPC 调用 API：
+
+```typescript
+// 正确的客户端调用方式
+import { trpc } from '@/utils/trpc';
+
+const Component: FC = () => {
+  const { data, isLoading, error } = trpc.example.getById.useQuery(
+    { id: 'example-id' }
+  );
+
+  const createMutation = trpc.example.create.useMutation();
+
+  const handleCreate = async () => {
+    try {
+      await createMutation.mutateAsync({
+        name: 'New Item',
+        description: 'Description',
+      });
+    } catch (error) {
+      console.error('创建失败:', error);
+    }
+  };
+
+  return (
+    <div>
+      {/* 组件内容 */}
+    </div>
+  );
+};
+```
+
+### 6. 类型安全
+
+所有 API 必须使用 Zod 进行输入验证：
+
+```typescript
+// 输入类型定义
+const createInputSchema = z.object({
+  name: z.string().min(1, '名称不能为空'),
+  email: z.string().email('邮箱格式不正确'),
+  age: z.number().min(18, '年龄必须大于等于18岁').optional(),
+});
+
+// 在 procedure 中使用
+create: protectedProcedure
+  .input(createInputSchema)
+  .mutation(async ({ input, ctx }) => {
+    // input 已经通过 Zod 验证，类型安全
+    const { name, email, age } = input;
+    // 实现逻辑
+  });
+```
+
+### 7. 权限控制
+
+必须使用 `protectedProcedure` 来确保用户已登录：
+
+```typescript
+// 公开 API（如登录、注册）
+publicRouter: router({
+  login: publicProcedure
+    .input(z.object({ email: z.string().email(), password: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // 登录逻辑
+    }),
+});
+
+// 受保护的 API（需要用户登录）
+protectedRouter: router({
+  getUserProfile: protectedProcedure
+    .query(async ({ ctx }) => {
+      // ctx.user 保证存在
+      return ctx.user;
+    }),
+});
+```
+
+### 8. 错误处理
+
+统一的错误处理方式：
+
+```typescript
+const exampleRouter = router({
+  create: protectedProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // 业务逻辑
+        const result = await createExample(input, ctx.user.id);
+        return { success: true, data: result };
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+});
+```
+
+## 检查清单
+
+- [ ] 所有 API 都通过 tRPC 实现
+- [ ] 路由文件位于 `src/server/routes/` 目录
+- [ ] 所有路由在 `router.ts` 中注册
+- [ ] 使用 Zod 进行输入验证
+- [ ] 需要认证的 API 使用 `protectedProcedure`
+- [ ] 客户端通过 tPC hooks 调用 API
+- [ ] 没有使用 Next.js API Routes 或其他 API 实现方式
+- [ ] 实现了适当的错误处理
+- [ ] 保持了类型安全
+
+## 迁移指南
+
+如果现有代码不符合此规范，请按以下步骤迁移：
+
+1. 在 `src/server/routes/` 目录创建对应的路由文件
+2. 将现有 API 逻辑迁移到 tRPC procedure 中
+3. 在 `router.ts` 中注册新路由
+4. 更新客户端代码使用 tRPC hooks
+5. 删除原有的 API 实现

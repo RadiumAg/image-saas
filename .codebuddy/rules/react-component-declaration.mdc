@@ -1,0 +1,149 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2025-12-28T14:25:39.622Z
+provider: 
+---
+
+# React 组件声明规范
+
+## 规则描述
+所有 React 组件必须使用标准的函数式组件声明格式，确保代码一致性和类型安全。
+
+## 具体要求
+
+### 1. 组件声明格式
+所有 React 组件必须按照以下格式声明：
+
+```typescript
+const ComponentName: FC<PropsType> = (props) => {
+  const { prop1, prop2, prop3 } = props;
+  
+  // 组件逻辑
+  
+  return (
+    // JSX 内容
+  );
+};
+```
+
+### 2. 类型定义要求
+- 必须显式声明组件为 `FC` (Functional Component) 类型
+- 必须定义 Props 接口或类型
+- Props 类型应该在组件声明之前定义
+
+```typescript
+interface ComponentNameProps {
+  prop1: string;
+  prop2: number;
+  prop3?: boolean; // 可选属性
+}
+
+const ComponentName: FC<ComponentNameProps> = (props) => {
+  const { prop1, prop2, prop3 } = props;
+  // ...
+};
+```
+
+### 3. Props 解构
+- 必须在函数体开始时解构 props
+- 解构应该在一行内完成，除非属性过多需要换行
+- 可选属性应该使用默认值
+
+```typescript
+const ComponentName: FC<ComponentNameProps> = (props) => {
+  const { prop1, prop2, prop3 = false } = props;
+  // ...
+};
+```
+
+### 4. 禁止的声明方式
+以下声明方式是被禁止的：
+
+```typescript
+// ❌ 错误 - 没有类型声明
+const ComponentName = (props: ComponentNameProps) => {
+  // ...
+};
+
+// ❌ 错误 - 没有解构 props
+const ComponentName: FC<ComponentNameProps> = (props) => {
+  // 直接使用 props.prop1
+  // ...
+};
+
+// ❌ 错误 - 使用箭头函数直接导出
+export const ComponentName: FC<ComponentNameProps> = ({ prop1, prop2 }) => {
+  // ...
+};
+
+// ❌ 错误 - 使用 function 声明
+function ComponentName(props: ComponentNameProps) {
+  // ...
+}
+```
+
+### 5. 特殊情况
+
+#### 高阶组件
+高阶组件也应该遵循相同的格式：
+
+```typescript
+const withHOC = <P extends object>(Component: FC<P>) => {
+  const WrappedComponent: FC<P> = (props) => {
+    // HOC 逻辑
+    return <Component {...props} />;
+  };
+  
+  return WrappedComponent;
+};
+```
+
+#### 泛型组件
+泛型组件的声明：
+
+```typescript
+interface GenericComponentProps<T> {
+  data: T[];
+  renderItem: (item: T) => React.ReactNode;
+}
+
+const GenericComponent = <T,>({ data, renderItem }: GenericComponentProps<T>) => {
+  return (
+    <div>
+      {data.map(renderItem)}
+    </div>
+  );
+};
+```
+
+### 6. 最佳实践
+
+1. **命名约定**：组件名使用 PascalCase
+2. **Props 接口命名**：使用 `ComponentNameProps` 格式
+3. **文件组织**：Props 接口应该与组件在同一个文件中，或者在同目录的 `types.ts` 文件中
+4. **默认属性**：使用 ES6 默认参数而不是 `defaultProps`
+5. **forwardRef**：如果需要 ref，应该使用 `forwardRef`
+
+```typescript
+const ComponentName = forwardRef<HTMLDivElement, ComponentNameProps>((props, ref) => {
+  const { prop1, prop2, prop3 = false } = props;
+  
+  return (
+    <div ref={ref}>
+      {/* 组件内容 */}
+    </div>
+  );
+});
+
+ComponentName.displayName = 'ComponentName';
+```
+
+## 检查清单
+- [ ] 组件使用 `const Component: FC<PropsType> = (props) => {}` 格式
+- [ ] Props 类型正确定义
+- [ ] Props 在函数开始时解构
+- [ ] 没有使用禁止的声明方式
+- [ ] 组件名使用 PascalCase
+- [ ] Props 接口命名正确
