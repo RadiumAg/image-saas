@@ -5,11 +5,8 @@ import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 
-const GET = async (
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) => {
-  const { id } = params;
+const GET = async (request: NextRequest, data: { params: { id: string } }) => {
+  const { id } = await data.params;
   const { searchParams } = new URL(request.url);
 
   const width = searchParams.get('_width');

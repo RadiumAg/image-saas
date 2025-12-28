@@ -30,7 +30,7 @@ export default function AppPage(props: AppPageProps) {
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-    },
+    }
   );
   const currentApp = apps?.find((app) => app.id === appId);
 
@@ -57,7 +57,7 @@ export default function AppPage(props: AppPageProps) {
       uppy.addFiles(
         files.map((file) => {
           return { data: file, name: file.name };
-        }),
+        })
       );
     },
   });
@@ -135,7 +135,7 @@ export default function AppPage(props: AppPageProps) {
                     <div
                       className={cn(
                         'flex flex-wrap gap-4 relative h-full container mx-auto',
-                        draggling && 'border border-dashed',
+                        draggling && 'border border-dashed'
                       )}
                     >
                       {draggling && (
@@ -151,6 +151,8 @@ export default function AppPage(props: AppPageProps) {
               </Dropzone>
               <UploadPreview uppy={uppy} />
             </TabsContent>
+
+            <TabsContent value="content"></TabsContent>
           </Tabs>
         </div>
       </div>

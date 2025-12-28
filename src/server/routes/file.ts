@@ -8,7 +8,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { db } from '../db/db';
-import { files } from '../db/schema';
+import { files, files_tags } from '../db/schema';
 import { v4 as uuid } from 'uuid';
 import { and, asc, desc, eq, gt, isNull, lt, sql } from 'drizzle-orm';
 import { filesCanOrderByColumn } from '../db/validate-schema';
@@ -31,7 +31,7 @@ const fileRoutes = router({
         contentType: z.string(),
         size: z.number(),
         appId: z.string(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const date = new Date();
@@ -88,7 +88,7 @@ const fileRoutes = router({
         path: z.string(),
         type: z.string(),
         appId: z.string(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { session } = ctx;
@@ -118,7 +118,7 @@ const fileRoutes = router({
         where: (files, { eq }) =>
           and(
             eq(files.userId, ctx.session.user.id),
-            eq(files.appId, input.appId),
+            eq(files.appId, input.appId)
           ),
       });
 
@@ -137,7 +137,7 @@ const fileRoutes = router({
         limit: z.number().default(10),
         orderBy: filesOrderByColumnSchema,
         appId: z.string(),
-      }),
+      })
     )
     .query(async (ctx) => {
       const {
@@ -157,18 +157,20 @@ const fileRoutes = router({
         .where(
           cursor
             ? and(
-                sql`("files"."created_at", "files"."id") < (${new Date(cursor.createAt).toISOString()}, ${cursor.id})`,
+                sql`("files"."created_at", "files"."id") < (${new Date(
+                  cursor.createAt
+                ).toISOString()}, ${cursor.id})`,
                 deletedFilter,
                 userFilter,
-                appFilter,
+                appFilter
               )
-            : and(deletedFilter, userFilter, appFilter),
+            : and(deletedFilter, userFilter, appFilter)
         );
 
       statement.orderBy(
         orderBy.order === 'asc'
           ? asc(files[orderBy.field])
-          : desc(files[orderBy.field]),
+          : desc(files[orderBy.field])
       );
 
       const result = await statement;
@@ -192,6 +194,69 @@ const fileRoutes = router({
         .update(files)
         .set({ deleteAt: new Date() })
         .where(eq(files.id, input));
+    }),
+
+  infinityQueryFilesByTag: protectedProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({
+            id: z.string(),
+            createAt: z.string(),
+          })
+          .optional(),
+        limit: z.number().default(10),
+        orderBy: filesOrderByColumnSchema,
+        appId: z.string(),
+        tagId: z.string(),
+      })
+    )
+    .query(async (ctx) => {
+      const {
+        cursor,
+        limit,
+        orderBy = { field: 'createdAt', order: 'desc' },
+      } = ctx.input;
+
+      const appFilter = and(eq(files.appId, ctx.input.appId));
+      const deletedFilter = isNull(files.deleteAt);
+      const userFilter = eq(files.userId, ctx.ctx.session.user.id);
+
+      const statement = db
+        .select()
+        .from(files_tags)
+        .limit(limit)
+        .where(
+          cursor
+            ? and(
+                sql`("files"."created_at", "files"."id") < (${new Date(
+                  cursor.createAt
+                ).toISOString()}, ${cursor.id})`,
+                deletedFilter,
+                userFilter,
+                appFilter
+              )
+            : and(deletedFilter, userFilter, appFilter)
+        );
+
+      statement.orderBy(
+        orderBy.order === 'asc'
+          ? asc(files[orderBy.field])
+          : desc(files[orderBy.field])
+      );
+
+      const result = await statement;
+
+      return {
+        items: result,
+        nextCursor:
+          result.length > 0
+            ? {
+                id: result[result.length - 1].id,
+                createAt: result[result.length - 1].createdAt!,
+              }
+            : null,
+      };
     }),
 });
 
