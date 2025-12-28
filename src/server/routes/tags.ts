@@ -56,9 +56,9 @@ export const tagsRouter = router({
     `);
 
     return result.map((row) => ({
-      id: row.id,
-      name: row.name,
-      color: row.color,
+      id: row.id as string,
+      name: row.name as string,
+      color: row.color as string,
       count: Number(row.count), // 修复：使用实际统计数量而不是result.length
     }));
   }),

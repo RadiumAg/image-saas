@@ -27,7 +27,8 @@ interface TagManagerProps {
   trigger?: React.ReactNode;
 }
 
-export function TagManager({ fileId, onTagsChange, trigger }: TagManagerProps) {
+const TagManager:React.FC = (props: TagManagerProps) => {
+  const { fileId, onTagsChange, trigger } = props
   const [userTags, setUserTags] = useState<TagData[]>([]);
   const [fileTags, setFileTags] = useState<
     Array<{ id: string; name: string; color: string }>
@@ -452,3 +453,5 @@ export function TagManager({ fileId, onTagsChange, trigger }: TagManagerProps) {
     </Dialog>
   );
 }
+
+export default TagManager
