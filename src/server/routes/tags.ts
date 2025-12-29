@@ -1,7 +1,7 @@
 import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { tags, files_tags } from '../db/schema';
+import { tags, files_tags, files } from '../db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
@@ -355,4 +355,213 @@ export const tagsRouter = router({
 
     return { deletedCount: result.length };
   }),
+
+  // AI 识别图片标签
+  recognizeImageTags: protectedProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+        imageUrl: z.string().optional(), // 可选，如果提供则直接使用，否则从文件记录获取
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { fileId, imageUrl: providedImageUrl } = input;
+
+      // 获取文件信息
+      const fileRecord = await db.query.files.findFirst({
+        where: and(
+          eq(files.id, fileId),
+          eq(files.userId, ctx.session.user.id)
+        ),
+      });
+
+      if (!fileRecord) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '文件不存在或无权访问',
+        });
+      }
+
+      // 使用提供的图片URL或文件记录中的URL
+      const imageUrl = providedImageUrl || fileRecord.url;
+
+      if (!imageUrl) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '无法获取图片URL',
+        });
+      }
+
+      try {
+        // 调用AI服务识别图片标签
+        const recognizedTags = await recognizeImageWithAI(imageUrl);
+
+        if (!recognizedTags || recognizedTags.length === 0) {
+          return {
+            success: true,
+            message: 'AI未能识别出有效的标签',
+            tags: [],
+          };
+        }
+
+        // 清理和过滤标签
+        const cleanedTags = cleanTagNames(recognizedTags);
+
+        if (cleanedTags.length === 0) {
+          return {
+            success: true,
+            message: '识别的标签都不符合要求',
+            tags: [],
+          };
+        }
+
+        // 获取或创建标签
+        const tagRecords = await db.transaction(async (tx) => {
+          // 查找已存在的标签
+          const existingTags = await tx.query.tags.findMany({
+            where: and(
+              eq(tags.userId, ctx.session.user.id),
+              inArray(tags.name, cleanedTags),
+            ),
+          });
+
+          const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+          const newTagNames = cleanedTags.filter((name) => !existingTagNames.has(name));
+
+          // 创建新标签
+          const newTags = [];
+          if (newTagNames.length > 0) {
+            const insertedTags = await tx
+              .insert(tags)
+              .values(
+                newTagNames.map((name) => ({
+                  id: uuid(),
+                  name,
+                  userId: ctx.session.user.id,
+                  color: generateRandomColor(),
+                })),
+              )
+              .returning();
+
+            newTags.push(...insertedTags);
+          }
+
+          return [...existingTags, ...newTags];
+        });
+
+        // 关联文件和标签
+        await db
+          .insert(files_tags)
+          .values(
+            tagRecords.map((tag) => ({
+              fileId,
+              tagId: tag.id,
+            })),
+          )
+          .onConflictDoNothing(); // 避免重复关联
+
+        return {
+          success: true,
+          message: `成功识别并添加了 ${tagRecords.length} 个标签`,
+          tags: tagRecords,
+        };
+      } catch (error) {
+        console.error('AI识别图片标签失败:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'AI识别服务暂时不可用，请稍后重试',
+        });
+      }
+    }),
 });
+
+// AI图片识别服务函数
+async function recognizeImageWithAI(imageUrl: string): Promise<string[]> {
+  try {
+    // 这里可以根据实际需求选择不同的AI服务
+    // 以下是几个可选的实现方案：
+
+    // 方案1: 使用OpenAI Vision API
+    const tags = await recognizeWithOpenAI(imageUrl);
+    if (tags.length > 0) return tags;
+
+    // 方案2: 使用Google Cloud Vision API (备选)
+    // const tags = await recognizeWithGoogleVision(imageUrl);
+    // if (tags.length > 0) return tags;
+
+    // 方案3: 使用Azure Computer Vision API (备选)
+    // const tags = await recognizeWithAzureVision(imageUrl);
+    // if (tags.length > 0) return tags;
+
+    return [];
+  } catch (error) {
+    console.error('AI识别服务调用失败:', error);
+    return [];
+  }
+}
+
+// OpenAI Vision API 实现
+async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
+  // 注意：这需要环境变量中配置 OPENAI_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    console.warn('未配置OPENAI_API_KEY，跳过OpenAI识别');
+    return [];
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4-vision-preview',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `请分析这张图片并生成5-10个描述性的标签。标签应该简洁明了，使用中文，每个标签不超过10个字符。请只返回标签列表，用逗号分隔，不要包含其他解释文字。例如：风景,日落,海滩,海浪,蓝色`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageUrl
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 300
+      })
+    });
+
+    if (!response.ok) {
+      console.error('OpenAI API调用失败:', response.status, response.statusText);
+      return [];
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    
+    if (!content) {
+      console.warn('OpenAI返回空内容');
+      return [];
+    }
+
+    // 解析返回的标签
+    const tags = content
+      .split(/[,，、\s]+/)
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0 && tag.length <= 10);
+
+    return tags;
+  } catch (error) {
+    console.error('OpenAI识别失败:', error);
+    return [];
+  }
+}
