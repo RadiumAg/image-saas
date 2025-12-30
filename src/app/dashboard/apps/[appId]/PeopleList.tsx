@@ -11,7 +11,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   const query = {
     limit: 10,
     appId,
-    tagId: '0',
+    tagId: '4720f7b3-a99c-4ef9-b695-0f781fb7b912',
   };
 
   const {
@@ -26,6 +26,8 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   });
 
   console.log('[DEBUG] files', infinityQueryData);
+
+  return <div></div>;
 };
 
 export default PeopleList;
