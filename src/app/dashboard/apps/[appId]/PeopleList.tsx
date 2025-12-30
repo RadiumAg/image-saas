@@ -1,6 +1,8 @@
 'use client';
+import { Avatar } from '@/components/ui/Avatar';
 import { trpcClientReact } from '@/utils/api';
-import React from 'react';
+import { AvatarImage } from '@radix-ui/react-avatar';
+import React, { useMemo } from 'react';
 
 type PeopleList = {
   appId: string;
@@ -25,9 +27,22 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     refetchOnReconnect: false,
   });
 
-  console.log('[DEBUG] files', infinityQueryData);
+  console.log('[DEBUG] files', infinityQueryData?.pages);
 
-  return <div></div>;
+  const avatarArrayEle = useMemo(() => {
+    return infinityQueryData?.pages.map((page) => {
+      const { items } = page;
+      return items.map((item) => {
+        return (
+          <Avatar className="w-50 h-50">
+            <AvatarImage className="object-cover" src={item.url} />
+          </Avatar>
+        );
+      });
+    });
+  }, [infinityQueryData?.pages]);
+
+  return <div className="container mx-auto mt-10">{avatarArrayEle}</div>;
 };
 
 export default PeopleList;
