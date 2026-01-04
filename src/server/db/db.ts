@@ -3,9 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-const queryClient = postgres(
-  'postgres://postgres:123456678@127.0.0.1:5432/image-sass',
-);
+const queryClient = postgres(process.env.DATABASE_URL!);
 const db = drizzle(queryClient, { schema });
 
 export { db };

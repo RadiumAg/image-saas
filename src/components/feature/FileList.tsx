@@ -101,7 +101,18 @@ const FileList: React.FC<FileListProps> = (props) => {
             type: file.data.type,
             appId,
           })
-          .then((resp) => {
+          .then(async (resp) => {
+            // 只对图片文件进行识别
+            if (file.data.type && file.data.type.startsWith('image')) {
+              try {
+                await trpcPureClient.tags.recognizeImageTags.mutate({
+                  fileId: resp.id,
+                });
+              } catch (error) {
+                console.error('AI识别失败:', error);
+              }
+            }
+
             utils.file.infinityQueryFiles.setInfiniteData(query, (prev) => {
               if (!prev) return prev;
 
@@ -203,7 +214,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                 className="flex justify-center items-center border border-red-500"
               >
                 {isImage ? (
-                  <img src={url} alt="file" />
+                  <img className="w-full h-full" src={url} alt="file" />
                 ) : (
                   <Image
                     width={100}

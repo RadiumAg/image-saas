@@ -20,9 +20,12 @@ const FileItem: React.FC<FileItemProps> = (props) => {
   if (url == null) return null;
 
   return (
-    <div className="flex justify-center items-center border relative">
+    <div className="flex justify-center items-center border relative w-full h-full">
       {isImage ? (
         <ImageReview
+          className="object-cover"
+          width="100%"
+          height="100%"
           src={url}
           alt={name}
           preview={{
