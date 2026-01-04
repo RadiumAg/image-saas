@@ -5,6 +5,7 @@ import { tags, files_tags, files } from '../db/schema';
 import { eq, and, inArray, isNull } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
+import WebSocket from 'ws';
 
 // 定义分类类型
 export type CategoryType = 'person' | 'location' | 'event';
@@ -555,7 +556,9 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
   const apiSecret = process.env.XFYUN_API_SECRET;
 
   if (!appId || !apiKey || !apiSecret) {
-    console.warn('未配置讯飞星火 API 凭证（XFYUN_APP_ID, XFYUN_API_KEY, XFYUN_API_SECRET），跳过识别');
+    console.warn(
+      '未配置讯飞星火 API 凭证（XFYUN_APP_ID, XFYUN_API_KEY, XFYUN_API_SECRET），跳过识别'
+    );
     return [];
   }
 
@@ -563,7 +566,11 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
     // 1. 下载图片并转换为 base64
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
-      console.error('下载图片失败:', imageResponse.status, imageResponse.statusText);
+      console.error(
+        '下载图片失败:',
+        imageResponse.status,
+        imageResponse.statusText
+      );
       return [];
     }
 
@@ -572,9 +579,9 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
 
     // 2. 生成签名
     const date = new Date().toUTCString();
-    const signature = generateXfyunSignature(
+    const authorization = generateXfyunSignature(
       date,
-      'POST',
+      'GET',
       '/v2.1/image',
       apiKey,
       apiSecret
@@ -584,7 +591,6 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
     const requestBody = {
       header: {
         app_id: appId,
-        uid: '',
       },
       parameter: {
         chat: {
@@ -604,7 +610,8 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
             },
             {
               role: 'user',
-              content: '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
+              content:
+                '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
               content_type: 'text',
             },
           ],
@@ -612,51 +619,82 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
       },
     };
 
-    // 4. 发送请求
-    const response = await fetch('https://spark-api.cn-huabei-1.xf-yun.com/v2.1/image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-        'Authorization': signature,
-        'Date': date,
-      },
-      body: JSON.stringify(requestBody),
+    // 4. 使用 WebSocket 发送请求
+    return new Promise<string[]>((resolve, reject) => {
+      const wsUrl = `wss://spark-api.cn-huabei-1.xf-yun.com/v2.1/image?authorization=${encodeURIComponent(
+        authorization
+      )}&date=${encodeURIComponent(
+        date
+      )}&host=spark-api.cn-huabei-1.xf-yun.com`;
+
+      const ws = new WebSocket(wsUrl);
+      let fullContent = '';
+
+      ws.on('open', () => {
+        ws.send(JSON.stringify(requestBody));
+      });
+
+      ws.on('message', (data) => {
+        try {
+          const response = JSON.parse(data.toString());
+
+          if (response.header?.code !== 0) {
+            console.error('讯飞星火返回错误:', response.header?.message);
+            ws.close();
+            resolve([]);
+            return;
+          }
+
+          const content = response.payload?.choices?.text?.[0]?.content;
+          if (content) {
+            fullContent += content;
+          }
+
+          if (response.header?.status === 2) {
+            ws.close();
+
+            if (!fullContent) {
+              console.warn('讯飞星火返回空内容');
+              resolve([]);
+              return;
+            }
+
+            let tagsText = fullContent;
+            tagsText = tagsText.replace(/\*\*/g, '').replace(/`/g, '');
+
+            const tags = tagsText
+              .split(/[,，、\s\n]+/)
+              .map((tag) => tag.trim())
+              .filter((tag) => tag.length > 0 && tag.length <= 10);
+
+            resolve(tags);
+          }
+        } catch (error) {
+          console.error('解析讯飞星火响应失败:', error);
+          ws.close();
+          resolve([]);
+        }
+      });
+
+      ws.on('error', (error) => {
+        console.error('讯飞星火 WebSocket 错误:', error);
+        resolve([]);
+      });
+
+      ws.on('close', () => {
+        if (!fullContent) {
+          resolve([]);
+        }
+      });
+
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+          console.warn('讯飞星火 API 请求超时');
+        }
+        resolve([]);
+      }, 30000);
     });
-
-    if (!response.ok) {
-      console.error('讯飞星火 API调用失败:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('错误详情:', errorText);
-      return [];
-    }
-
-    const data = await response.json();
-
-    // 5. 解析返回结果
-    if (data.header?.code !== 0) {
-      console.error('讯飞星火返回错误:', data.header?.message);
-      return [];
-    }
-
-    const content = data.payload?.choices?.text?.[0]?.content;
-
-    if (!content) {
-      console.warn('讯飞星火返回空内容');
-      return [];
-    }
-
-    // 6. 解析返回的标签（支持 markdown 格式）
-    let tagsText = content;
-    // 移除 markdown 格式标记（如 ** 标签 **）
-    tagsText = tagsText.replace(/\*\*/g, '').replace(/`/g, '');
-
-    // 分割标签
-    const tags = tagsText
-      .split(/[,，、\s\n]+/)
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0 && tag.length <= 10);
-
-    return tags;
   } catch (error) {
     console.error('讯飞星火识别失败:', error);
     return [];
@@ -674,7 +712,7 @@ function generateXfyunSignature(
   const crypto = require('crypto');
 
   // 按照讯飞星火文档的格式构建签名字符串
-  const signatureOrigin = `host: spark-api.cn-huabei-1.xf-yun.com\ndate: ${date}\n${method} ${uri}`;
+  const signatureOrigin = `host: spark-api.cn-huabei-1.xf-yun.com\ndate: ${date}\n${method} ${uri} HTTP/1.1`;
 
   // 使用 hmac-sha256 生成签名
   const signature = crypto
@@ -682,6 +720,11 @@ function generateXfyunSignature(
     .update(signatureOrigin)
     .digest('base64');
 
-  // 构建 authorization header
-  return `api_key="${apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`;
+  // 构建 authorization_origin
+  const authorizationOrigin = `api_key="${apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`;
+
+  // 将 authorization_origin 进行 base64 编码，生成最终的 authorization
+  const authorization = Buffer.from(authorizationOrigin).toString('base64');
+
+  return authorization;
 }
