@@ -548,72 +548,140 @@ async function recognizeImageWithAI(imageUrl: string): Promise<string[]> {
   }
 }
 
-// OpenAI Vision API 实现
+// 讯飞星火图片理解 API 实现
 async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
-  // 注意：这需要环境变量中配置 OPENAI_API_KEY
-  const apiKey = process.env.OPENAI_API_KEY;
+  const appId = process.env.XFYUN_APP_ID;
+  const apiKey = process.env.XFYUN_API_KEY;
+  const apiSecret = process.env.XFYUN_API_SECRET;
 
-  if (!apiKey) {
-    console.warn('未配置OPENAI_API_KEY，跳过OpenAI识别');
+  if (!appId || !apiKey || !apiSecret) {
+    console.warn('未配置讯飞星火 API 凭证（XFYUN_APP_ID, XFYUN_API_KEY, XFYUN_API_SECRET），跳过识别');
     return [];
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // 1. 下载图片并转换为 base64
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      console.error('下载图片失败:', imageResponse.status, imageResponse.statusText);
+      return [];
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+
+    // 2. 生成签名
+    const date = new Date().toUTCString();
+    const signature = generateXfyunSignature(
+      date,
+      'POST',
+      '/v2.1/image',
+      apiKey,
+      apiSecret
+    );
+
+    // 3. 构建请求体
+    const requestBody = {
+      header: {
+        app_id: appId,
+        uid: '',
+      },
+      parameter: {
+        chat: {
+          domain: 'imagev3',
+          temperature: 0.5,
+          top_k: 4,
+          max_tokens: 2028,
+        },
+      },
+      payload: {
+        message: {
+          text: [
+            {
+              role: 'user',
+              content: imageBase64,
+              content_type: 'image',
+            },
+            {
+              role: 'user',
+              content: '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
+              content_type: 'text',
+            },
+          ],
+        },
+      },
+    };
+
+    // 4. 发送请求
+    const response = await fetch('https://spark-api.cn-huabei-1.xf-yun.com/v2.1/image', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': signature,
+        'Date': date,
       },
-      body: JSON.stringify({
-        model: 'gpt-4-vision-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `请分析这张图片并生成5-10个描述性的标签。标签应该简洁明了，使用中文，每个标签不超过10个字符。请只返回标签列表，用逗号分隔，不要包含其他解释文字。例如：风景,日落,海滩,海浪,蓝色`,
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageUrl,
-                },
-              },
-            ],
-          },
-        ],
-        max_tokens: 300,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      console.error(
-        'OpenAI API调用失败:',
-        response.status,
-        response.statusText
-      );
+      console.error('讯飞星火 API调用失败:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('错误详情:', errorText);
       return [];
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
 
-    if (!content) {
-      console.warn('OpenAI返回空内容');
+    // 5. 解析返回结果
+    if (data.header?.code !== 0) {
+      console.error('讯飞星火返回错误:', data.header?.message);
       return [];
     }
 
-    // 解析返回的标签
-    const tags = content
-      .split(/[,，、\s]+/)
+    const content = data.payload?.choices?.text?.[0]?.content;
+
+    if (!content) {
+      console.warn('讯飞星火返回空内容');
+      return [];
+    }
+
+    // 6. 解析返回的标签（支持 markdown 格式）
+    let tagsText = content;
+    // 移除 markdown 格式标记（如 ** 标签 **）
+    tagsText = tagsText.replace(/\*\*/g, '').replace(/`/g, '');
+
+    // 分割标签
+    const tags = tagsText
+      .split(/[,，、\s\n]+/)
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0 && tag.length <= 10);
 
     return tags;
   } catch (error) {
-    console.error('OpenAI识别失败:', error);
+    console.error('讯飞星火识别失败:', error);
     return [];
   }
+}
+
+// 生成讯飞星火 API 签名
+function generateXfyunSignature(
+  date: string,
+  method: string,
+  uri: string,
+  apiKey: string,
+  apiSecret: string
+): string {
+  const crypto = require('crypto');
+
+  // 按照讯飞星火文档的格式构建签名字符串
+  const signatureOrigin = `host: spark-api.cn-huabei-1.xf-yun.com\ndate: ${date}\n${method} ${uri}`;
+
+  // 使用 hmac-sha256 生成签名
+  const signature = crypto
+    .createHmac('sha256', apiSecret)
+    .update(signatureOrigin)
+    .digest('base64');
+
+  // 构建 authorization header
+  return `api_key="${apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`;
 }
