@@ -6,14 +6,21 @@ import React, { useMemo } from 'react';
 
 type PeopleList = {
   appId: string;
+  tagId?: string;
 };
 
 const PeopleList: React.FC<PeopleList> = (props) => {
-  const { appId } = props;
+  const { appId, tagId } = props;
+
+  // 如果没有 tagId，不渲染
+  if (!tagId) {
+    return <div className="container mx-auto mt-10">请选择一个标签</div>;
+  }
+
   const query = {
     limit: 10,
     appId,
-    tagId: '4720f7b3-a99c-4ef9-b695-0f781fb7b912',
+    tagId,
   };
 
   const {
@@ -26,8 +33,6 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     refetchOnMount: true,
     refetchOnReconnect: false,
   });
-
-  console.log('[DEBUG] files', infinityQueryData?.pages);
 
   const avatarArrayEle = useMemo(() => {
     return infinityQueryData?.pages.map((page) => {

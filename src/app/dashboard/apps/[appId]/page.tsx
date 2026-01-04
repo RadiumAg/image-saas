@@ -17,6 +17,15 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import PeopleList from './PeopleList';
 
+type CategoryType = 'person' | 'location' | 'event';
+
+interface CategoryTag {
+  id: string;
+  name: string;
+  categoryType: CategoryType;
+  count: number;
+}
+
 interface AppPageProps {
   params: Promise<{ appId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -34,6 +43,26 @@ export default function AppPage(props: AppPageProps) {
     }
   );
   const currentApp = apps?.find((app) => app.id === appId);
+
+  // 获取按分类分组的标签
+  const { data: categoryTags = [], isLoading: tagsLoading } =
+    trpcClientReact.tags.getTagsByCategory.useQuery(
+      { appId },
+      {
+        refetchOnReconnect: false,
+        refetchOnWindowFocus: false,
+      }
+    );
+
+  // 按分类类型分组标签
+  const groupedTags = useMemo(() => {
+    const groups = {
+      person: categoryTags.filter((tag) => tag.categoryType === 'person'),
+      location: categoryTags.filter((tag) => tag.categoryType === 'location'),
+      event: categoryTags.filter((tag) => tag.categoryType === 'event'),
+    };
+    return groups;
+  }, [categoryTags]);
 
   const uppy = useMemo(() => {
     const uppy = new Uppy();
@@ -124,9 +153,24 @@ export default function AppPage(props: AppPageProps) {
           <Tabs defaultValue="all">
             <TabsList>
               <TabsTrigger value="all">全部</TabsTrigger>
-              <TabsTrigger value="people">人物</TabsTrigger>
-              <TabsTrigger value="area">地点</TabsTrigger>
-              <TabsTrigger value="password">事务</TabsTrigger>
+              {/* 动态生成人物分类的标签 */}
+              {groupedTags.person.map((tag) => (
+                <TabsTrigger key={tag.id} value={`person-${tag.id}`}>
+                  {tag.name} ({tag.count})
+                </TabsTrigger>
+              ))}
+              {/* 动态生成地点分类的标签 */}
+              {groupedTags.location.map((tag) => (
+                <TabsTrigger key={tag.id} value={`location-${tag.id}`}>
+                  {tag.name} ({tag.count})
+                </TabsTrigger>
+              ))}
+              {/* 动态生成事务分类的标签 */}
+              {groupedTags.event.map((tag) => (
+                <TabsTrigger key={tag.id} value={`event-${tag.id}`}>
+                  {tag.name} ({tag.count})
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="all">
@@ -153,9 +197,12 @@ export default function AppPage(props: AppPageProps) {
               <UploadPreview uppy={uppy} />
             </TabsContent>
 
-            <TabsContent value="people">
-              <PeopleList appId={appId} />
-            </TabsContent>
+            {/* 动态生成分类标签的内容 */}
+            {categoryTags.map((tag) => (
+              <TabsContent key={tag.id} value={`${tag.categoryType}-${tag.id}`}>
+                <PeopleList appId={appId} tagId={tag.id} />
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
       </div>

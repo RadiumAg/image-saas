@@ -2,15 +2,18 @@ import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { tags, files_tags, files } from '../db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, isNull } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
+
+// 定义分类类型
+export type CategoryType = 'person' | 'location' | 'event';
 
 // 生成随机颜色的辅助函数
 function generateRandomColor(): string {
   const colors = [
     '#ef4444',
-    '#f97316', 
+    '#f97316',
     '#f59e0b',
     '#eab308',
     '#84cc16',
@@ -43,7 +46,7 @@ export const tagsRouter = router({
   getUserTags: protectedProcedure.query(async ({ ctx }) => {
     // 使用原生SQL查询以获取标签使用次数
     const result = await db.execute(`
-      SELECT 
+      SELECT
         t.id,
         t.name,
         t.color,
@@ -63,13 +66,53 @@ export const tagsRouter = router({
     }));
   }),
 
+  // 获取按分类分组的标签（只返回顶级分类）
+  getTagsByCategory: protectedProcedure
+    .input(
+      z.object({
+        appId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { appId } = input;
+
+      // 使用原生SQL查询以获取标签及其文件数量
+      const result = await db.execute(`
+        SELECT
+          t.id,
+          t.name,
+          t.category_type,
+          t.color,
+          t.sort,
+          COUNT(DISTINCT ft.file_id) as count
+        FROM tags t
+        LEFT JOIN files_tags ft ON t.id = ft.tag_id
+        LEFT JOIN files f ON ft.file_id = f.id AND f.deleted_at IS NULL
+        WHERE t.user_id = '${ctx.session.user.id}'
+          AND t.app_id = '${appId}'
+          AND t.category_type IN ('person', 'location', 'event')
+          AND t.parent_id IS NULL
+        GROUP BY t.id, t.name, t.category_type, t.color, t.sort
+        ORDER BY t.sort ASC, t.name ASC
+      `);
+
+      return result.map((row) => ({
+        id: row.id as string,
+        name: row.name as string,
+        categoryType: row.category_type as CategoryType,
+        color: row.color as string | null,
+        sort: row.sort as number,
+        count: Number(row.count) || 0,
+      }));
+    }),
+
   // 创建新标签
   createTag: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1).max(20),
         color: z.string(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { name, color } = input;
@@ -78,7 +121,7 @@ export const tagsRouter = router({
       const existingTag = await db.query.tags.findFirst({
         where: and(
           eq(tags.userId, ctx.session.user.id),
-          eq(tags.name, name.trim().toLowerCase()),
+          eq(tags.name, name.trim().toLowerCase())
         ),
       });
 
@@ -110,7 +153,7 @@ export const tagsRouter = router({
         tagId: z.string(),
         name: z.string().min(1).max(20).optional(),
         color: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { tagId, name, color } = input;
@@ -122,10 +165,7 @@ export const tagsRouter = router({
 
       // 检查标签是否存在且属于当前用户
       const existingTag = await db.query.tags.findFirst({
-        where: and(
-          eq(tags.id, tagId),
-          eq(tags.userId, ctx.session.user.id),
-        ),
+        where: and(eq(tags.id, tagId), eq(tags.userId, ctx.session.user.id)),
       });
 
       if (!existingTag) {
@@ -136,12 +176,15 @@ export const tagsRouter = router({
       }
 
       // 如果更新名称，检查是否与其他标签冲突
-      if (name && name.trim().toLowerCase() !== existingTag.name.toLowerCase()) {
+      if (
+        name &&
+        name.trim().toLowerCase() !== existingTag.name.toLowerCase()
+      ) {
         const conflictingTag = await db.query.tags.findFirst({
           where: and(
             eq(tags.userId, ctx.session.user.id),
             eq(tags.name, name.trim().toLowerCase()),
-            eq(tags.id, tagId), // 排除当前标签
+            eq(tags.id, tagId) // 排除当前标签
           ),
         });
 
@@ -171,10 +214,7 @@ export const tagsRouter = router({
 
       // 检查标签是否存在且属于当前用户
       const existingTag = await db.query.tags.findFirst({
-        where: and(
-          eq(tags.id, tagId),
-          eq(tags.userId, ctx.session.user.id),
-        ),
+        where: and(eq(tags.id, tagId), eq(tags.userId, ctx.session.user.id)),
       });
 
       if (!existingTag) {
@@ -188,7 +228,9 @@ export const tagsRouter = router({
       await db.delete(files_tags).where(eq(files_tags.tagId, tagId));
 
       // 再删除标签
-      await db.delete(tags).where(and(eq(tags.id, tagId), eq(tags.userId, ctx.session.user.id)));
+      await db
+        .delete(tags)
+        .where(and(eq(tags.id, tagId), eq(tags.userId, ctx.session.user.id)));
 
       return { success: true };
     }),
@@ -198,7 +240,7 @@ export const tagsRouter = router({
     .input(z.object({ tagNames: z.array(z.string().min(1).max(20)) }))
     .mutation(async ({ ctx, input }) => {
       const { tagNames } = input;
-      
+
       if (!tagNames.length) return [];
 
       const cleanNames = cleanTagNames(tagNames);
@@ -208,12 +250,14 @@ export const tagsRouter = router({
       const existingTags = await db.query.tags.findMany({
         where: and(
           eq(tags.userId, ctx.session.user.id),
-          inArray(tags.name, cleanNames),
+          inArray(tags.name, cleanNames)
         ),
       });
 
       const existingTagNames = new Set(existingTags.map((tag) => tag.name));
-      const newTagNames = cleanNames.filter((name) => !existingTagNames.has(name));
+      const newTagNames = cleanNames.filter(
+        (name) => !existingTagNames.has(name)
+      );
 
       // 创建新标签
       const newTags = [];
@@ -226,7 +270,7 @@ export const tagsRouter = router({
               name,
               userId: ctx.session.user.id,
               color: generateRandomColor(),
-            })),
+            }))
           )
           .returning();
 
@@ -242,7 +286,7 @@ export const tagsRouter = router({
       z.object({
         fileId: z.string(),
         tagNames: z.array(z.string().min(1).max(20)),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { fileId, tagNames } = input;
@@ -252,17 +296,19 @@ export const tagsRouter = router({
       // 获取或创建标签
       const tagRecords = await db.transaction(async (tx) => {
         const cleanNames = cleanTagNames(tagNames);
-        
+
         // 查找已存在的标签
         const existingTags = await tx.query.tags.findMany({
           where: and(
             eq(tags.userId, ctx.session.user.id),
-            inArray(tags.name, cleanNames),
+            inArray(tags.name, cleanNames)
           ),
         });
 
         const existingTagNames = new Set(existingTags.map((tag) => tag.name));
-        const newTagNames = cleanNames.filter((name) => !existingTagNames.has(name));
+        const newTagNames = cleanNames.filter(
+          (name) => !existingTagNames.has(name)
+        );
 
         // 创建新标签
         const newTags = [];
@@ -275,7 +321,7 @@ export const tagsRouter = router({
                 name,
                 userId: ctx.session.user.id,
                 color: generateRandomColor(),
-              })),
+              }))
             )
             .returning();
 
@@ -292,7 +338,7 @@ export const tagsRouter = router({
           tagRecords.map((tag) => ({
             fileId,
             tagId: tag.id,
-          })),
+          }))
         )
         .onConflictDoNothing(); // 避免重复关联
 
@@ -304,7 +350,7 @@ export const tagsRouter = router({
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const { fileId } = input;
-      
+
       const result = await db.query.files_tags.findMany({
         where: eq(files_tags.fileId, fileId),
         with: {
@@ -321,7 +367,7 @@ export const tagsRouter = router({
       z.object({
         fileId: z.string(),
         tagIds: z.array(z.string()).optional(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { fileId, tagIds } = input;
@@ -331,7 +377,10 @@ export const tagsRouter = router({
         await db
           .delete(files_tags)
           .where(
-            and(eq(files_tags.fileId, fileId), inArray(files_tags.tagId, tagIds)),
+            and(
+              eq(files_tags.fileId, fileId),
+              inArray(files_tags.tagId, tagIds)
+            )
           );
       } else {
         // 删除所有标签
@@ -369,10 +418,7 @@ export const tagsRouter = router({
 
       // 获取文件信息
       const fileRecord = await db.query.files.findFirst({
-        where: and(
-          eq(files.id, fileId),
-          eq(files.userId, ctx.session.user.id)
-        ),
+        where: and(eq(files.id, fileId), eq(files.userId, ctx.session.user.id)),
       });
 
       if (!fileRecord) {
@@ -421,12 +467,14 @@ export const tagsRouter = router({
           const existingTags = await tx.query.tags.findMany({
             where: and(
               eq(tags.userId, ctx.session.user.id),
-              inArray(tags.name, cleanedTags),
+              inArray(tags.name, cleanedTags)
             ),
           });
 
           const existingTagNames = new Set(existingTags.map((tag) => tag.name));
-          const newTagNames = cleanedTags.filter((name) => !existingTagNames.has(name));
+          const newTagNames = cleanedTags.filter(
+            (name) => !existingTagNames.has(name)
+          );
 
           // 创建新标签
           const newTags = [];
@@ -439,7 +487,7 @@ export const tagsRouter = router({
                   name,
                   userId: ctx.session.user.id,
                   color: generateRandomColor(),
-                })),
+                }))
               )
               .returning();
 
@@ -456,7 +504,7 @@ export const tagsRouter = router({
             tagRecords.map((tag) => ({
               fileId,
               tagId: tag.id,
-            })),
+            }))
           )
           .onConflictDoNothing(); // 避免重复关联
 
@@ -504,7 +552,7 @@ async function recognizeImageWithAI(imageUrl: string): Promise<string[]> {
 async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
   // 注意：这需要环境变量中配置 OPENAI_API_KEY
   const apiKey = process.env.OPENAI_API_KEY;
-  
+
   if (!apiKey) {
     console.warn('未配置OPENAI_API_KEY，跳过OpenAI识别');
     return [];
@@ -514,7 +562,7 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -525,29 +573,33 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
             content: [
               {
                 type: 'text',
-                text: `请分析这张图片并生成5-10个描述性的标签。标签应该简洁明了，使用中文，每个标签不超过10个字符。请只返回标签列表，用逗号分隔，不要包含其他解释文字。例如：风景,日落,海滩,海浪,蓝色`
+                text: `请分析这张图片并生成5-10个描述性的标签。标签应该简洁明了，使用中文，每个标签不超过10个字符。请只返回标签列表，用逗号分隔，不要包含其他解释文字。例如：风景,日落,海滩,海浪,蓝色`,
               },
               {
                 type: 'image_url',
                 image_url: {
-                  url: imageUrl
-                }
-              }
-            ]
-          }
+                  url: imageUrl,
+                },
+              },
+            ],
+          },
         ],
-        max_tokens: 300
-      })
+        max_tokens: 300,
+      }),
     });
 
     if (!response.ok) {
-      console.error('OpenAI API调用失败:', response.status, response.statusText);
+      console.error(
+        'OpenAI API调用失败:',
+        response.status,
+        response.statusText
+      );
       return [];
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
-    
+
     if (!content) {
       console.warn('OpenAI返回空内容');
       return [];
@@ -556,8 +608,8 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
     // 解析返回的标签
     const tags = content
       .split(/[,，、\s]+/)
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0 && tag.length <= 10);
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0 && tag.length <= 10);
 
     return tags;
   } catch (error) {

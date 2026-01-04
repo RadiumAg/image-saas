@@ -1,11 +1,18 @@
 import { db } from '../db/db';
 import { createAppSchema } from '../db/validate-schema';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { apps, storageConfiguration } from '../db/schema';
+import { apps, storageConfiguration, tags } from '../db/schema';
 import { v4 as uuid } from 'uuid';
 import { and, desc, eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import z from 'zod';
+
+// 定义默认标签配置
+const DEFAULT_TAGS = [
+  { name: '人物', categoryType: 'person', color: '#3b82f6' },
+  { name: '地点', categoryType: 'location', color: '#22c55e' },
+  { name: '事务', categoryType: 'event', color: '#f59e0b' },
+];
 
 export const appsRouter = router({
   createApp: protectedProcedure
@@ -21,7 +28,23 @@ export const appsRouter = router({
         })
         .returning();
 
-      return result[0];
+      const newApp = result[0];
+
+      // 为新应用创建默认的三个分类标签
+      await db.insert(tags).values(
+        DEFAULT_TAGS.map((tag) => ({
+          id: uuid(),
+          name: tag.name,
+          categoryType: tag.categoryType,
+          color: tag.color,
+          userId: ctx.session.user.id,
+          appId: newApp.id,
+          sort: 0,
+          parentId: null,
+        }))
+      );
+
+      return newApp;
     }),
   listApps: protectedProcedure.query(async ({ ctx }) => {
     const result = await db.query.apps.findMany({

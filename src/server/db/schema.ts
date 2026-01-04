@@ -64,7 +64,7 @@ export const accounts = pgTable(
         columns: [account.provider, account.providerAccountId],
       }),
     },
-  ],
+  ]
 );
 
 export const sessions = pgTable('session', {
@@ -88,7 +88,7 @@ export const verificationTokens = pgTable(
         columns: [verificationToken.identifier, verificationToken.token],
       }),
     },
-  ],
+  ]
 );
 
 export const authenticators = pgTable(
@@ -111,7 +111,7 @@ export const authenticators = pgTable(
         columns: [authenticator.userId, authenticator.credentialID],
       }),
     },
-  ],
+  ]
 );
 
 export const files = pgTable(
@@ -128,7 +128,7 @@ export const files = pgTable(
     contentType: varchar('content_type', { length: 100 }).notNull(),
     appId: uuid(),
   },
-  (table) => [index('cursor_idx').on(table.id, table.createdAt)],
+  (table) => [index('cursor_idx').on(table.id, table.createdAt)]
 );
 
 export const filesRelations = relations(files, ({ one, many }) => ({
@@ -175,7 +175,7 @@ export const storageConfigurationRelation = relations(
       fields: [storageConfiguration.userId],
       references: [users.id],
     }),
-  }),
+  })
 );
 
 export const apiKeys = pgTable('apiKeys', {
@@ -203,11 +203,22 @@ export const tags = pgTable(
     color: varchar('color', { length: 7 }),
     userId: text('user_id').notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+    categoryType: varchar('category_type', { length: 20 })
+      .notNull()
+      .default('general'),
+    parentId: uuid('parent_id').references(() => tags.id, {
+      onDelete: 'set null',
+    }),
+    appId: uuid('app_id'),
+    description: varchar('description', { length: 500 }),
+    sort: integer('sort').default(0),
   },
   (table) => [
     index('tags_user_idx').on(table.userId),
     index('tags_name_idx').on(table.name),
-  ],
+    index('tags_category_idx').on(table.categoryType),
+    index('tags_parent_idx').on(table.parentId),
+  ]
 );
 
 export const tagsRelations = relations(tags, ({ many, one }) => ({
@@ -233,7 +244,7 @@ export const files_tags = pgTable(
     { pk: primaryKey({ columns: [table.fileId, table.tagId] }) },
     index('files_tags_file_idx').on(table.fileId),
     index('files_tags_tag_idx').on(table.tagId),
-  ],
+  ]
 );
 
 export const files_tagsRelations = relations(files_tags, ({ one }) => ({
