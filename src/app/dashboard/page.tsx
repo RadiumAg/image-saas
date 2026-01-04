@@ -4,7 +4,7 @@ import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
 import { useMemo, use, useState, ReactNode } from 'react';
-import { usePasteFile } from '@/app/hooks/userPasteFile';
+import { usePasteFile } from '@/hooks/user-paste-file';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import Link from 'next/link';
 
