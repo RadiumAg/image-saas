@@ -221,6 +221,7 @@ const fileRoutes = router({
       const tagFilter = eq(files_tags.tagId, ctx.input.tagId);
       const deletedFilter = isNull(files.deleteAt);
       const userFilter = eq(files.userId, ctx.ctx.session.user.id);
+      const appFilter = eq(files.appId, ctx.input.appId);
 
       const statement = db
         .select({
@@ -244,11 +245,12 @@ const fileRoutes = router({
                 tagFilter,
                 deletedFilter,
                 userFilter,
+                appFilter,
                 sql`("files"."created_at", "files"."id") < (${new Date(
                   cursor.createAt
                 ).toISOString()}, ${cursor.id})`
               )
-            : and(tagFilter, deletedFilter, userFilter)
+            : and(tagFilter, deletedFilter, userFilter, appFilter)
         );
 
       statement.orderBy(
