@@ -125,7 +125,7 @@ export default function AppPage(props: AppPageProps) {
     children = (
       <div className="h-full">
         <div className="container mx-auto flex justify-between items-center h-[60px]">
-          <Button
+          {/* <Button
             onClick={() => {
               setOrderBy((current) => ({
                 ...current,
@@ -134,9 +134,9 @@ export default function AppPage(props: AppPageProps) {
             }}
           >
             Created At {orderBy.order === 'desc' ? <MoveUp /> : <MoveDown />}
-          </Button>
+          </Button> */}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <UploadButton uppy={uppy}></UploadButton>
 
             <Button asChild>
@@ -176,7 +176,10 @@ export default function AppPage(props: AppPageProps) {
             </TabsList>
 
             <TabsContent value="all">
-              <Dropzone uppy={uppy} className="w-full h-[calc(100%-60px)]">
+              <Dropzone
+                uppy={uppy}
+                className="mt-10 w-full h-[calc(100%-60px)]"
+              >
                 {(draggling) => {
                   return (
                     <div

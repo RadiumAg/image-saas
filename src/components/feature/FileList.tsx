@@ -10,6 +10,13 @@ import { ScrollArea } from '../ui/ScrollArea';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import { DeleteFileAction, CopyUrl, PreView } from './FileItemAction';
 import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 interface FileListProps {
   uppy: Uppy;
@@ -43,9 +50,60 @@ const FileList: React.FC<FileListProps> = (props) => {
       return [...result, ...page.items];
     }, []) || [];
 
-  const utils = trpcClientReact.useUtils();
+  // 按时间分组数据
+  const groupedFiles = useMemo(() => {
+    if (!infinityQueryData?.pages) return [];
 
-  console.log('fileList', utils.file.infinityQueryFiles.getInfiniteData(query));
+    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+
+    const groups: Record<string, typeof allItems> = {};
+
+    allItems.forEach((item) => {
+      const date = new Date(item.createdAt);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let key = '';
+
+      if (date.toDateString() === today.toDateString()) {
+        key = '今天';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        key = '昨天';
+      } else if (date.getFullYear() === today.getFullYear()) {
+        key = `${date.getMonth() + 1}月${date.getDate()}日`;
+      } else {
+        key = `${date.getFullYear()}年${
+          date.getMonth() + 1
+        }月${date.getDate()}日`;
+      }
+
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(item);
+    });
+
+    return Object.entries(groups).map(([key, items]) => ({
+      key,
+      items,
+      count: items.length,
+    }));
+  }, [infinityQueryData?.pages]);
+
+  // 展开状态管理
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    default: true,
+  });
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [key]: prev[key] === undefined ? true : !prev[key],
+    }));
+  };
+
+  const utils = trpcClientReact.useUtils();
 
   const handleFileDelete = (id: string) => {
     utils.file.infinityQueryFiles.setInfiniteData(query, (prev) => {
@@ -156,36 +214,97 @@ const FileList: React.FC<FileListProps> = (props) => {
     };
   }, [query]);
 
-  const fileListEle = fileList?.map((file) => {
+  const fileListEle = groupedFiles.map((group) => {
+    const isToday = group.key === '今天';
+
     return (
-      <RemoteFileItemWithTags
-        key={file.id}
-        id={file.id}
-        name={file.name}
-        contentType={file.contentType}
-        tags={file.tags}
+      <Collapsible
+        className="mb-5"
+        key={group.key}
+        open={openGroups[group.key] ?? true}
+        onOpenChange={() => toggleGroup(group.key)}
       >
-        {(props) => {
-          const { setPreview } = props;
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-lg">{group.key}</span>
+            <span className="text-sm text-muted-foreground">
+              ({group.count} 张)
+            </span>
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${
+              openGroups[group.key] ? 'rotate-180' : ''
+            }`}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4">
+          <div className="flex flex-wrap gap-4">
+            {isToday &&
+              uploadingFilesIds.length > 0 &&
+              uploadingFilesIds.map((fileId) => {
+                const file = uppyFiles[fileId];
+                const isImage = file.data.type.startsWith('image');
+                const url = URL.createObjectURL(file.data);
 
-          return (
-            <div className="w-full h-full cursor-pointer absolute insert-0 bg-background/30 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-              <CopyUrl url={`${location.host}/image/${file.id}`} />
+                return (
+                  <div
+                    key={fileId}
+                    className="flex justify-center items-center border border-red-500"
+                  >
+                    {isImage ? (
+                      <img
+                        className="w-56 h-56 object-cover"
+                        src={url}
+                        alt="file"
+                      />
+                    ) : (
+                      <Image
+                        width={100}
+                        height={100}
+                        className="w-full"
+                        src="/file.png"
+                        alt="unknow file type"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            {group.items.map((file) => (
+              <RemoteFileItemWithTags
+                className="w-56 h-56"
+                key={file.id}
+                id={file.id}
+                name={file.name}
+                contentType={file.contentType}
+                tags={file.tags}
+              >
+                {(props) => {
+                  const { setPreview } = props;
 
-              <DeleteFileAction
-                onDeleteSuccess={handleFileDelete}
-                fileId={file.id}
-              />
+                  return (
+                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                      <CopyUrl
+                        url={`${window.location.host}/image/${file.id}`}
+                      />
 
-              <PreView
-                onClick={() => {
-                  setPreview(true);
+                      <DeleteFileAction
+                        onDeleteSuccess={handleFileDelete}
+                        fileId={file.id}
+                      />
+
+                      <PreView
+                        onClick={() => {
+                          setPreview(true);
+                        }}
+                      />
+                    </div>
+                  );
                 }}
-              />
-            </div>
-          );
-        }}
-      </RemoteFileItemWithTags>
+              </RemoteFileItemWithTags>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     );
   });
 
@@ -197,37 +316,12 @@ const FileList: React.FC<FileListProps> = (props) => {
       }}
     >
       {isPending && <div className="text-center">Loading...</div>}
-      <div
-        className={cn(
-          'grid @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4 gap-4 relative container'
-        )}
-      >
-        {uploadingFilesIds.length > 0 &&
-          uploadingFilesIds.map((fileId) => {
-            const file = uppyFiles[fileId];
-            const isImage = file.data.type.startsWith('image');
-            const url = URL.createObjectURL(file.data);
+      <div className={cn('relative container')}>{fileListEle}</div>
 
-            return (
-              <div
-                key={fileId}
-                className="flex justify-center items-center border border-red-500"
-              >
-                {isImage ? (
-                  <img className="w-full h-full" src={url} alt="file" />
-                ) : (
-                  <Image
-                    width={100}
-                    height={100}
-                    className="w-full"
-                    src="/file.png"
-                    alt="unknow file type"
-                  />
-                )}
-              </div>
-            );
-          })}
-        {fileListEle}
+      <div className="space-y-4">
+        {groupedFiles.length === 0 && !isPending && (
+          <div className="text-center text-muted-foreground py-8">暂无图片</div>
+        )}
       </div>
 
       <div ref={bottomRef} className="flex justify-center p-8">
