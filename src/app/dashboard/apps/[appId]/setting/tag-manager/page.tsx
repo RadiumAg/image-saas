@@ -292,7 +292,7 @@ const TagManagerPage: React.FC = (props: TagManagerProps) => {
               className="flex items-center justify-between p-2 border rounded-lg"
             >
               <div className="flex items-center space-x-2">
-                <Tag name={tag.name} color={tag.color} size="sm" />
+                <Tag name={tag.name} size="sm" />
                 <span className="text-xs text-gray-500">
                   {tag.count} 个文件
                 </span>

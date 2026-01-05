@@ -5,6 +5,7 @@ import {
 } from 'next-auth';
 import { db } from '@/server/db/db';
 import GitHubProvider from 'next-auth/providers/github';
+import GitLabProvider from 'next-auth/providers/gitlab';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 
 declare module 'next-auth' {
@@ -31,6 +32,10 @@ const authOption: AuthOptions = {
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
+    }),
+    GitLabProvider({
+      clientId: process.env.GITLAB_ID!,
+      clientSecret: process.env.GITLAB_SECRET!,
     }),
   ],
 };
