@@ -290,6 +290,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                       <DeleteFileAction
                         onDeleteSuccess={handleFileDelete}
                         fileId={file.id}
+                        appId={appId}
                       />
 
                       <PreView

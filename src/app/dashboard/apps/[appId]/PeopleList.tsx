@@ -186,6 +186,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
                             <DeleteFileAction
                               onDeleteSuccess={handleFileDelete}
                               fileId={item.id}
+                              appId={appId}
                             />
 
                             <PreView

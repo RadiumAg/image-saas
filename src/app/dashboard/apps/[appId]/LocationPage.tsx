@@ -186,6 +186,7 @@ const LocationPage: React.FC<Props> = (props) => {
                             <DeleteFileAction
                               onDeleteSuccess={handleFileDelete}
                               fileId={item.id}
+                              appId={appId}
                             />
 
                             <PreView

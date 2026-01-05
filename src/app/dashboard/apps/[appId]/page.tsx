@@ -11,7 +11,7 @@ import { usePasteFile } from '@/hooks/user-paste-file';
 import UploadPreview from '@/components/feature/UploadPreview';
 import FileList from '@/components/feature/FileList';
 import { FilesOrderByColumn } from '@/server/routes/file';
-import { MoveUp, MoveDown, Settings } from 'lucide-react';
+import { MoveUp, MoveDown, Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
@@ -137,6 +137,12 @@ export default function AppPage(props: AppPageProps) {
           </Button> */}
 
           <div className="flex items-center gap-2 ml-auto">
+            <Button asChild variant="outline">
+              <Link href={`/dashboard/apps/${appId}/trash`}>
+                <Trash2 className="h-4 w-4" />
+              </Link>
+            </Button>
+
             <UploadButton uppy={uppy}></UploadButton>
 
             <Button asChild>
@@ -145,7 +151,7 @@ export default function AppPage(props: AppPageProps) {
 
             <Button asChild>
               <Link href={`/dashboard/apps/${appId}/setting/storage`}>
-                <Settings></Settings>
+                <Settings />
               </Link>
             </Button>
           </div>

@@ -122,6 +122,7 @@ export const files = pgTable(
     type: varchar('type', { length: 100 }).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
     deleteAt: timestamp('deleted_at', { mode: 'date' }),
+    deletedAtExpiration: timestamp('deleted_at_expiration', { mode: 'date' }),
     path: varchar('path', { length: 1024 }).notNull(),
     url: varchar('url', { length: 1024 }).notNull(),
     userId: text('user_id').notNull(),

@@ -188,12 +188,161 @@ const fileRoutes = router({
     }),
 
   deleteFile: protectedProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        id: z.string(),
+        appId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const deleteAt = new Date();
+      const expirationDate = new Date(
+        deleteAt.getTime() + 7 * 24 * 60 * 60 * 1000
+      ); // 7天后
+
+      return db
+        .update(files)
+        .set({
+          deleteAt,
+          deletedAtExpiration: expirationDate,
+        })
+        .where(
+          and(
+            eq(files.id, input.id),
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, input.appId)
+          )
+        );
+    }),
+
+  batchDeleteFiles: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        appId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const deleteAt = new Date();
+      const expirationDate = new Date(
+        deleteAt.getTime() + 7 * 24 * 60 * 60 * 1000
+      ); // 7天后
+
+      await db
+        .update(files)
+        .set({
+          deleteAt,
+          deletedAtExpiration: expirationDate,
+        })
+        .where(
+          and(
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, input.appId),
+            sql`${files.id} = ANY(${input.ids})`
+          )
+        );
+
+      return { success: true, count: input.ids.length };
+    }),
+
+  restoreFile: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        appId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       return db
         .update(files)
-        .set({ deleteAt: new Date() })
-        .where(eq(files.id, input));
+        .set({
+          deleteAt: null,
+          deletedAtExpiration: null,
+        })
+        .where(
+          and(
+            eq(files.id, input.id),
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, input.appId)
+          )
+        );
+    }),
+
+  batchRestoreFiles: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        appId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .update(files)
+        .set({
+          deleteAt: null,
+          deletedAtExpiration: null,
+        })
+        .where(
+          and(
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, input.appId),
+            sql`${files.id} = ANY(${input.ids})`
+          )
+        );
+
+      return { success: true, count: input.ids.length };
+    }),
+
+  getDeletedFiles: protectedProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({
+            id: z.string(),
+            deleteAt: z.string(),
+          })
+          .optional(),
+        limit: z.number().default(20),
+        appId: z.string(),
+      })
+    )
+    .query(async (ctx) => {
+      const { cursor, limit, appId } = ctx.input;
+
+      const deletedFilter = sql`${files.deleteAt} IS NOT NULL`;
+      const userFilter = eq(files.userId, ctx.ctx.session.user.id);
+      const appFilter = eq(files.appId, appId);
+
+      const baseWhere = and(deletedFilter, userFilter, appFilter);
+
+      const statement = db
+        .select()
+        .from(files)
+        .limit(limit)
+        .where(
+          cursor
+            ? and(
+                baseWhere,
+                sql`("files"."deleted_at", "files"."id") < (${new Date(
+                  cursor.deleteAt
+                ).toISOString()}, ${cursor.id})`
+              )
+            : baseWhere
+        )
+        .orderBy(desc(files.deleteAt));
+
+      const result = await statement;
+
+      return {
+        items: result,
+        nextCursor:
+          result.length > 0
+            ? {
+                id: result[result.length - 1].id,
+                deleteAt: result[result.length - 1].deleteAt!.toISOString(),
+              }
+            : null,
+      };
     }),
 
   infinityQueryFilesByTag: protectedProcedure
@@ -271,6 +420,71 @@ const fileRoutes = router({
               }
             : null,
       };
+    }),
+  permanentlyDeleteFile: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        appId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 检查文件是否属于当前用户和同一应用
+      const file = await db.query.files.findFirst({
+        where: and(
+          eq(files.id, input.id),
+          eq(files.userId, ctx.session.user.id),
+          eq(files.appId, input.appId)
+        ),
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'File not found',
+        });
+      }
+
+      // 先删除 S3 中的文件
+      // TODO: 实现 S3 文件删除
+
+      // 再从数据库中永久删除
+      await db.delete(files).where(eq(files.id, input.id));
+
+      return { success: true };
+    }),
+
+  batchPermanentlyDeleteFiles: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        appId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 检查文件是否属于当前用户和同一应用
+      const fileRecords = await db.query.files.findMany({
+        where: and(
+          eq(files.userId, ctx.session.user.id),
+          eq(files.appId, input.appId),
+          sql`${files.id} = ANY(${input.ids})`
+        ),
+      });
+
+      // TODO: 批量删除 S3 中的文件
+
+      // 从数据库中永久删除
+      await db
+        .delete(files)
+        .where(
+          and(
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, input.appId),
+            sql`${files.id} = ANY(${input.ids})`
+          )
+        );
+
+      return { success: true, count: input.ids.length };
     }),
 });
 

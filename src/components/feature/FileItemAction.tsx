@@ -7,11 +7,12 @@ import { toast } from 'sonner';
 
 interface FileItemActionProps {
   fileId: string;
+  appId: string;
   onDeleteSuccess: (fileId: string) => void;
 }
 
 const DeleteFileAction: React.FC<FileItemActionProps> = (props) => {
-  const { fileId, onDeleteSuccess } = props;
+  const { fileId, appId, onDeleteSuccess } = props;
   const { mutate: deleteFile, isPending } =
     trpcClientReact.file.deleteFile.useMutation({
       onSuccess: () => {
@@ -20,7 +21,7 @@ const DeleteFileAction: React.FC<FileItemActionProps> = (props) => {
     });
 
   const handleRemoveFile = () => {
-    deleteFile(fileId);
+    deleteFile({ id: fileId, appId });
     toast('Delete Success!');
   };
 
