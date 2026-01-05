@@ -3,7 +3,7 @@ import { trpcClientReact } from '@/utils/api';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { Trash2, RotateCcw, Download } from 'lucide-react';
+import { Trash2, RotateCcw, Download, AlertCircle } from 'lucide-react';
 import { useState, useMemo, FC, use } from 'react';
 import {
   Collapsible,
@@ -13,6 +13,16 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
 import InfiniteScroll from '@/components/feature/InfiniteScroll';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface TrashPageProps {
   params: Promise<{ appId: string }>;
@@ -24,6 +34,16 @@ const TrashPage: FC<TrashPageProps> = (props) => {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     default: true,
+  });
+
+  // 确认对话框状态
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    type: 'restore' | 'permanentlyDelete' | 'batchRestore' | 'batchPermanentlyDelete';
+    id?: string;
+  }>({
+    open: false,
+    type: 'restore',
   });
 
   const query = {
@@ -51,6 +71,12 @@ const TrashPage: FC<TrashPageProps> = (props) => {
     trpcClientReact.file.permanentlyDeleteFile.useMutation();
   const batchPermanentlyDeleteFilesMutation =
     trpcClientReact.file.batchPermanentlyDeleteFiles.useMutation();
+
+  const isOperating =
+    restoreFileMutation.isPending ||
+    batchRestoreFilesMutation.isPending ||
+    permanentlyDeleteFileMutation.isPending ||
+    batchPermanentlyDeleteFilesMutation.isPending;
 
   const toggleSelect = (id: string) => {
     setSelectedFiles((prev) => {
@@ -86,109 +112,157 @@ const TrashPage: FC<TrashPageProps> = (props) => {
   };
 
   const handleRestore = (id: string) => {
-    restoreFileMutation.mutate(
-      { id, appId },
-      {
-        onSuccess: () => {
-          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
-            if (!prev) return prev;
-
-            return {
-              ...prev,
-              pages: prev.pages.map((page) => ({
-                ...page,
-                items: page.items.filter((file) => file.id !== id),
-              })),
-              pageParams: prev.pageParams,
-            };
-          });
-
-          setSelectedFiles((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(id);
-            return newSet;
-          });
-        },
-      }
-    );
+    setConfirmDialog({
+      open: true,
+      type: 'restore',
+      id,
+    });
   };
 
   const handleBatchRestore = () => {
     if (selectedFiles.size === 0) return;
 
-    batchRestoreFilesMutation.mutate(
-      { ids: Array.from(selectedFiles), appId },
-      {
-        onSuccess: () => {
-          const ids = Array.from(selectedFiles);
-          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
-            if (!prev) return prev;
-
-            return {
-              ...prev,
-              pages: prev.pages.map((page) => ({
-                ...page,
-                items: page.items.filter((file) => !ids.includes(file.id)),
-              })),
-              pageParams: prev.pageParams,
-            };
-          });
-        },
-      }
-    );
+    setConfirmDialog({
+      open: true,
+      type: 'batchRestore',
+    });
   };
 
   const handlePermanentlyDelete = (id: string) => {
-    permanentlyDeleteFileMutation.mutate(
-      { id, appId },
-      {
-        onSuccess: () => {
-          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
-            if (!prev) return prev;
-
-            return {
-              ...prev,
-              pages: prev.pages.map((page) => ({
-                ...page,
-                items: page.items.filter((file) => file.id !== id),
-              })),
-              pageParams: prev.pageParams,
-            };
-          });
-
-          setSelectedFiles((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(id);
-            return newSet;
-          });
-        },
-      }
-    );
+    setConfirmDialog({
+      open: true,
+      type: 'permanentlyDelete',
+      id,
+    });
   };
 
   const handleBatchPermanentlyDelete = () => {
     if (selectedFiles.size === 0) return;
 
-    batchPermanentlyDeleteFilesMutation.mutate(
-      { ids: Array.from(selectedFiles), appId },
-      {
-        onSuccess: () => {
-          const ids = Array.from(selectedFiles);
-          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
-            if (!prev) return prev;
+    setConfirmDialog({
+      open: true,
+      type: 'batchPermanentlyDelete',
+    });
+  };
 
-            return {
-              ...prev,
-              pages: prev.pages.map((page) => ({
-                ...page,
-                items: page.items.filter((file) => !ids.includes(file.id)),
-              })),
-              pageParams: prev.pageParams,
-            };
-          });
-        },
-      }
-    );
+  const handleConfirm = () => {
+    setConfirmDialog({ open: false, type: 'restore' });
+
+    switch (confirmDialog.type) {
+      case 'restore':
+        if (confirmDialog.id) {
+          restoreFileMutation.mutate(
+            { id: confirmDialog.id, appId },
+            {
+              onSuccess: () => {
+                utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                  if (!prev) return prev;
+
+                  return {
+                    ...prev,
+                    pages: prev.pages.map((page) => ({
+                      ...page,
+                      items: page.items.filter(
+                        (file) => file.id !== confirmDialog.id
+                      ),
+                    })),
+                    pageParams: prev.pageParams,
+                  };
+                });
+
+                setSelectedFiles((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(confirmDialog.id!);
+                  return newSet;
+                });
+              },
+            }
+          );
+        }
+        break;
+
+      case 'batchRestore':
+        const restoreIds = Array.from(selectedFiles);
+        batchRestoreFilesMutation.mutate(
+          { ids: restoreIds, appId },
+          {
+            onSuccess: () => {
+              utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                if (!prev) return prev;
+
+                return {
+                  ...prev,
+                  pages: prev.pages.map((page) => ({
+                    ...page,
+                    items: page.items.filter(
+                      (file) => !restoreIds.includes(file.id)
+                    ),
+                  })),
+                  pageParams: prev.pageParams,
+                };
+              });
+            },
+          }
+        );
+        break;
+
+      case 'permanentlyDelete':
+        if (confirmDialog.id) {
+          permanentlyDeleteFileMutation.mutate(
+            { id: confirmDialog.id, appId },
+            {
+              onSuccess: () => {
+                utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                  if (!prev) return prev;
+
+                  return {
+                    ...prev,
+                    pages: prev.pages.map((page) => ({
+                      ...page,
+                      items: page.items.filter(
+                        (file) => file.id !== confirmDialog.id
+                      ),
+                    })),
+                    pageParams: prev.pageParams,
+                  };
+                });
+
+                setSelectedFiles((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(confirmDialog.id!);
+                  return newSet;
+                });
+              },
+            }
+          );
+        }
+        break;
+
+      case 'batchPermanentlyDelete':
+        const deleteIds = Array.from(selectedFiles);
+        batchPermanentlyDeleteFilesMutation.mutate(
+          { ids: deleteIds, appId },
+          {
+            onSuccess: () => {
+              utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                if (!prev) return prev;
+
+                return {
+                  ...prev,
+                  pages: prev.pages.map((page) => ({
+                    ...page,
+                    items: page.items.filter(
+                      (file) => !deleteIds.includes(file.id)
+                    ),
+                  })),
+                  pageParams: prev.pageParams,
+                };
+              });
+            },
+          }
+        );
+        break;
+    }
   };
 
   // 按时间分组数据
@@ -288,21 +362,29 @@ const TrashPage: FC<TrashPageProps> = (props) => {
           <Button
             variant="ghost"
             size="sm"
-            disabled={selectedFiles.size === 0}
+            disabled={selectedFiles.size === 0 || isOperating}
             onClick={handleBatchRestore}
           >
-            <RotateCcw className="h-4 w-4" />
+            {batchRestoreFilesMutation.isPending ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+            ) : (
+              <RotateCcw className="h-4 w-4" />
+            )}
             恢复选中
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            disabled={selectedFiles.size === 0}
+            disabled={selectedFiles.size === 0 || isOperating}
             onClick={handleBatchPermanentlyDelete}
             className="text-destructive"
           >
-            <Trash2 className="h-4 w-4" />
+            {batchPermanentlyDeleteFilesMutation.isPending ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
             永久删除
           </Button>
         </div>
@@ -394,16 +476,36 @@ const TrashPage: FC<TrashPageProps> = (props) => {
                                       handlePermanentlyDelete(item.id)
                                     }
                                     className="text-destructive"
+                                    disabled={
+                                      isOperating &&
+                                      permanentlyDeleteFileMutation.variables?.id !==
+                                        item.id
+                                    }
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    {permanentlyDeleteFileMutation.isPending &&
+                                    permanentlyDeleteFileMutation.variables?.id ===
+                                      item.id ? (
+                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                                    ) : (
+                                      <Trash2 className="h-4 w-4" />
+                                    )}
                                   </Button>
 
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleRestore(item.id)}
+                                    disabled={
+                                      isOperating &&
+                                      restoreFileMutation.variables?.id !== item.id
+                                    }
                                   >
-                                    <RotateCcw className="h-4 w-4" />
+                                    {restoreFileMutation.isPending &&
+                                    restoreFileMutation.variables?.id === item.id ? (
+                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                                    ) : (
+                                      <RotateCcw className="h-4 w-4" />
+                                    )}
                                   </Button>
                                 </div>
                               );
@@ -419,6 +521,48 @@ const TrashPage: FC<TrashPageProps> = (props) => {
           </InfiniteScroll>
         </div>
       </ScrollArea>
+
+      {/* 确认对话框 */}
+      <AlertDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({ ...prev, open }))
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              {confirmDialog.type.includes('permanentlyDelete')
+                ? '永久删除确认'
+                : '恢复确认'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.type === 'restore' && '确定要恢复这个文件吗？'}
+              {confirmDialog.type === 'permanentlyDelete' &&
+                '此操作不可撤销，确定要永久删除这个文件吗？'}
+              {confirmDialog.type === 'batchRestore' &&
+                `确定要恢复选中的 ${selectedFiles.size} 个文件吗？`}
+              {confirmDialog.type === 'batchPermanentlyDelete' &&
+                `此操作不可撤销，确定要永久删除选中的 ${selectedFiles.size} 个文件吗？`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isOperating}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirm}
+              disabled={isOperating}
+              className={
+                confirmDialog.type.includes('permanentlyDelete')
+                  ? 'bg-destructive hover:bg-destructive/90'
+                  : ''
+              }
+            >
+              {isOperating ? '处理中...' : '确认'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
