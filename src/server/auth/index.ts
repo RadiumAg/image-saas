@@ -5,7 +5,6 @@ import {
 } from 'next-auth';
 import { db } from '@/server/db/db';
 import GitHubProvider from 'next-auth/providers/github';
-import GitLabProvider from 'next-auth/providers/gitlab';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 
 // Gitee Provider
@@ -29,6 +28,29 @@ const GiteeProvider = {
   },
   clientId: process.env.GITEE_ID!,
   clientSecret: process.env.GITEE_SECRET!,
+};
+
+// JiHuLab Provider
+const JiHuLabProvider = {
+  id: 'jihulab',
+  name: 'JiHuLab',
+  type: 'oauth' as const,
+  authorization: {
+    url: 'https://jihulab.com/oauth/authorize',
+    params: { grant_type: 'authorization_code' },
+  },
+  token: 'https://jihulab.com/oauth/token',
+  userinfo: 'https://jihulab.com/api/v4/user',
+  profile(profile: any) {
+    return {
+      id: profile.id.toString(),
+      name: profile.name || profile.username,
+      email: profile.email,
+      image: profile.avatar_url,
+    };
+  },
+  clientId: process.env.JIHULAB_ID!,
+  clientSecret: process.env.JIHULAB_SECRET!,
 };
 
 declare module 'next-auth' {
@@ -56,10 +78,7 @@ const authOption: AuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
     }),
-    GitLabProvider({
-      clientId: process.env.GITLAB_ID!,
-      clientSecret: process.env.GITLAB_SECRET!,
-    }),
+    JiHuLabProvider,
     GiteeProvider,
   ],
 };
