@@ -3,7 +3,7 @@ import { trpcClientReact } from '@/utils/api';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/ScrollArea';
-import { Trash2, RotateCcw, Download, AlertCircle } from 'lucide-react';
+import { Trash2, RotateCcw, Download, AlertCircle, Info } from 'lucide-react';
 import { useState, useMemo, FC, use } from 'react';
 import {
   Collapsible,
@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface TrashPageProps {
   params: Promise<{ appId: string }>;
@@ -392,6 +393,15 @@ const TrashPage: FC<TrashPageProps> = (props) => {
 
       <ScrollArea className="h-[calc(100%-60px)]">
         <div className="container mx-auto mt-4">
+          {/* 提示信息 */}
+          <Alert className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertTitle>提示</AlertTitle>
+            <AlertDescription>
+              回收站中的文件会在删除 7 天后自动永久删除，请及时恢复需要保留的文件。
+            </AlertDescription>
+          </Alert>
+
           {/* 全选/取消全选 */}
           {groupedData.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
