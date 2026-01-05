@@ -90,7 +90,24 @@ const TrashPage: FC<TrashPageProps> = (props) => {
       { id, appId },
       {
         onSuccess: () => {
-          utils.file.getDeletedFiles.invalidate();
+          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              pages: prev.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((file) => file.id !== id),
+              })),
+              pageParams: prev.pageParams,
+            };
+          });
+
+          setSelectedFiles((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
         },
       }
     );
@@ -103,8 +120,19 @@ const TrashPage: FC<TrashPageProps> = (props) => {
       { ids: Array.from(selectedFiles), appId },
       {
         onSuccess: () => {
-          utils.file.getDeletedFiles.invalidate();
-          setSelectedFiles(new Set());
+          const ids = Array.from(selectedFiles);
+          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              pages: prev.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((file) => !ids.includes(file.id)),
+              })),
+              pageParams: prev.pageParams,
+            };
+          });
         },
       }
     );
@@ -115,7 +143,24 @@ const TrashPage: FC<TrashPageProps> = (props) => {
       { id, appId },
       {
         onSuccess: () => {
-          utils.file.getDeletedFiles.invalidate();
+          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              pages: prev.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((file) => file.id !== id),
+              })),
+              pageParams: prev.pageParams,
+            };
+          });
+
+          setSelectedFiles((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
         },
       }
     );
@@ -128,8 +173,19 @@ const TrashPage: FC<TrashPageProps> = (props) => {
       { ids: Array.from(selectedFiles), appId },
       {
         onSuccess: () => {
-          utils.file.getDeletedFiles.invalidate();
-          setSelectedFiles(new Set());
+          const ids = Array.from(selectedFiles);
+          utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              pages: prev.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((file) => !ids.includes(file.id)),
+              })),
+              pageParams: prev.pageParams,
+            };
+          });
         },
       }
     );
