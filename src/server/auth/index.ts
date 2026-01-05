@@ -8,6 +8,29 @@ import GitHubProvider from 'next-auth/providers/github';
 import GitLabProvider from 'next-auth/providers/gitlab';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 
+// Gitee Provider
+const GiteeProvider = {
+  id: 'gitee',
+  name: 'Gitee',
+  type: 'oauth' as const,
+  authorization: {
+    url: 'https://gitee.com/oauth/authorize',
+    params: { grant_type: 'authorization_code' },
+  },
+  token: 'https://gitee.com/oauth/token',
+  userinfo: 'https://gitee.com/api/v5/user',
+  profile(profile: any) {
+    return {
+      id: profile.id.toString(),
+      name: profile.name || profile.login,
+      email: profile.email,
+      image: profile.avatar_url,
+    };
+  },
+  clientId: process.env.GITEE_ID!,
+  clientSecret: process.env.GITEE_SECRET!,
+};
+
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
@@ -37,6 +60,7 @@ const authOption: AuthOptions = {
       clientId: process.env.GITLAB_ID!,
       clientSecret: process.env.GITLAB_SECRET!,
     }),
+    GiteeProvider,
   ],
 };
 
