@@ -10,7 +10,7 @@ import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { db } from '../db/db';
 import { files, files_tags } from '../db/schema';
 import { v4 as uuid } from 'uuid';
-import { and, asc, desc, eq, gt, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
 import { filesCanOrderByColumn } from '../db/validate-schema';
 import { TRPCError } from '@trpc/server';
 
@@ -228,7 +228,7 @@ const fileRoutes = router({
         deleteAt.getTime() + 7 * 24 * 60 * 60 * 1000
       ); // 7天后
 
-      await db
+      const result = await db
         .update(files)
         .set({
           deleteAt,
@@ -238,11 +238,12 @@ const fileRoutes = router({
           and(
             eq(files.userId, ctx.session.user.id),
             eq(files.appId, input.appId),
-            sql`${files.id} = ANY(${input.ids})`
+            inArray(files.id, input.ids)
           )
-        );
+        )
+        .returning();
 
-      return { success: true, count: input.ids.length };
+      return { success: true, count: result.length };
     }),
 
   restoreFile: protectedProcedure
@@ -276,7 +277,7 @@ const fileRoutes = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await db
+      const result = await db
         .update(files)
         .set({
           deleteAt: null,
@@ -286,11 +287,12 @@ const fileRoutes = router({
           and(
             eq(files.userId, ctx.session.user.id),
             eq(files.appId, input.appId),
-            sql`${files.id} = ANY(${input.ids})`
+            inArray(files.id, input.ids)
           )
-        );
+        )
+        .returning();
 
-      return { success: true, count: input.ids.length };
+      return { success: true, count: result.length };
     }),
 
   getDeletedFiles: protectedProcedure
@@ -462,29 +464,21 @@ const fileRoutes = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // 检查文件是否属于当前用户和同一应用
-      const fileRecords = await db.query.files.findMany({
-        where: and(
-          eq(files.userId, ctx.session.user.id),
-          eq(files.appId, input.appId),
-          sql`${files.id} = ANY(${input.ids})`
-        ),
-      });
-
       // TODO: 批量删除 S3 中的文件
 
       // 从数据库中永久删除
-      await db
+      const result = await db
         .delete(files)
         .where(
           and(
             eq(files.userId, ctx.session.user.id),
             eq(files.appId, input.appId),
-            sql`${files.id} = ANY(${input.ids})`
+            inArray(files.id, input.ids)
           )
-        );
+        )
+        .returning();
 
-      return { success: true, count: input.ids.length };
+      return { success: true, count: result.length };
     }),
 });
 

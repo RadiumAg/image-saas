@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 import { Trash2, RotateCcw, Download } from 'lucide-react';
-import { useState, useMemo, FC } from 'react';
+import { useState, useMemo, FC, use } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,11 +15,11 @@ import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
 import InfiniteScroll from '@/components/feature/InfiniteScroll';
 
 interface TrashPageProps {
-  appId: string;
+  params: Promise<{ appId: string }>;
 }
 
 const TrashPage: FC<TrashPageProps> = (props) => {
-  const { appId } = props;
+  const { appId } = use(props.params);
 
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -45,9 +45,12 @@ const TrashPage: FC<TrashPageProps> = (props) => {
   const utils = trpcClientReact.useUtils();
 
   const restoreFileMutation = trpcClientReact.file.restoreFile.useMutation();
-  const batchRestoreFilesMutation = trpcClientReact.file.batchRestoreFiles.useMutation();
-  const permanentlyDeleteFileMutation = trpcClientReact.file.permanentlyDeleteFile.useMutation();
-  const batchPermanentlyDeleteFilesMutation = trpcClientReact.file.batchPermanentlyDeleteFiles.useMutation();
+  const batchRestoreFilesMutation =
+    trpcClientReact.file.batchRestoreFiles.useMutation();
+  const permanentlyDeleteFileMutation =
+    trpcClientReact.file.permanentlyDeleteFile.useMutation();
+  const batchPermanentlyDeleteFilesMutation =
+    trpcClientReact.file.batchPermanentlyDeleteFiles.useMutation();
 
   const toggleSelect = (id: string) => {
     setSelectedFiles((prev) => {
@@ -83,41 +86,53 @@ const TrashPage: FC<TrashPageProps> = (props) => {
   };
 
   const handleRestore = (id: string) => {
-    restoreFileMutation.mutate({ id, appId }, {
-      onSuccess: () => {
-        utils.file.getDeletedFiles.invalidate();
-      },
-    });
+    restoreFileMutation.mutate(
+      { id, appId },
+      {
+        onSuccess: () => {
+          utils.file.getDeletedFiles.invalidate();
+        },
+      }
+    );
   };
 
   const handleBatchRestore = () => {
     if (selectedFiles.size === 0) return;
 
-    batchRestoreFilesMutation.mutate({ ids: Array.from(selectedFiles), appId }, {
-      onSuccess: () => {
-        utils.file.getDeletedFiles.invalidate();
-        setSelectedFiles(new Set());
-      },
-    });
+    batchRestoreFilesMutation.mutate(
+      { ids: Array.from(selectedFiles), appId },
+      {
+        onSuccess: () => {
+          utils.file.getDeletedFiles.invalidate();
+          setSelectedFiles(new Set());
+        },
+      }
+    );
   };
 
   const handlePermanentlyDelete = (id: string) => {
-    permanentlyDeleteFileMutation.mutate({ id, appId }, {
-      onSuccess: () => {
-        utils.file.getDeletedFiles.invalidate();
-      },
-    });
+    permanentlyDeleteFileMutation.mutate(
+      { id, appId },
+      {
+        onSuccess: () => {
+          utils.file.getDeletedFiles.invalidate();
+        },
+      }
+    );
   };
 
   const handleBatchPermanentlyDelete = () => {
     if (selectedFiles.size === 0) return;
 
-    batchPermanentlyDeleteFilesMutation.mutate({ ids: Array.from(selectedFiles), appId }, {
-      onSuccess: () => {
-        utils.file.getDeletedFiles.invalidate();
-        setSelectedFiles(new Set());
-      },
-    });
+    batchPermanentlyDeleteFilesMutation.mutate(
+      { ids: Array.from(selectedFiles), appId },
+      {
+        onSuccess: () => {
+          utils.file.getDeletedFiles.invalidate();
+          setSelectedFiles(new Set());
+        },
+      }
+    );
   };
 
   // 按时间分组数据
@@ -186,7 +201,10 @@ const TrashPage: FC<TrashPageProps> = (props) => {
     return (
       <div className="container mx-auto mt-10 flex justify-center items-center h-96">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+          <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+            role="status"
+          >
             <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
               Loading...
             </span>
@@ -304,6 +322,7 @@ const TrashPage: FC<TrashPageProps> = (props) => {
                           <RemoteFileItemWithTags
                             id={item.id}
                             name={item.name}
+                            className="w-56 h-56"
                             contentType={item.contentType}
                             tags={item.tags}
                           >
