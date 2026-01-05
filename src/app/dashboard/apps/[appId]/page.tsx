@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
-import { useMemo, use, useState, ReactNode } from 'react';
+import { useMemo, use, useState, ReactNode, ReactElement } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
 import UploadPreview from '@/components/feature/UploadPreview';
 import FileList from '@/components/feature/FileList';
@@ -197,12 +197,22 @@ export default function AppPage(props: AppPageProps) {
               <UploadPreview uppy={uppy} />
             </TabsContent>
 
-            {/* 动态生成分类标签的内容 */}
-            {categoryTags.map((tag) => (
-              <TabsContent key={tag.id} value={`${tag.categoryType}-${tag.id}`}>
-                <PeopleList appId={appId} tagId={tag.id} />
-              </TabsContent>
-            ))}
+            {categoryTags.map((tag) => {
+              let component: ReactElement | null = null;
+
+              switch (tag.categoryType) {
+                case 'person':
+                  component = <PeopleList appId={appId} tagId={tag.id} />;
+              }
+              return (
+                <TabsContent
+                  key={tag.id}
+                  value={`${tag.categoryType}-${tag.id}`}
+                >
+                  {component}
+                </TabsContent>
+              );
+            })}
           </Tabs>
         </div>
       </div>
