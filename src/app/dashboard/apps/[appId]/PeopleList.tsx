@@ -9,6 +9,13 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import InfiniteScroll from '@/components/feature/InfiniteScroll';
+import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
+import {
+  DeleteFileAction,
+  CopyUrl,
+  PreView,
+} from '@/components/feature/FileItemAction';
 
 type PeopleList = {
   appId: string;
@@ -40,6 +47,23 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     refetchOnReconnect: false,
   });
 
+  const utils = trpcClientReact.useUtils();
+
+  const handleFileDelete = (id: string) => {
+    utils.file.infinityQueryFilesByTag.setInfiniteData(query, (prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        pages: prev.pages.map((page) => ({
+          ...page,
+          items: page.items.filter((file) => file.id !== id),
+        })),
+        pageParams: prev.pageParams,
+      };
+    });
+  };
+
   // 展开状态管理
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     default: true,
@@ -48,7 +72,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   const toggleGroup = (key: string) => {
     setOpenGroups((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [key]: prev[key] === undefined ? false : !prev[key],
     }));
   };
 
@@ -110,37 +134,76 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   }
 
   return (
-    <div className="container mx-auto mt-10 space-y-6">
-      {groupedData.map((group) => (
-        <Collapsible
-          key={group.key}
-          open={openGroups[group.key] ?? true}
-          onOpenChange={() => toggleGroup(group.key)}
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-lg">{group.key}</span>
-              <span className="text-sm text-muted-foreground">
-                ({group.count} 张)
-              </span>
-            </div>
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${
-                openGroups[group.key] ? 'rotate-180' : ''
-              }`}
-            />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4">
-            <div className="flex flex-wrap gap-4">
-              {group.items.map((item) => (
-                <Avatar key={item.id} className="w-32 h-32 flex flex-wrap">
-                  <AvatarImage className="object-cover" src={item.url} />
-                </Avatar>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      ))}
+    <div className="container mx-auto mt-10">
+      <InfiniteScroll
+        loadMore={() => fetchNextPage()}
+        hasMore={
+          infinityQueryData?.pages?.[infinityQueryData.pages.length - 1]
+            ?.nextCursor !== undefined
+        }
+        isLoading={isPending}
+      >
+        <div className="space-y-6">
+          {groupedData.map((group) => (
+            <Collapsible
+              key={group.key}
+              open={openGroups[group.key] ?? true}
+              onOpenChange={() => toggleGroup(group.key)}
+            >
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-lg">{group.key}</span>
+                  <span className="text-sm text-muted-foreground">
+                    ({group.count} 张)
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${
+                    openGroups[group.key] ? 'rotate-180' : ''
+                  }`}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <div className="flex flex-wrap gap-4">
+                  {group.items.map((item) => (
+                    <RemoteFileItemWithTags
+                      key={item.id}
+                      id={item.id}
+                      className="w-50 h-50 overflow-hidden rounded-full"
+                      name={item.name}
+                      contentType={item.contentType}
+                      tags={item.tags}
+                    >
+                      {(props) => {
+                        const { setPreview } = props;
+
+                        return (
+                          <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                            <CopyUrl
+                              url={`${window.location.host}/image/${item.id}`}
+                            />
+
+                            <DeleteFileAction
+                              onDeleteSuccess={handleFileDelete}
+                              fileId={item.id}
+                            />
+
+                            <PreView
+                              onClick={() => {
+                                setPreview(true);
+                              }}
+                            />
+                          </div>
+                        );
+                      }}
+                    </RemoteFileItemWithTags>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </div>
+      </InfiniteScroll>
     </div>
   );
 };

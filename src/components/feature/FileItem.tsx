@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 import ImageReview from '../ui/ImageReview';
+import { cn } from '@/lib/utils';
 
 type Children = (options: {
   setPreview: React.Dispatch<React.SetStateAction<boolean>>;
@@ -10,17 +11,22 @@ interface FileItemProps {
   url: string | null;
   name: string;
   isImage: boolean;
+  className?: string;
   children?: Children;
 }
 const FileItem: React.FC<FileItemProps> = (props) => {
-  const { isImage, url, children, name } = props;
+  const { isImage, url, className, name, children } = props;
   const [preview, setPreview] = React.useState(false);
-  console.log('[DEBUG]', preview);
 
   if (url == null) return null;
 
   return (
-    <div className="flex justify-center items-center border relative w-full h-full">
+    <div
+      className={cn(
+        'flex justify-center items-center border relative w-full h-full',
+        className
+      )}
+    >
       {isImage ? (
         <ImageReview
           className="object-cover"
@@ -107,15 +113,21 @@ const RemoteFileItemWithTags = (option: {
   contentType: string;
   id: string;
   name: string;
+  className?: string;
   tags?: Array<{ id: string; name: string; color: string }>;
   children?: Children;
 }) => {
-  const { contentType, id, name, tags, children } = option;
+  const { contentType, id, name, tags, className, children } = option;
   const isImage = contentType.startsWith('image');
   const imageUrl = `/image/${id}`;
 
   return (
-    <FileItem isImage={isImage} url={imageUrl} name={name}>
+    <FileItem
+      className={className}
+      isImage={isImage}
+      url={imageUrl}
+      name={name}
+    >
       {children}
     </FileItem>
   );

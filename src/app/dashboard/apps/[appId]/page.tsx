@@ -194,7 +194,6 @@ export default function AppPage(props: AppPageProps) {
                   );
                 }}
               </Dropzone>
-              <UploadPreview uppy={uppy} />
             </TabsContent>
 
             {categoryTags.map((tag) => {
@@ -215,6 +214,8 @@ export default function AppPage(props: AppPageProps) {
             })}
           </Tabs>
         </div>
+
+        <UploadPreview uppy={uppy} />
       </div>
     );
   }
