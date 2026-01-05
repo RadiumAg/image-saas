@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
 import PeopleList from './PeopleList';
+import EventPage from './EventPage';
+import LocationPage from './LocationPage';
 
 type CategoryType = 'person' | 'location' | 'event';
 
@@ -202,6 +204,12 @@ export default function AppPage(props: AppPageProps) {
               switch (tag.categoryType) {
                 case 'person':
                   component = <PeopleList appId={appId} tagId={tag.id} />;
+
+                case 'event':
+                  component = <EventPage appId={appId} tagId={tag.id} />;
+
+                case 'location':
+                  component = <LocationPage appId={appId} tagId={tag.id} />;
               }
               return (
                 <TabsContent
