@@ -160,12 +160,15 @@ const FileList: React.FC<FileListProps> = (props) => {
             appId,
           })
           .then(async (resp) => {
-            // 只对图片文件进行识别
+            // 对图片文件进行识别
             if (file.data.type && file.data.type.startsWith('image')) {
               try {
                 await trpcPureClient.tags.recognizeImageTags.mutate({
                   fileId: resp.id,
                 });
+
+                // AI识别成功后刷新tags
+                utils.tags.getTagsByCategory.invalidate({ appId });
               } catch (error) {
                 console.error('AI识别失败:', error);
               }
