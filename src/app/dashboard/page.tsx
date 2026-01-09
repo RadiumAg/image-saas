@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/Button';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
-import { useMemo, use, useState, ReactNode } from 'react';
+import { useMemo, use, useState, ReactNode, useEffect } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface AppPageProps {
   params: Promise<{ appId: string }>;
@@ -14,6 +15,7 @@ interface AppPageProps {
 }
 
 export default function AppPage(props: AppPageProps) {
+  const router = useRouter();
   const params = use(props.params);
   const { appId } = params;
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery(
@@ -25,6 +27,17 @@ export default function AppPage(props: AppPageProps) {
     }
   );
   const currentApp = apps?.find((app) => app.id === appId);
+
+  // 如果没有 app，重定向到创建页面
+  useEffect(() => {
+    if (!isPending && (!apps || apps.length === 0)) {
+      router.push('/dashboard/apps/new');
+    }
+  }, [isPending, apps, router]);
+
+  if (isPending || (!apps || apps.length === 0)) {
+    return <div className="flex items-center justify-center">Loading...</div>;
+  }
 
   const uppy = useMemo(() => {
     const uppy = new Uppy();
@@ -63,11 +76,7 @@ export default function AppPage(props: AppPageProps) {
 
   let children: ReactNode;
 
-  if (isPending) {
-    children = (
-      <div className="flex items-center justify-center">Loading...</div>
-    );
-  } else if (currentApp == null) {
+  if (currentApp == null) {
     children = (
       <div className="flex flex-col mt-10 p-4 border rounded-md max-w-48 mx-auto items-center">
         <div className="flex flex-col agp-4 items-center">

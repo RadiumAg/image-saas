@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { ThemeProvider } from './ThemeProvider';
 import { ThemeToggle } from './ThemeToggle';
 import UserMenu from '@/components/feature/UserMenu';
+import { serverCaller } from '@/utils/trpc';
 import '../globals.css';
 
 export default async function RootLayout({
@@ -17,6 +18,7 @@ export default async function RootLayout({
   if (!session?.user) {
     redirect('/api/auth/signin');
   }
+
   return (
     <ThemeProvider>
       <nav className="h-[80px] border-b flex justify-center">

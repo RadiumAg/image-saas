@@ -59,7 +59,9 @@ export const tagsRouter = router({
       ORDER BY count DESC, t.name ASC
     `);
 
-    return result.map((row) => ({
+    const rows = result.rows || [];
+
+    return rows.map((row) => ({
       id: row.id as string,
       name: row.name as string,
       color: row.color as string,
@@ -97,7 +99,9 @@ export const tagsRouter = router({
         ORDER BY t.sort ASC, t.name ASC
       `);
 
-      return result.map((row) => ({
+      const rows = result.rows || [];
+
+      return rows.map((row) => ({
         id: row.id as string,
         name: row.name as string,
         categoryType: row.category_type as CategoryType,
