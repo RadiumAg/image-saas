@@ -43,9 +43,16 @@ const fileRoutes = router({
           storage: true,
         },
       });
-      if (!app || !app.storage) {
+      if (!app) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'App 不存在',
+        });
+      }
+      if (!app.storage) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
+          message: '该 App 尚未配置存储空间，请先配置存储空间',
         });
       }
 

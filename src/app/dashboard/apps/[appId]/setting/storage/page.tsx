@@ -38,7 +38,7 @@ export default function StoragePage(props: Props) {
     <div className="pt-10">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl mb-6">Storage</h1>
-        <Link href={`/dashboard/apps/${appId}/storage/new`}>
+        <Link href={`/dashboard/apps/${appId}/setting/storage/new`}>
           <Button>
             <Plus></Plus>
           </Button>

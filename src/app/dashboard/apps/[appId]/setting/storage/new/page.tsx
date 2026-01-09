@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { S3StorageConfiguration } from '@/server/db/schema';
 import { trpcClientReact } from '@/utils/api';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 interface Props {
@@ -15,19 +15,22 @@ interface Props {
 
 export default function StoragePage(props: Props) {
   const { appId } = use(props.params);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<S3StorageConfiguration & { name: string }>();
-  const { mutate } = trpcClientReact.storages.createStorage.useMutation();
+  const { mutate, isPending, isSuccess } = trpcClientReact.storages.createStorage.useMutation();
 
   const onSubmit: SubmitHandler<S3StorageConfiguration & { name: string }> = (
-    data,
+    data
   ) => {
-    console.log('submit');
-    mutate(data);
-    redirect(`/dashboard/apps/${appId}/storage`);
+    mutate(data, {
+      onSuccess: () => {
+        router.push(`/dashboard/apps/${appId}/setting/storage`);
+      },
+    });
   };
 
   return (
@@ -45,16 +48,6 @@ export default function StoragePage(props: Props) {
           <Label>Bucket</Label>
           <Input {...register('bucket', { required: 'Bucket is required' })} />
           <span className="text-red-500">{errors.bucket?.message}</span>
-        </div>
-
-        <div>
-          <Label>AccessKeyId</Label>
-          <Input
-            {...register('accessKeyId', {
-              required: 'AccessKeyId is required',
-            })}
-          />
-          <span className="text-red-500">{errors.accessKeyId?.message}</span>
         </div>
 
         <div>
@@ -92,7 +85,9 @@ export default function StoragePage(props: Props) {
           <span className="text-red-500">{errors.apiEndPoint?.message}</span>
         </div>
 
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={isPending || isSubmitting}>
+          {isPending ? 'Creating...' : 'Submit'}
+        </Button>
       </form>
     </div>
   );
