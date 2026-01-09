@@ -159,7 +159,9 @@ const EventPage: React.FC<Props> = (props) => {
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${
-                    openGroups[group.key] ? 'rotate-180' : ''
+                    openGroups[group.key] || openGroups[group.key] === undefined
+                      ? 'rotate-180'
+                      : ''
                   }`}
                 />
               </CollapsibleTrigger>

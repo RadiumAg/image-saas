@@ -133,6 +133,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     );
   }
 
+  debugger;
   return (
     <div className="container mx-auto mt-10">
       <InfiniteScroll
@@ -159,7 +160,9 @@ const PeopleList: React.FC<PeopleList> = (props) => {
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${
-                    openGroups[group.key] ? 'rotate-180' : ''
+                    openGroups[group.key] || openGroups[group.key] === undefined
+                      ? 'rotate-180'
+                      : ''
                   }`}
                 />
               </CollapsibleTrigger>

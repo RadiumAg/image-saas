@@ -213,13 +213,17 @@ export default function AppPage(props: AppPageProps) {
               switch (tag.categoryType) {
                 case 'person':
                   component = <PeopleList appId={appId} tagId={tag.id} />;
+                  break;
 
                 case 'event':
                   component = <EventPage appId={appId} tagId={tag.id} />;
+                  break;
 
                 case 'location':
                   component = <LocationPage appId={appId} tagId={tag.id} />;
+                  break;
               }
+
               return (
                 <TabsContent
                   key={tag.id}
