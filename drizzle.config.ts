@@ -6,12 +6,7 @@ export default defineConfig({
   schema: './src/server/db/schema.ts',
   dialect: 'postgresql',
   dbCredentials: {
-    host: '127.0.0.1',
-    port: 5432,
-    user: 'postgres',
-    database: 'image-sass',
-    password: '123456678',
-    ssl: false,
+    url: process.env.DATABASE_URL!,
   },
   verbose: true,
   strict: true,
