@@ -99,9 +99,7 @@ export const tagsRouter = router({
         ORDER BY t.sort ASC, t.name ASC
       `);
 
-      const rows = result.rows || [];
-
-      return rows.map((row) => ({
+      return result.map((row) => ({
         id: row.id as string,
         name: row.name as string,
         categoryType: row.category_type as CategoryType,
