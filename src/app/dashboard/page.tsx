@@ -26,18 +26,13 @@ export default function AppPage(props: AppPageProps) {
       refetchOnMount: false,
     }
   );
+  const [orderBy, setOrderBy] = useState<
+    Exclude<FilesOrderByColumn, undefined>
+  >({
+    field: 'createdAt',
+    order: 'desc',
+  });
   const currentApp = apps?.find((app) => app.id === appId);
-
-  // 如果没有 app，重定向到创建页面
-  useEffect(() => {
-    if (!isPending && (!apps || apps.length === 0)) {
-      router.push('/dashboard/apps/new');
-    }
-  }, [isPending, apps, router]);
-
-  if (isPending || (!apps || apps.length === 0)) {
-    return <div className="flex items-center justify-center">Loading...</div>;
-  }
 
   const uppy = useMemo(() => {
     const uppy = new Uppy();
@@ -67,14 +62,18 @@ export default function AppPage(props: AppPageProps) {
     },
   });
 
-  const [orderBy, setOrderBy] = useState<
-    Exclude<FilesOrderByColumn, undefined>
-  >({
-    field: 'createdAt',
-    order: 'desc',
-  });
+  // 如果没有 app，重定向到创建页面
+  useEffect(() => {
+    if (!isPending && (!apps || apps.length === 0)) {
+      router.push('/dashboard/apps/new');
+    }
+  }, [isPending, apps, router]);
 
   let children: ReactNode;
+
+  if (isPending || !apps || apps.length === 0) {
+    return <div className="flex items-center justify-center">Loading...</div>;
+  }
 
   if (currentApp == null) {
     children = (
