@@ -1,6 +1,6 @@
 'use client';
 import { Avatar } from '@/components/ui/Avatar';
-import { trpcClientReact } from '@/utils/api';
+import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import { AvatarImage } from '@radix-ui/react-avatar';
 import {
   Collapsible,
@@ -8,7 +8,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import InfiniteScroll from '@/components/feature/InfiniteScroll';
 import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
 import {
@@ -16,14 +16,19 @@ import {
   CopyUrl,
   PreView,
 } from '@/components/feature/FileItemAction';
+import Uppy from '@uppy/core';
+import AWS3 from '@uppy/aws-s3';
+import Dropzone from '@/components/feature/Dropzone';
+import { cn } from '@/lib/utils';
 
 type PeopleList = {
   appId: string;
   tagId?: string;
+  uppy: Uppy;
 };
 
 const PeopleList: React.FC<PeopleList> = (props) => {
-  const { appId, tagId } = props;
+  const { appId, tagId, uppy } = props;
 
   // 如果没有 tagId，不渲染
   if (!tagId) {
@@ -48,6 +53,67 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   });
 
   const utils = trpcClientReact.useUtils();
+
+  // 上传成功后刷新数据
+  useEffect(() => {
+    const handler = (file: any, resp: any) => {
+      if (file) {
+        trpcPureClient.file.saveFile
+          .mutate({
+            name: file.data instanceof File ? file.data.name : 'test',
+            path: resp.uploadURL ?? '',
+            type: file.data.type,
+            appId,
+          })
+          .then(async (savedFile) => {
+            // 对图片文件进行识别
+            if (file.data.type && file.data.type.startsWith('image')) {
+              try {
+                await trpcPureClient.tags.recognizeImageTags.mutate({
+                  fileId: savedFile.id,
+                });
+
+                // AI识别成功后刷新tags
+                utils.tags.getTagsByCategory.invalidate({ appId });
+              } catch (error) {
+                console.error('AI识别失败:', error);
+              }
+            }
+
+            // 直接更新缓存数据
+            utils.file.infinityQueryFilesByTag.setInfiniteData(query, (prev) => {
+              if (!prev) return prev;
+
+              return {
+                ...prev,
+                pages: prev.pages.map((page, index) => {
+                  if (index === 0) {
+                    return {
+                      ...page,
+                      items: [savedFile, ...page.items],
+                    };
+                  }
+                  return page;
+                }),
+                pageParams: prev.pageParams,
+              };
+            });
+          });
+      }
+    };
+
+    const completeHandler = () => {
+      utils.file.infinityQueryFilesByTag.invalidate(query);
+    };
+
+    uppy.on('upload-success', handler);
+    uppy.on('complete', completeHandler);
+
+    return () => {
+      uppy.off('upload-success', handler);
+      uppy.off('complete', completeHandler);
+    };
+  }, [uppy, utils, appId, query]);
 
   const handleFileDelete = (id: string) => {
     utils.file.infinityQueryFilesByTag.setInfiniteData(query, (prev) => {
@@ -127,87 +193,124 @@ const PeopleList: React.FC<PeopleList> = (props) => {
 
   if (groupedData.length === 0) {
     return (
-      <div className="container mx-auto mt-10 text-center text-muted-foreground">
-        暂无图片
+      <div className="container mx-auto mt-10">
+        <Dropzone uppy={uppy} className="w-full h-[calc(100vh-200px)]">
+          {(draggling) => {
+            return (
+              <div
+                className={cn(
+                  'flex flex-wrap gap-4 relative h-full',
+                  draggling && 'border border-dashed'
+                )}
+              >
+                {draggling && (
+                  <div className="absolute inset-0 bg-secondary/50 z-10 flex justify-center items-center">
+                    Drop File Here To Upload
+                  </div>
+                )}
+                <div className="w-full text-center text-muted-foreground py-20">
+                  暂无图片
+                </div>
+              </div>
+            );
+          }}
+        </Dropzone>
       </div>
     );
   }
 
-  debugger;
   return (
     <div className="container mx-auto mt-10">
-      <InfiniteScroll
-        loadMore={() => fetchNextPage()}
-        hasMore={
-          infinityQueryData?.pages?.[infinityQueryData.pages.length - 1]
-            ?.nextCursor !== undefined
-        }
-        isLoading={isPending}
-      >
-        <div className="space-y-6">
-          {groupedData.map((group) => (
-            <Collapsible
-              key={group.key}
-              open={openGroups[group.key] ?? true}
-              onOpenChange={() => toggleGroup(group.key)}
+      <Dropzone uppy={uppy} className="w-full">
+        {(draggling) => {
+          return (
+            <div
+              className={cn(
+                'relative',
+                draggling && 'border border-dashed'
+              )}
             >
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-lg">{group.key}</span>
-                  <span className="text-sm text-muted-foreground">
-                    ({group.count} 张)
-                  </span>
+              {draggling && (
+                <div className="absolute inset-0 bg-secondary/50 z-10 flex justify-center items-center">
+                  Drop File Here To Upload
                 </div>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    openGroups[group.key] || openGroups[group.key] === undefined
-                      ? 'rotate-180'
-                      : ''
-                  }`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4">
-                <div className="flex flex-wrap gap-4">
-                  {group.items.map((item) => (
-                    <RemoteFileItemWithTags
-                      key={item.id}
-                      id={item.id}
-                      className="w-50 h-50 overflow-hidden rounded-full"
-                      name={item.name}
-                      contentType={item.contentType}
-                      tags={item.tags}
+              )}
+              <InfiniteScroll
+                loadMore={() => fetchNextPage()}
+                hasMore={
+                  infinityQueryData?.pages?.[infinityQueryData.pages.length - 1]
+                    ?.nextCursor !== undefined
+                }
+                isLoading={isPending}
+              >
+                <div className="space-y-6">
+                  {groupedData.map((group) => (
+                    <Collapsible
+                      key={group.key}
+                      open={openGroups[group.key] ?? true}
+                      onOpenChange={() => toggleGroup(group.key)}
                     >
-                      {(props) => {
-                        const { setPreview } = props;
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-lg">{group.key}</span>
+                          <span className="text-sm text-muted-foreground">
+                            ({group.count} 张)
+                          </span>
+                        </div>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${
+                            openGroups[group.key] || openGroups[group.key] === undefined
+                              ? 'rotate-180'
+                              : ''
+                          }`}
+                        />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-4">
+                        <div className="flex flex-wrap gap-4">
+                          {group.items.map((item) => (
+                            <RemoteFileItemWithTags
+                              key={item.id}
+                              id={item.id}
+                              className="w-50 h-50 overflow-hidden rounded-full"
+                              name={item.name}
+                              contentType={item.contentType}
+                              tags={item.tags}
+                            >
+                              {(props) => {
+                                const { setPreview } = props;
 
-                        return (
-                          <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                            <CopyUrl
-                              url={`${window.location.host}/image/${item.id}`}
-                            />
+                                return (
+                                  <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                    <CopyUrl
+                                      url={`${window.location.host}/image/${item.id}`}
+                                    />
 
-                            <DeleteFileAction
-                              onDeleteSuccess={handleFileDelete}
-                              fileId={item.id}
-                              appId={appId}
-                            />
+                                    <DeleteFileAction
+                                      onDeleteSuccess={handleFileDelete}
+                                      fileId={item.id}
+                                      appId={appId}
+                                    />
 
-                            <PreView
-                              onClick={() => {
-                                setPreview(true);
+                                    <PreView
+                                      onClick={() => {
+                                        setPreview(true);
+                                      }}
+                                    />
+                                  </div>
+                                );
                               }}
-                            />
-                          </div>
-                        );
-                      }}
-                    </RemoteFileItemWithTags>
+                            </RemoteFileItemWithTags>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </div>
-      </InfiniteScroll>
+              </InfiniteScroll>
+            </div>
+          );
+        }}
+      </Dropzone>
     </div>
   );
 };

@@ -212,15 +212,21 @@ export default function AppPage(props: AppPageProps) {
 
               switch (tag.categoryType) {
                 case 'person':
-                  component = <PeopleList appId={appId} tagId={tag.id} />;
+                  component = (
+                    <PeopleList uppy={uppy} appId={appId} tagId={tag.id} />
+                  );
                   break;
 
                 case 'event':
-                  component = <EventPage appId={appId} tagId={tag.id} />;
+                  component = (
+                    <EventPage uppy={uppy} appId={appId} tagId={tag.id} />
+                  );
                   break;
 
                 case 'location':
-                  component = <LocationPage appId={appId} tagId={tag.id} />;
+                  component = (
+                    <LocationPage uppy={uppy} appId={appId} tagId={tag.id} />
+                  );
                   break;
               }
 
