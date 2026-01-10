@@ -4,9 +4,11 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 const createApiClient = ({
   apiKey,
   signedToken,
+  baseUrl = `${process.env.NEXT_PUBLIC_API_URL!}/api/open`,
 }: {
   apiKey?: string;
   signedToken?: string;
+  baseUrl?: string;
 }) => {
   const headers: Record<string, string> = {};
 
@@ -18,10 +20,10 @@ const createApiClient = ({
     headers['signed-token'] = signedToken;
   }
 
-  createTRPCProxyClient<OpenRouter>({
+  return createTRPCProxyClient<OpenRouter>({
     links: [
       httpBatchLink({
-        url: 'http://localhost:3000/api/open',
+        url: baseUrl,
         headers,
       }),
     ],
