@@ -58,7 +58,7 @@ const TagManagerPage: React.FC = (props: TagManagerProps) => {
     error: fileTagsError,
     refetch: refetchFileTags,
   } = trpcClientReact.tags.getFileTags.useQuery(
-    { fileId },
+    { fileId: fileId! },
     { enabled: !!fileId }
   );
 
@@ -83,7 +83,7 @@ const TagManagerPage: React.FC = (props: TagManagerProps) => {
 
   useEffect(() => {
     if (fileTagsData) {
-      setFileTags(fileTagsData);
+      setFileTags(fileTagsData as any);
       setSelectedTags(fileTagsData?.map((tag: any) => tag.name) || []);
       setError(null);
     } else if (fileTagsError) {

@@ -114,10 +114,9 @@ const RemoteFileItemWithTags = (option: {
   id: string;
   name: string;
   className?: string;
-  tags?: Array<{ id: string; name: string; color: string }>;
   children?: Children;
 }) => {
-  const { contentType, id, name, tags, className, children } = option;
+  const { contentType, id, name, className, children } = option;
   const isImage = contentType.startsWith('image');
   const imageUrl = `/image/${id}`;
 

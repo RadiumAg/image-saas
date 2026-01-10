@@ -40,7 +40,11 @@ const TrashPage: FC<TrashPageProps> = (props) => {
   // 确认对话框状态
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    type: 'restore' | 'permanentlyDelete' | 'batchRestore' | 'batchPermanentlyDelete';
+    type:
+      | 'restore'
+      | 'permanentlyDelete'
+      | 'batchRestore'
+      | 'batchPermanentlyDelete';
     id?: string;
   }>({
     open: false,
@@ -275,7 +279,7 @@ const TrashPage: FC<TrashPageProps> = (props) => {
     const groups: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
-      const date = new Date(item.deleteAt);
+      const date = new Date(item.deleteAt!);
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -398,7 +402,8 @@ const TrashPage: FC<TrashPageProps> = (props) => {
             <Info className="h-4 w-4" />
             <AlertTitle>提示</AlertTitle>
             <AlertDescription>
-              回收站中的文件会在删除 7 天后自动永久删除，请及时恢复需要保留的文件。
+              回收站中的文件会在删除 7
+              天后自动永久删除，请及时恢复需要保留的文件。
             </AlertDescription>
           </Alert>
 
@@ -472,7 +477,6 @@ const TrashPage: FC<TrashPageProps> = (props) => {
                             name={item.name}
                             className="w-56 h-56"
                             contentType={item.contentType}
-                            tags={item.tags}
                           >
                             {(props) => {
                               const { setPreview } = props;
@@ -488,13 +492,13 @@ const TrashPage: FC<TrashPageProps> = (props) => {
                                     className="text-destructive"
                                     disabled={
                                       isOperating &&
-                                      permanentlyDeleteFileMutation.variables?.id !==
-                                        item.id
+                                      permanentlyDeleteFileMutation.variables
+                                        ?.id !== item.id
                                     }
                                   >
                                     {permanentlyDeleteFileMutation.isPending &&
-                                    permanentlyDeleteFileMutation.variables?.id ===
-                                      item.id ? (
+                                    permanentlyDeleteFileMutation.variables
+                                      ?.id === item.id ? (
                                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
                                     ) : (
                                       <Trash2 className="h-4 w-4" />
@@ -507,11 +511,13 @@ const TrashPage: FC<TrashPageProps> = (props) => {
                                     onClick={() => handleRestore(item.id)}
                                     disabled={
                                       isOperating &&
-                                      restoreFileMutation.variables?.id !== item.id
+                                      restoreFileMutation.variables?.id !==
+                                        item.id
                                     }
                                   >
                                     {restoreFileMutation.isPending &&
-                                    restoreFileMutation.variables?.id === item.id ? (
+                                    restoreFileMutation.variables?.id ===
+                                      item.id ? (
                                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
                                     ) : (
                                       <RotateCcw className="h-4 w-4" />
@@ -535,9 +541,7 @@ const TrashPage: FC<TrashPageProps> = (props) => {
       {/* 确认对话框 */}
       <AlertDialog
         open={confirmDialog.open}
-        onOpenChange={(open) =>
-          setConfirmDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
       >
         <AlertDialogContent>
           <AlertDialogHeader>

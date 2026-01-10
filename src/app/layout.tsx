@@ -1,19 +1,17 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
+
 import { TrpcProvider } from './trpc-provider';
 import { Toaster } from '@/components/ui/Sonner';
 import './globals.css';
 import './rc-image.scss';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
+const geistSans = GeistSans;
+geistSans.variable = '--font-geist-sans';
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+const geistMono = GeistMono;
+geistMono.variable = '--font-geist-mono';
 
 export const metadata: Metadata = {
   title: 'Image SaaS',

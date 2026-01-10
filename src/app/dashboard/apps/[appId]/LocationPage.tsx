@@ -80,23 +80,26 @@ const LocationPage: React.FC<Props> = (props) => {
             }
 
             // 直接更新缓存数据
-            utils.file.infinityQueryFilesByTag.setInfiniteData(query, (prev) => {
-              if (!prev) return prev;
+            utils.file.infinityQueryFilesByTag.setInfiniteData(
+              query,
+              (prev) => {
+                if (!prev) return prev;
 
-              return {
-                ...prev,
-                pages: prev.pages.map((page, index) => {
-                  if (index === 0) {
-                    return {
-                      ...page,
-                      items: [savedFile, ...page.items],
-                    };
-                  }
-                  return page;
-                }),
-                pageParams: prev.pageParams,
-              };
-            });
+                return {
+                  ...prev,
+                  pages: prev.pages.map((page, index) => {
+                    if (index === 0) {
+                      return {
+                        ...page,
+                        items: [savedFile, ...page.items],
+                      };
+                    }
+                    return page;
+                  }),
+                  pageParams: prev.pageParams,
+                };
+              }
+            );
           });
       }
     };
@@ -150,7 +153,7 @@ const LocationPage: React.FC<Props> = (props) => {
     const groups: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
-      const date = new Date(item.createdAt);
+      const date = new Date(item.createdAt!);
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -224,10 +227,7 @@ const LocationPage: React.FC<Props> = (props) => {
         {(draggling) => {
           return (
             <div
-              className={cn(
-                'relative',
-                draggling && 'border border-dashed'
-              )}
+              className={cn('relative', draggling && 'border border-dashed')}
             >
               {draggling && (
                 <div className="absolute inset-0 bg-secondary/50 z-10 flex justify-center items-center">
@@ -251,14 +251,17 @@ const LocationPage: React.FC<Props> = (props) => {
                     >
                       <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-lg">{group.key}</span>
+                          <span className="font-semibold text-lg">
+                            {group.key}
+                          </span>
                           <span className="text-sm text-muted-foreground">
                             ({group.count} 张)
                           </span>
                         </div>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform ${
-                            openGroups[group.key] || openGroups[group.key] === undefined
+                            openGroups[group.key] ||
+                            openGroups[group.key] === undefined
                               ? 'rotate-180'
                               : ''
                           }`}
@@ -273,7 +276,6 @@ const LocationPage: React.FC<Props> = (props) => {
                               className="w-50 h-50 overflow-hidden rounded-full"
                               name={item.name}
                               contentType={item.contentType}
-                              tags={item.tags}
                             >
                               {(props) => {
                                 const { setPreview } = props;

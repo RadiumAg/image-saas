@@ -5,7 +5,10 @@ import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 
-const GET = async (request: NextRequest, data: { params: Promise<{ id: string }> }) => {
+const GET = async (
+  request: NextRequest,
+  data: { params: Promise<{ id: string }> }
+) => {
   const { id } = await data.params;
   const { searchParams } = new URL(request.url);
 
@@ -21,7 +24,8 @@ const GET = async (request: NextRequest, data: { params: Promise<{ id: string }>
       },
     },
   });
-  if (!file?.app?.storage) {
+
+  if (Array.isArray(file?.app) || !file?.app?.storage) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
     });

@@ -59,7 +59,7 @@ const FileList: React.FC<FileListProps> = (props) => {
     const groups: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
-      const date = new Date(item.createdAt);
+      const date = new Date(item.createdAt!);
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -279,7 +279,6 @@ const FileList: React.FC<FileListProps> = (props) => {
                 id={file.id}
                 name={file.name}
                 contentType={file.contentType}
-                tags={file.tags}
               >
                 {(props) => {
                   const { setPreview } = props;
