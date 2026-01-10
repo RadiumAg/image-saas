@@ -200,7 +200,7 @@ export const tags = pgTable(
   'tags',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
-    name: varchar('name', { length: 100 }).notNull().unique(),
+    name: varchar('name', { length: 100 }).notNull(),
     color: varchar('color', { length: 7 }),
     userId: text('user_id').notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
