@@ -14,7 +14,7 @@ const GiteeProvider = {
   type: 'oauth' as const,
   authorization: {
     url: 'https://gitee.com/oauth/authorize',
-    params: { grant_type: 'authorization_code' },
+    params: { scope: undefined, state: undefined },
   },
   token: 'https://gitee.com/oauth/token',
   userinfo: 'https://gitee.com/api/v5/user',
