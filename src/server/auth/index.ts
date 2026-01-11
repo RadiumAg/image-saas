@@ -26,6 +26,11 @@ const GiteeProvider = {
       image: profile.avatar_url,
     };
   },
+  style: {
+    logo: 'https://th.bing.com/th/id/ODF.KCStyvubJszELPE98QcMBA?w=32&h=32&qlt=90&pcl=fffffc&o=6&pid=1.2',
+    bg: 'red',
+    text: '#fff',
+  },
   clientId: process.env.GITEE_ID!,
   clientSecret: process.env.GITEE_SECRET!,
 };
@@ -49,6 +54,7 @@ const JiHuLabProvider = {
       image: profile.avatar_url,
     };
   },
+  style: { logo: '/gitlab.svg', bg: '#8f6a64', text: '#fff' },
   clientId: process.env.JIHULAB_ID!,
   clientSecret: process.env.JIHULAB_SECRET!,
 };
@@ -78,8 +84,8 @@ const authOption: AuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
     }),
-    JiHuLabProvider,
     GiteeProvider,
+    JiHuLabProvider,
   ],
 };
 
