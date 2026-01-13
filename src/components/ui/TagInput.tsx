@@ -26,17 +26,21 @@ export function TagInput({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (inputValue) {
-      const filtered = suggestions.filter(
-        (suggestion) =>
-          suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
-          !value.includes(suggestion)
-      );
-      setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-    } else {
-      setShowSuggestions(false);
-    }
+    const timeoutId = setTimeout(() => {
+      if (inputValue) {
+        const filtered = suggestions.filter(
+          (suggestion) =>
+            suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
+            !value.includes(suggestion)
+        );
+        setFilteredSuggestions(filtered);
+        setShowSuggestions(filtered.length > 0);
+      } else {
+        setShowSuggestions(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [inputValue, suggestions, value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +62,7 @@ export function TagInput({
 
   const addTag = (tagValue?: string) => {
     const tagToAdd = tagValue || inputValue.trim();
-    
+
     if (
       tagToAdd &&
       !value.includes(tagToAdd) &&
@@ -67,7 +71,7 @@ export function TagInput({
     ) {
       onChange([...value, tagToAdd]);
     }
-    
+
     setInputValue('');
     setShowSuggestions(false);
   };
@@ -112,7 +116,7 @@ export function TagInput({
             </button>
           </span>
         ))}
-        
+
         {value.length < maxTags && (
           <div className="flex-1 min-w-[120px]">
             <input
