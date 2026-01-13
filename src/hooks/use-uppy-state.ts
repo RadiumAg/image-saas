@@ -1,7 +1,7 @@
 import Uppy, { Body } from '@uppy/core';
 import { useMemo, useSyncExternalStore } from 'react';
 
-const useUppyState = <T extends any, TMeta extends Body>(
+const useUppyState = <T, TMeta extends Body>(
   uppy: Uppy<TMeta>,
   selector: (state: ReturnType<Uppy<TMeta>['getState']>) => T
 ) => {
