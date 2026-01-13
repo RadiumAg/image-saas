@@ -40,7 +40,8 @@ const FileItem: React.FC<FileItemProps> = (props) => {
             imageRender(props) {
               const { props: imageProps } = props;
               return (
-                <img
+                <Image
+                  alt=""
                   {...(imageProps as any)}
                   src={`${
                     (imageProps as any).src
