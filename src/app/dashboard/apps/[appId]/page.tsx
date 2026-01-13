@@ -11,7 +11,7 @@ import { usePasteFile } from '@/hooks/user-paste-file';
 import UploadPreview from '@/components/feature/UploadPreview';
 import FileList from '@/components/feature/FileList';
 import { FilesOrderByColumn } from '@/server/routes/file';
-import { MoveUp, MoveDown, Settings, Trash2 } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
