@@ -270,7 +270,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
   const groupedData = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
