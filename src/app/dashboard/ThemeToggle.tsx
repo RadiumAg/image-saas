@@ -12,7 +12,7 @@ export function ThemeToggle() {
 
   useMount(() => {
     setReady(true);
-  }, []);
+  });
 
   if (!ready) {
     return null;
