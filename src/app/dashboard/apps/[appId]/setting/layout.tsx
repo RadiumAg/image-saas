@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-type Props = PageProps<'/dashboard/apps/[appId]/setting'> & {
+type Props = LayoutProps<'/dashboard/apps/[appId]/setting'> & {
   children: React.ReactNode;
 };
 
