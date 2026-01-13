@@ -273,15 +273,17 @@ const FileList: React.FC<FileListProps> = (props) => {
                   >
                     {isImage ? (
                       <Image
-                        className="w-56 h-56 object-cover"
+                        width={100}
+                        height={100}
                         src={url}
                         alt="file"
+                        className="w-56 h-56"
                       />
                     ) : (
                       <Image
                         width={100}
                         height={100}
-                        className="w-full"
+                        className="w-56 h-56"
                         src="/file.png"
                         alt="unknow file type"
                       />
