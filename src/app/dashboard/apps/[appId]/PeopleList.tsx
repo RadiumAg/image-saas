@@ -74,7 +74,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
                 });
 
                 // AI识别成功后刷新tags
-                utils.tags.getTagsByCategory.invalidate({ appId });
+                utils.tags.getTagsByCategory.refetch({ appId });
               } catch (error) {
                 console.error('AI识别失败:', error);
               }
@@ -106,7 +106,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     };
 
     const completeHandler = () => {
-      utils.file.infinityQueryFilesByTag.invalidate(query);
+      utils.file.infinityQueryFilesByTag.refetch(query);
     };
 
     uppy.on('upload-success', handler);

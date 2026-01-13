@@ -47,7 +47,7 @@ export function EditStorageDialog({
   const { mutate, isPending } =
     trpcClientReact.storages.updateStorage.useMutation({
       onSuccess: () => {
-        utils.storages.listStorages.invalidate();
+        utils.storages.listStorages.refetch();
         onSuccess?.();
         onOpenChange(false);
         reset();
