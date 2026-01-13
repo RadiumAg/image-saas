@@ -1,7 +1,5 @@
 'use client';
-import { Avatar } from '@/components/ui/Avatar';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
-import { AvatarImage } from '@radix-ui/react-avatar';
 import {
   Collapsible,
   CollapsibleContent,
