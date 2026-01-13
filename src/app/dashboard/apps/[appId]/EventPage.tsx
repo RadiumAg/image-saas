@@ -14,7 +14,7 @@ import {
   CopyUrl,
   PreView,
 } from '@/components/feature/FileItemAction';
-import Uppy from '@uppy/core';
+import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Dropzone from '@/components/feature/Dropzone';
 import { cn } from '@/lib/utils';
 
@@ -51,7 +51,15 @@ const EventPage: React.FC<Props> = (props) => {
 
   // 上传成功后刷新数据
   useEffect(() => {
-    const handler = (file: any, resp: any) => {
+    const handler: (
+      file: UppyFile<Meta, Record<string, never>> | undefined,
+      response: {
+        body?: Record<string, never> | undefined;
+        status: number;
+        bytesUploaded?: number;
+        uploadURL?: string;
+      }
+    ) => void = (file, resp) => {
       if (file) {
         trpcPureClient.file.saveFile
           .mutate({
