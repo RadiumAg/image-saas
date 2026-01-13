@@ -258,7 +258,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                     className="flex justify-center items-center border border-red-500"
                   >
                     {isImage ? (
-                      <img
+                      <Image
                         className="w-56 h-56 object-cover"
                         src={url}
                         alt="file"
