@@ -9,15 +9,9 @@ import { FilesOrderByColumn } from '@/server/routes/file';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-interface AppPageProps {
-  params: Promise<{ appId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default function AppPage(props: AppPageProps) {
+export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const router = useRouter();
-  const params = use(props.params);
-  const { appId } = params;
+  const { appId } = use(props.params);
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery(
     undefined,
     {

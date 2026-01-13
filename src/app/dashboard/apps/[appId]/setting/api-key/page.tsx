@@ -1,9 +1,8 @@
 'use client';
-import { use, useRef, useState } from 'react';
+import { use, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { trpcClientReact } from '@/utils/api';
 import { Plus } from 'lucide-react';
-import Link from 'next/link';
 import {
   Popover,
   PopoverTrigger,
@@ -11,11 +10,9 @@ import {
 } from '@/components/ui/Popover';
 import { Input } from '@/components/ui/Input';
 
-interface Props {
-  params: Promise<{ appId: string }>;
-}
-
-export default function StoragePage(props: Props) {
+export default function StoragePage(
+  props: PageProps<'/dashboard/apps/[appId]/setting/api-key'>
+) {
   const { appId } = use(props.params);
   const newApiKeyName = useRef('');
   const utils = trpcClientReact.useUtils();
@@ -42,7 +39,7 @@ export default function StoragePage(props: Props) {
         <Popover>
           <PopoverTrigger>
             <Button>
-              <Plus></Plus>
+              <Plus />
             </Button>
           </PopoverTrigger>
 
@@ -53,7 +50,7 @@ export default function StoragePage(props: Props) {
                 onChange={(e) => {
                   newApiKeyName.current = e.target.value;
                 }}
-              ></Input>
+              />
               <Button
                 type="submit"
                 onClick={() => {

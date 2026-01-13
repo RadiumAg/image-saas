@@ -207,9 +207,7 @@ export const tags = pgTable(
     categoryType: varchar('category_type', { length: 20 })
       .notNull()
       .default('general'),
-    parentId: uuid('parent_id').references(() => tags.id, {
-      onDelete: 'set null',
-    }),
+    parentId: uuid('parent_id'),
     appId: uuid('app_id'),
     description: varchar('description', { length: 500 }),
     sort: integer('sort').default(0),
@@ -228,6 +226,14 @@ export const tagsRelations = relations(tags, ({ many, one }) => ({
     references: [users.id],
   }),
   files: many(files_tags),
+  parent: one(tags, {
+    fields: [tags.parentId],
+    references: [tags.id],
+    relationName: 'parent_child',
+  }),
+  children: many(tags, {
+    relationName: 'parent_child',
+  }),
 }));
 
 export const files_tags = pgTable(

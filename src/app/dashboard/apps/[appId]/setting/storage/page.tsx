@@ -1,17 +1,18 @@
 'use client';
-import { use } from 'react';
+import { use, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { trpcClientReact } from '@/utils/api';
-import { Plus } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import Link from 'next/link';
+import EditStorageDialog from '@/components/feature/EditStorageDialog';
 
-interface Props {
-  params: Promise<{ appId: string }>;
-}
-
-export default function StoragePage(props: Props) {
+export default function StoragePage(
+  props: PageProps<'/dashboard/apps/[appId]/setting/storage'>
+) {
   const { appId } = use(props.params);
   const utils = trpcClientReact.useUtils();
+  const [editingStorage, setEditingStorage] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { mutate } = trpcClientReact.apps.changeStorage.useMutation({
     onSuccess(data, variables) {
       utils.apps.listApps.setData(undefined, (prev) => {
@@ -34,6 +35,16 @@ export default function StoragePage(props: Props) {
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery();
   const currentApp = apps?.filter((app) => app.id === appId)[0];
 
+  const handleEditStorage = (storage: any) => {
+    setEditingStorage(storage);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingStorage(null);
+    setIsEditDialogOpen(false);
+  };
+
   return (
     <div className="pt-10">
       <div className="flex justify-between items-center">
@@ -50,19 +61,42 @@ export default function StoragePage(props: Props) {
             key={storage.id}
             className="border p-4 flex justify-between items-center m-4"
           >
-            {storage.name}
-            <Button
-              className="cursor-pointer"
-              disabled={storage.id === currentApp?.storageId}
-              onClick={() => {
-                mutate({ appId, storageId: storage.id });
-              }}
-            >
-              {storage.id === currentApp?.storageId ? 'Used' : 'Use'}
-            </Button>
+            <div className="flex items-center gap-4">
+              <span className="font-medium">{storage.name}</span>
+              {storage.id === currentApp?.storageId && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                  当前使用
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleEditStorage(storage)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                className="cursor-pointer"
+                disabled={storage.id === currentApp?.storageId}
+                onClick={() => {
+                  mutate({ appId, storageId: storage.id });
+                }}
+              >
+                {storage.id === currentApp?.storageId ? 'Used' : 'Use'}
+              </Button>
+            </div>
           </div>
         );
       })}
+
+      <EditStorageDialog
+        storage={editingStorage}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }

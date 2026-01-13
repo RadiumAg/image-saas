@@ -29,12 +29,7 @@ interface CategoryTag {
   count: number;
 }
 
-interface AppPageProps {
-  params: Promise<{ appId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default function AppPage(props: AppPageProps) {
+export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const params = use(props.params);
   const { appId } = params;
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery(

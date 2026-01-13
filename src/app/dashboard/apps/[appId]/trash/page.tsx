@@ -25,11 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-interface TrashPageProps {
-  params: Promise<{ appId: string }>;
-}
-
-const TrashPage: FC<TrashPageProps> = (props) => {
+const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
   const { appId } = use(props.params);
 
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());

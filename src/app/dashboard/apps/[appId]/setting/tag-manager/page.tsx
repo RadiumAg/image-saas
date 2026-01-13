@@ -21,9 +21,9 @@ interface TagData {
   count: number;
 }
 
-interface TagManagerProps {
+interface TagManagerProps
+  extends PageProps<'/dashboard/apps/[appId]/setting/tag-manager'> {
   fileId?: string;
-  params: Promise<{ appId: string }>;
   trigger?: React.ReactNode;
   onTagsChange?: (tags: string[]) => void;
 }
@@ -108,7 +108,15 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
       setIsAddDialogOpen(false);
 
       // 更新本地状态
-      setUserTags((prev) => [...prev, result]);
+      setUserTags((prev) => [
+        ...prev,
+        {
+          id: result.id,
+          name: result.name,
+          color: result.color || '#3b82f6',
+          count: 0,
+        },
+      ]);
       await refetchUserTags();
 
       if (fileId) {
