@@ -171,7 +171,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                 });
 
                 // AI识别成功后刷新tags
-                utils.tags.getTagsByCategory.invalidate({ appId });
+                utils.tags.getTagsByCategory.refetch({ appId });
               } catch (error) {
                 console.error('AI识别失败:', error);
               }
