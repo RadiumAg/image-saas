@@ -5,7 +5,7 @@ import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
 import { useMemo, use, useState, ReactNode, useEffect } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
-import { FilesOrderByColumn } from '@/server/routes/file';
+// import { FilesOrderByColumn } from '@/server/routes/file';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -20,12 +20,12 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       refetchOnMount: false,
     }
   );
-  const [orderBy, setOrderBy] = useState<
-    Exclude<FilesOrderByColumn, undefined>
-  >({
-    field: 'createdAt',
-    order: 'desc',
-  });
+  // const [orderBy, setOrderBy] = useState<
+  //   Exclude<FilesOrderByColumn, undefined>
+  // >({
+  //   field: 'createdAt',
+  //   order: 'desc',
+  // });
   const currentApp = apps?.find((app) => app.id === appId);
 
   const uppy = useMemo(() => {
@@ -44,7 +44,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
     });
 
     return uppy;
-  }, []);
+  }, [appId]);
 
   usePasteFile({
     onFilePaste(files) {

@@ -78,7 +78,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
     });
 
     return uppy;
-  }, []);
+  }, [appId]);
 
   usePasteFile({
     onFilePaste(files) {
