@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { LogOut } from 'lucide-react';
-import { signIn } from 'next-auth/react';
 
 interface UserMenuProps {
   name?: string | null;
