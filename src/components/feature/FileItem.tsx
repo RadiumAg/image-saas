@@ -40,7 +40,8 @@ const FileItem: React.FC<FileItemProps> = (props) => {
             imageRender(props) {
               const { props: imageProps } = props;
               return (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   alt=""
                   {...(imageProps as any)}
                   src={`${
