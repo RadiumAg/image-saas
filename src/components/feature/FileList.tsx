@@ -1,6 +1,6 @@
 import { useUppyState } from '@/hooks/use-uppy-state';
 import { AppRouter, trpcClientReact, trpcPureClient } from '@/utils/api';
-import Uppy from '@uppy/core';
+import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Image from 'next/image';
 import React from 'react';
 import { RemoteFileItemWithTags } from './FileItem';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { handler } from 'next/dist/build/templates/pages';
 
 interface FileListProps {
   uppy: Uppy;
@@ -25,8 +26,6 @@ interface FileListProps {
   orderBy: FilesOrderByColumn;
   searchFilters?: SearchFilters;
 }
-
-type FileResult = inferRouterOutputs<AppRouter>['file']['infinityQueryFiles'];
 
 const FileList: React.FC<FileListProps> = (props) => {
   const { uppy, appId, orderBy, searchFilters } = props;
@@ -150,7 +149,15 @@ const FileList: React.FC<FileListProps> = (props) => {
   }, [fetchNextPage]);
 
   React.useEffect(() => {
-    const handler = (file: any, resp: any) => {
+    const handler: (
+      file: UppyFile<Meta, Record<string, never>> | undefined,
+      response: {
+        body?: Record<string, never> | undefined;
+        status: number;
+        bytesUploaded?: number;
+        uploadURL?: string;
+      }
+    ) => void = (file, resp) => {
       if (file) {
         trpcPureClient.file.saveFile
           .mutate({
@@ -195,10 +202,13 @@ const FileList: React.FC<FileListProps> = (props) => {
       }
     };
 
-    const uploadProgressHandler = (_: any, resp: any) => {
+    const uploadProgressHandler: (
+      uploadID: string,
+      files: UppyFile<Meta, Record<string, never>>[]
+    ) => void = (_, resp) => {
       setUploadingFilesIds((currentFiles) => [
         ...currentFiles,
-        ...resp.map((file: any) => file.id),
+        ...resp.map((file) => file.id),
       ]);
     };
 
@@ -215,7 +225,13 @@ const FileList: React.FC<FileListProps> = (props) => {
       uppy.off('complete', completeHandler);
       uppy.off('upload', uploadProgressHandler);
     };
-  }, [query]);
+  }, [
+    appId,
+    query,
+    uppy,
+    utils.file.infinityQueryFiles,
+    utils.tags.getTagsByCategory,
+  ]);
 
   const fileListEle = groupedFiles.map((group) => {
     const isToday = group.key === '今天';
