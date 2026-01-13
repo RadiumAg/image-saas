@@ -294,37 +294,41 @@ const FileList: React.FC<FileListProps> = (props) => {
                 );
               })}
             {group.items.map((file) => (
-              <RemoteFileItemWithTags
-                className="w-56 h-56"
-                key={file.id}
-                id={file.id}
-                name={file.name}
-                contentType={file.contentType}
-              >
-                {(props) => {
-                  const { setPreview } = props;
+              <div key={file.id} className="relative">
+                <RemoteFileItemWithTags
+                  className="w-56 h-56"
+                  id={file.id}
+                  name={file.name}
+                  contentType={file.contentType}
+                >
+                  {(props) => {
+                    const { setPreview } = props;
 
-                  return (
-                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                      <CopyUrl
-                        url={`${window.location.host}/image/${file.id}`}
-                      />
+                    return (
+                      <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                        <CopyUrl
+                          url={`${window.location.protocol}//${window.location.host}/image/${file.id}`}
+                        />
 
-                      <DeleteFileAction
-                        onDeleteSuccess={handleFileDelete}
-                        fileId={file.id}
-                        appId={appId}
-                      />
+                        <DeleteFileAction
+                          onDeleteSuccess={handleFileDelete}
+                          fileId={file.id}
+                          appId={appId}
+                        />
 
-                      <PreView
-                        onClick={() => {
-                          setPreview(true);
-                        }}
-                      />
-                    </div>
-                  );
-                }}
-              </RemoteFileItemWithTags>
+                        <PreView
+                          onClick={() => {
+                            setPreview(true);
+                          }}
+                        />
+                      </div>
+                    );
+                  }}
+                </RemoteFileItemWithTags>
+                <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={file.name}>
+                  {file.name}
+                </div>
+              </div>
             ))}
           </div>
         </CollapsibleContent>

@@ -271,37 +271,44 @@ const LocationPage: React.FC<Props> = (props) => {
                       <CollapsibleContent className="mt-4">
                         <div className="flex flex-wrap gap-4">
                           {group.items.map((item) => (
-                            <RemoteFileItemWithTags
+                            <div
                               key={item.id}
-                              id={item.id}
-                              className="w-50 h-50"
-                              name={item.name}
-                              contentType={item.contentType}
+                              className="relative"
                             >
-                              {(props) => {
-                                const { setPreview } = props;
+                              <RemoteFileItemWithTags
+                                id={item.id}
+                                className="w-52 h-52"
+                                name={item.name}
+                                contentType={item.contentType}
+                              >
+                                {(props) => {
+                                  const { setPreview } = props;
 
-                                return (
-                                  <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                    <CopyUrl
-                                      url={`${window.location.host}/image/${item.id}`}
-                                    />
+                                  return (
+                                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                      <CopyUrl
+                                        url={`${window.location.protocol}//${window.location.host}/image/${item.id}`}
+                                      />
 
-                                    <DeleteFileAction
-                                      onDeleteSuccess={handleFileDelete}
-                                      fileId={item.id}
-                                      appId={appId}
-                                    />
+                                      <DeleteFileAction
+                                        onDeleteSuccess={handleFileDelete}
+                                        fileId={item.id}
+                                        appId={appId}
+                                      />
 
-                                    <PreView
-                                      onClick={() => {
-                                        setPreview(true);
-                                      }}
-                                    />
-                                  </div>
-                                );
-                              }}
-                            </RemoteFileItemWithTags>
+                                      <PreView
+                                        onClick={() => {
+                                          setPreview(true);
+                                        }}
+                                      />
+                                    </div>
+                                  );
+                                }}
+                              </RemoteFileItemWithTags>
+                              <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={item.name}>
+                                {item.name}
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </CollapsibleContent>
