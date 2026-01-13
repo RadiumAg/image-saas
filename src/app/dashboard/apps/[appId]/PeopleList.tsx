@@ -1,7 +1,5 @@
 'use client';
-import { Avatar } from '@/components/ui/Avatar';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
-import { AvatarImage } from '@radix-ui/react-avatar';
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,7 +15,6 @@ import {
   PreView,
 } from '@/components/feature/FileItemAction';
 import Uppy from '@uppy/core';
-import AWS3 from '@uppy/aws-s3';
 import Dropzone from '@/components/feature/Dropzone';
 import { cn } from '@/lib/utils';
 
@@ -30,16 +27,14 @@ type PeopleList = {
 const PeopleList: React.FC<PeopleList> = (props) => {
   const { appId, tagId, uppy } = props;
 
-  // 如果没有 tagId，不渲染
-  if (!tagId) {
-    return <div className="container mx-auto mt-10">请选择一个标签</div>;
-  }
-
-  const query = {
-    limit: 10,
-    appId,
-    tagId,
-  };
+  const query = useMemo(
+    () => ({
+      limit: 10,
+      appId,
+      tagId: tagId!,
+    }),
+    [appId, tagId]
+  );
 
   const {
     data: infinityQueryData,
@@ -50,6 +45,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
+    enabled: !!tagId, // 只有当 tagId 存在时才启用查询
   });
 
   const utils = trpcClientReact.useUtils();
@@ -149,7 +145,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   const groupedData = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
@@ -185,6 +181,11 @@ const PeopleList: React.FC<PeopleList> = (props) => {
       count: items.length,
     }));
   }, [infinityQueryData?.pages]);
+
+  // 如果没有 tagId，不渲染
+  if (!tagId) {
+    return <div className="container mx-auto mt-10">请选择一个标签</div>;
+  }
 
   if (isPending) {
     return (
