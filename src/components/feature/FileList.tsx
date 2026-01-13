@@ -97,7 +97,7 @@ const FileList: React.FC<FileListProps> = (props) => {
   const toggleGroup = (key: string) => {
     setOpenGroups((prev) => ({
       ...prev,
-      [key]: prev[key] === undefined ? true : !prev[key],
+      [key]: prev[key] === undefined ? false : !prev[key],
     }));
   };
 
@@ -253,7 +253,9 @@ const FileList: React.FC<FileListProps> = (props) => {
           </div>
           <ChevronDown
             className={`h-4 w-4 transition-transform ${
-              openGroups[group.key] ? 'rotate-180' : ''
+              openGroups[group.key] === undefined || openGroups[group.key]
+                ? 'rotate-180'
+                : ''
             }`}
           />
         </CollapsibleTrigger>
