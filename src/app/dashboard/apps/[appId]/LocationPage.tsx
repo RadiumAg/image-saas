@@ -273,7 +273,7 @@ const LocationPage: React.FC<Props> = (props) => {
                           {group.items.map((item) => (
                             <div
                               key={item.id}
-                              className="relative"
+                              className="relative w-52"
                             >
                               <RemoteFileItemWithTags
                                 id={item.id}

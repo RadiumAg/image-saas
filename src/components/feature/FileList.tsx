@@ -294,7 +294,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                 );
               })}
             {group.items.map((file) => (
-              <div key={file.id} className="relative">
+              <div key={file.id} className="relative w-56">
                 <RemoteFileItemWithTags
                   className="w-56 h-56"
                   id={file.id}
