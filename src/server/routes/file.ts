@@ -8,7 +8,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { db } from '../db/db';
-import { files, files_tags } from '../db/schema';
+import { files, files_tags, tags } from '../db/schema';
 import { v4 as uuid } from 'uuid';
 import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
 import { filesCanOrderByColumn } from '../db/validate-schema';
@@ -144,6 +144,13 @@ const fileRoutes = router({
         limit: z.number().default(10),
         orderBy: filesOrderByColumnSchema,
         appId: z.string(),
+        search: z
+          .object({
+            query: z.string().optional(),
+            startDate: z.string().optional(),
+            endDate: z.string().optional(),
+          })
+          .optional(),
       })
     )
     .query(async (ctx) => {
@@ -151,11 +158,45 @@ const fileRoutes = router({
         cursor,
         limit,
         orderBy = { field: 'createdAt', order: 'desc' },
+        search,
       } = ctx.input;
 
       const appFilter = eq(files.appId, ctx.input.appId);
       const deletedFilter = isNull(files.deleteAt);
       const userFilter = eq(files.userId, ctx.ctx.session.user.id);
+
+      // 构建搜索条件
+      const searchFilters = [];
+
+      if (search?.query) {
+        // 搜索文件名或标签名
+        const searchQuery = `%${search.query}%`;
+        searchFilters.push(
+          sql`(
+            ${files.name} ILIKE ${searchQuery} OR
+            EXISTS (
+              SELECT 1 FROM files_tags ft
+              JOIN tags t ON ft.tag_id = t.id
+              WHERE ft.file_id = ${files.id} AND t.name ILIKE ${searchQuery}
+            )
+          )`
+        );
+      }
+
+      if (search?.startDate) {
+        searchFilters.push(
+          sql`${files.createdAt} >= ${new Date(search.startDate).toISOString()}`
+        );
+      }
+
+      if (search?.endDate) {
+        searchFilters.push(
+          sql`${files.createdAt} <= ${new Date(search.endDate).toISOString()}`
+        );
+      }
+
+      const baseFilters = [deletedFilter, userFilter, appFilter];
+      const allFilters = [...baseFilters, ...searchFilters];
 
       const statement = db
         .select()
@@ -167,11 +208,9 @@ const fileRoutes = router({
                 sql`("files"."created_at", "files"."id") < (${new Date(
                   cursor.createAt
                 ).toISOString()}, ${cursor.id})`,
-                deletedFilter,
-                userFilter,
-                appFilter
+                ...allFilters
               )
-            : and(deletedFilter, userFilter, appFilter)
+            : and(...allFilters)
         );
 
       statement.orderBy(

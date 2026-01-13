@@ -44,9 +44,12 @@ function cleanTagNames(tagNames: string[]): string[] {
 
 export const tagsRouter = router({
   // 获取用户所有标签
-  getUserTags: protectedProcedure.query(async ({ ctx }) => {
-    // 使用原生SQL查询以获取标签使用次数
-    const result = await db.execute(`
+  getUserTags: protectedProcedure
+    .input(z.object({ appId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { appId } = input;
+      // 使用原生SQL查询以获取标签使用次数
+      const result = await db.execute(`
       SELECT
         t.id,
         t.name,
@@ -54,20 +57,20 @@ export const tagsRouter = router({
         COUNT(ft.file_id) as count
       FROM tags t
       LEFT JOIN files_tags ft ON t.id = ft.tag_id
-      WHERE t.user_id = '${ctx.session.user.id}'
+      WHERE t.user_id = '${ctx.session.user.id}' and t.app_id = '${appId}'
       GROUP BY t.id, t.name, t.color
       ORDER BY count DESC, t.name ASC
     `);
 
-    const rows = result.rows || [];
+      const rows = result;
 
-    return rows.map((row) => ({
-      id: row.id as string,
-      name: row.name as string,
-      color: row.color as string,
-      count: Number(row.count), // 修复：使用实际统计数量而不是result.length
-    }));
-  }),
+      return rows.map((row) => ({
+        id: row.id as string,
+        name: row.name as string,
+        color: row.color as string,
+        count: Number(row.count), // 修复：使用实际统计数量而不是result.length
+      }));
+    }),
 
   // 获取按分类分组的标签（只返回顶级分类）
   getTagsByCategory: protectedProcedure

@@ -18,6 +18,7 @@ import { TabsContent } from '@radix-ui/react-tabs';
 import PeopleList from './PeopleList';
 import EventPage from './EventPage';
 import LocationPage from './LocationPage';
+import SearchBar, { SearchFilters } from '@/components/feature/SearchBar';
 
 type CategoryType = 'person' | 'location' | 'event';
 
@@ -101,6 +102,8 @@ export default function AppPage(props: AppPageProps) {
     order: 'desc',
   });
 
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
+
   let children: ReactNode;
 
   if (isPending) {
@@ -124,6 +127,11 @@ export default function AppPage(props: AppPageProps) {
   } else {
     children = (
       <div className="h-full">
+        {/* 搜索栏 */}
+        <div className="container mx-auto py-4">
+          <SearchBar onSearch={setSearchFilters} />
+        </div>
+
         <div className="container mx-auto flex justify-between items-center h-[60px]">
           {/* <Button
             onClick={() => {
@@ -200,7 +208,12 @@ export default function AppPage(props: AppPageProps) {
                         </div>
                       )}
 
-                      <FileList appId={appId} orderBy={orderBy} uppy={uppy} />
+                      <FileList
+                        appId={appId}
+                        orderBy={orderBy}
+                        uppy={uppy}
+                        searchFilters={searchFilters}
+                      />
                     </div>
                   );
                 }}

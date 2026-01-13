@@ -10,6 +10,7 @@ import { ScrollArea } from '../ui/ScrollArea';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import { DeleteFileAction, CopyUrl, PreView } from './FileItemAction';
 import { cn } from '@/lib/utils';
+import { SearchFilters } from './SearchBar';
 import {
   Collapsible,
   CollapsibleContent,
@@ -22,16 +23,18 @@ interface FileListProps {
   uppy: Uppy;
   appId: string;
   orderBy: FilesOrderByColumn;
+  searchFilters?: SearchFilters;
 }
 
 type FileResult = inferRouterOutputs<AppRouter>['file']['infinityQueryFiles'];
 
 const FileList: React.FC<FileListProps> = (props) => {
-  const { uppy, appId, orderBy } = props;
+  const { uppy, appId, orderBy, searchFilters } = props;
   const query = {
     limit: 10,
     appId,
     ...orderBy,
+    search: searchFilters,
   };
 
   const {

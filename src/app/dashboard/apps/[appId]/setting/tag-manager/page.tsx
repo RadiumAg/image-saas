@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Tag, TagList, TagInput } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
 import {
@@ -23,12 +23,14 @@ interface TagData {
 
 interface TagManagerProps {
   fileId?: string;
-  onTagsChange?: (tags: string[]) => void;
+  params: Promise<{ appId: string }>;
   trigger?: React.ReactNode;
+  onTagsChange?: (tags: string[]) => void;
 }
 
-const TagManagerPage: React.FC = (props: TagManagerProps) => {
+const TagManagerPage: React.FC<TagManagerProps> = (props) => {
   const { fileId, onTagsChange, trigger } = props;
+  const { appId } = use(props.params);
   const [userTags, setUserTags] = useState<TagData[]>([]);
   const [fileTags, setFileTags] = useState<
     Array<{ id: string; name: string; color: string }>
@@ -50,7 +52,7 @@ const TagManagerPage: React.FC = (props: TagManagerProps) => {
     isLoading: isLoadingUserTags,
     error: userTagsError,
     refetch: refetchUserTags,
-  } = trpcClientReact.tags.getUserTags.useQuery();
+  } = trpcClientReact.tags.getUserTags.useQuery({ appId });
 
   const {
     data: fileTagsData,
@@ -375,78 +377,70 @@ const TagManagerPage: React.FC = (props: TagManagerProps) => {
                 placeholder="输入标签名称或从现有标签中选择..."
               />
             </div>
-
-            {/* 编辑标签对话框 */}
-            {editingTag && (
-              <Dialog
-                open={isEditDialogOpen}
-                onOpenChange={setIsEditDialogOpen}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>编辑标签</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="editTagName">标签名称</Label>
-                      <Input
-                        id="editTagName"
-                        value={editTagName}
-                        onChange={(e) => setEditTagName(e.target.value)}
-                        placeholder="输入标签名称"
-                        maxLength={20}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="editTagColor">标签颜色</Label>
-                      <Input
-                        id="editTagColor"
-                        type="color"
-                        value={editTagColor}
-                        onChange={(e) => setEditTagColor(e.target.value)}
-                        className="w-20 h-10"
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsEditDialogOpen(false);
-                          setEditingTag(null);
-                        }}
-                      >
-                        取消
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          if (
-                            editTagName.trim() &&
-                            editTagName !== editingTag.name
-                          ) {
-                            updateTag(editingTag.id, {
-                              name: editTagName.trim(),
-                            });
-                          }
-                          if (editTagColor !== editingTag.color) {
-                            updateTag(editingTag.id, { color: editTagColor });
-                          }
-                          setIsEditDialogOpen(false);
-                          setEditingTag(null);
-                        }}
-                        disabled={
-                          updateTagMutation.isPending || !editTagName.trim()
-                        }
-                      >
-                        {updateTagMutation.isPending ? '保存中...' : '保存'}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 编辑标签对话框 */}
+      {editingTag && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>编辑标签</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="editTagName">标签名称</Label>
+                <Input
+                  id="editTagName"
+                  value={editTagName}
+                  onChange={(e) => setEditTagName(e.target.value)}
+                  placeholder="输入标签名称"
+                  maxLength={20}
+                />
+              </div>
+              <div>
+                <Label htmlFor="editTagColor">标签颜色</Label>
+                <Input
+                  id="editTagColor"
+                  type="color"
+                  value={editTagColor}
+                  onChange={(e) => setEditTagColor(e.target.value)}
+                  className="w-20 h-10"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingTag(null);
+                  }}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (editTagName.trim() && editTagName !== editingTag.name) {
+                      updateTag(editingTag.id, {
+                        name: editTagName.trim(),
+                      });
+                    }
+                    if (editTagColor !== editingTag.color) {
+                      updateTag(editingTag.id, { color: editTagColor });
+                    }
+                    setIsEditDialogOpen(false);
+                    setEditingTag(null);
+                  }}
+                  disabled={updateTagMutation.isPending || !editTagName.trim()}
+                >
+                  {updateTagMutation.isPending ? '保存中...' : '保存'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
