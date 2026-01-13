@@ -8,7 +8,7 @@ const t = initTRPC.create();
 
 const { router, procedure } = t;
 
-const withSessionMiddleware = t.middleware(async ({ ctx, next }) => {
+const withSessionMiddleware = t.middleware(async ({ next }) => {
   const session = await getServerSession();
 
   return next({
@@ -18,7 +18,7 @@ const withSessionMiddleware = t.middleware(async ({ ctx, next }) => {
   });
 });
 
-const loggedProcedure = t.middleware(async ({ ctx, next }) => {
+const loggedProcedure = t.middleware(async ({ next }) => {
   const start = Date.now();
   const result = await next();
   console.log('[DEBUG] api time', Date.now() - start);
@@ -44,7 +44,7 @@ const protectedProcedure = procedure
     });
   });
 
-const withAppProcedure = withLoggerProcedure.use(async ({ ctx, next }) => {
+const withAppProcedure = withLoggerProcedure.use(async ({ next }) => {
   const header = await headers();
   const apiKey = header.get('api-key');
   const signedToken = header.get('signed-token');
@@ -87,7 +87,7 @@ const withAppProcedure = withLoggerProcedure.use(async ({ ctx, next }) => {
       where: (apiKeys, { eq, and, isNull }) =>
         and(
           eq(apiKeys.clientId, (payload as JwtPayload).clientId),
-          isNull(apiKeys.deletedAt),
+          isNull(apiKeys.deletedAt)
         ),
       with: {
         app: {

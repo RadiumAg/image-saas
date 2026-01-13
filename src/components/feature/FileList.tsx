@@ -3,7 +3,7 @@ import { AppRouter, trpcClientReact, trpcPureClient } from '@/utils/api';
 import Uppy from '@uppy/core';
 import Image from 'next/image';
 import React from 'react';
-import { RemoteFileItem, RemoteFileItemWithTags } from './FileItem';
+import { RemoteFileItemWithTags } from './FileItem';
 import { inferRouterOutputs } from '@trpc/server';
 import { Button } from '../ui/Button';
 import { ScrollArea } from '../ui/ScrollArea';

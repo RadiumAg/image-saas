@@ -2,7 +2,7 @@ import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { tags, files_tags, files } from '../db/schema';
-import { eq, and, inArray, isNull } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
