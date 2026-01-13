@@ -250,7 +250,7 @@ const LocationPage: React.FC<Props> = (props) => {
                       open={openGroups[group.key] ?? true}
                       onOpenChange={() => toggleGroup(group.key)}
                     >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 -lg cursor-pointer transitionrounded-colors">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-lg">
                             {group.key}
@@ -274,7 +274,7 @@ const LocationPage: React.FC<Props> = (props) => {
                             <RemoteFileItemWithTags
                               key={item.id}
                               id={item.id}
-                              className="w-50 h-50 overflow-hidden rounded-full"
+                              className="w-50 h-50"
                               name={item.name}
                               contentType={item.contentType}
                             >

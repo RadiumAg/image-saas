@@ -282,7 +282,7 @@ const EventPage: React.FC<Props> = (props) => {
                             <RemoteFileItemWithTags
                               key={item.id}
                               id={item.id}
-                              className="w-50 h-50 overflow-hidden rounded-full"
+                              className="w-50 h-50"
                               name={item.name}
                               contentType={item.contentType}
                             >
