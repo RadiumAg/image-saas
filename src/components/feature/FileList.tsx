@@ -48,11 +48,6 @@ const FileList: React.FC<FileListProps> = (props) => {
     refetchOnReconnect: false,
   });
 
-  const fileList =
-    infinityQueryData?.pages.reduce<FileResult['items']>((result, page) => {
-      return [...result, ...page.items];
-    }, []) || [];
-
   // 按时间分组数据
   const groupedFiles = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
@@ -135,7 +130,9 @@ const FileList: React.FC<FileListProps> = (props) => {
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
-    if (bottomRef.current) {
+    const bottomElRef = bottomRef.current;
+
+    if (bottomElRef) {
       const observer = new IntersectionObserver(
         (e) => {
           if (e[0].intersectionRatio > 0.1) fetchNextPage();
@@ -143,10 +140,10 @@ const FileList: React.FC<FileListProps> = (props) => {
         { threshold: 0.1 }
       );
 
-      observer.observe(bottomRef.current);
+      observer.observe(bottomElRef);
 
       return () => {
-        if (bottomRef.current) observer.unobserve(bottomRef.current);
+        if (bottomElRef) observer.unobserve(bottomElRef);
         observer.disconnect();
       };
     }
