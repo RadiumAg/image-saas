@@ -8,9 +8,9 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { db } from '../db/db';
-import { files, files_tags, tags } from '../db/schema';
+import { files, files_tags } from '../db/schema';
 import { v4 as uuid } from 'uuid';
-import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { filesCanOrderByColumn } from '../db/validate-schema';
 import { TRPCError } from '@trpc/server';
 

@@ -6,6 +6,7 @@ import { eq, and, inArray } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
+import crypto from 'crypto';
 
 // 定义分类类型
 export type CategoryType = 'person' | 'location' | 'event';
@@ -714,8 +715,6 @@ function generateXfyunSignature(
   apiKey: string,
   apiSecret: string
 ): string {
-  const crypto = require('crypto');
-
   // 按照讯飞星火文档的格式构建签名字符串
   const signatureOrigin = `host: spark-api.cn-huabei-1.xf-yun.com\ndate: ${date}\n${method} ${uri} HTTP/1.1`;
 

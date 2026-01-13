@@ -1,10 +1,9 @@
 import { useUppyState } from '@/hooks/use-uppy-state';
-import { AppRouter, trpcClientReact, trpcPureClient } from '@/utils/api';
+import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Image from 'next/image';
 import React from 'react';
 import { RemoteFileItemWithTags } from './FileItem';
-import { inferRouterOutputs } from '@trpc/server';
 import { Button } from '../ui/Button';
 import { ScrollArea } from '../ui/ScrollArea';
 import { FilesOrderByColumn } from '@/server/routes/file';
@@ -18,7 +17,6 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { handler } from 'next/dist/build/templates/pages';
 
 interface FileListProps {
   uppy: Uppy;
@@ -29,12 +27,15 @@ interface FileListProps {
 
 const FileList: React.FC<FileListProps> = (props) => {
   const { uppy, appId, orderBy, searchFilters } = props;
-  const query = {
-    limit: 10,
-    appId,
-    ...orderBy,
-    search: searchFilters,
-  };
+  const query = useMemo(
+    () => ({
+      limit: 10,
+      appId,
+      ...orderBy,
+      search: searchFilters,
+    }),
+    [appId, orderBy, searchFilters]
+  );
 
   const {
     data: infinityQueryData,
