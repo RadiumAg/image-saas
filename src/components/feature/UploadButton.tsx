@@ -1,5 +1,5 @@
+import React from 'react';
 import Uppy from '@uppy/core';
-import React, { useRef } from 'react';
 import { Button } from '../ui/Button';
 import { Plus } from 'lucide-react';
 
