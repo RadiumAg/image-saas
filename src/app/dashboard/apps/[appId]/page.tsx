@@ -20,15 +20,6 @@ import EventPage from './EventPage';
 import LocationPage from './LocationPage';
 import SearchBar, { SearchFilters } from '@/components/feature/SearchBar';
 
-type CategoryType = 'person' | 'location' | 'event';
-
-interface CategoryTag {
-  id: string;
-  name: string;
-  categoryType: CategoryType;
-  count: number;
-}
-
 export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const params = use(props.params);
   const { appId } = params;
@@ -43,7 +34,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const currentApp = apps?.find((app) => app.id === appId);
 
   // 获取按分类分组的标签
-  const { data: categoryTags = [], isLoading: tagsLoading } =
+  const { data: categoryTags = [] } =
     trpcClientReact.tags.getTagsByCategory.useQuery(
       { appId },
       {
