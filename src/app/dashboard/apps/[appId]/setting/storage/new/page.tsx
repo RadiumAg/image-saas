@@ -9,11 +9,9 @@ import { trpcClientReact } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-interface Props {
-  params: Promise<{ appId: string }>;
-}
-
-export default function StoragePage(props: Props) {
+export default function StoragePage(
+  props: PageProps<'/dashboard/apps/[appId]/setting/storage/new'>
+) {
   const { appId } = use(props.params);
   const router = useRouter();
   const {
@@ -21,7 +19,8 @@ export default function StoragePage(props: Props) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<S3StorageConfiguration & { name: string }>();
-  const { mutate, isPending, isSuccess } = trpcClientReact.storages.createStorage.useMutation();
+  const { mutate, isPending, isSuccess } =
+    trpcClientReact.storages.createStorage.useMutation();
 
   const onSubmit: SubmitHandler<S3StorageConfiguration & { name: string }> = (
     data

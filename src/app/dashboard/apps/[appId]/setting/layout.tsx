@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-type Props = {
-  params: Promise<{ appId: string }>;
+type Props = PageProps<'/dashboard/apps/[appId]/setting'> & {
   children: React.ReactNode;
 };
 

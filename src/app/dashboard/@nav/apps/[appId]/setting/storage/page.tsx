@@ -10,11 +10,9 @@ import { trpcClientReact } from '@/utils/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
-type Props = {
-  params: Promise<{ appId: string }>;
-};
-
-export default function AppDashboardNav(props: Props) {
+export default function AppDashboardNav(
+  props: PageProps<'/dashboard/apps/[appId]/setting/storage'>
+) {
   const { appId } = use(props.params);
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery();
   const currentApp = apps?.find((app) => app.id === appId);
