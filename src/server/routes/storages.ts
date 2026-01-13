@@ -1,9 +1,7 @@
 import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { apps, storageConfiguration } from '../db/schema';
-import { and, eq } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
+import { storageConfiguration } from '../db/schema';
 
 export const storageRouter = router({
   listStorages: protectedProcedure.query(async ({ ctx }) => {
@@ -22,7 +20,7 @@ export const storageRouter = router({
         accessKeyId: z.string(),
         secretAccessKey: z.string(),
         apiEndPoint: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { name, ...configuration } = input;
