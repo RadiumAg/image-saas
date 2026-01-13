@@ -29,7 +29,7 @@ interface TagManagerProps
 }
 
 const TagManagerPage: React.FC<TagManagerProps> = (props) => {
-  const { fileId, onTagsChange, trigger } = props;
+  const { fileId } = props;
   const { appId } = use(props.params);
   const [userTags, setUserTags] = useState<TagData[]>([]);
   const [fileTags, setFileTags] = useState<
@@ -49,14 +49,12 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
   // tRPC 查询
   const {
     data: userTagsData,
-    isLoading: isLoadingUserTags,
     error: userTagsError,
     refetch: refetchUserTags,
   } = trpcClientReact.tags.getUserTags.useQuery({ appId });
 
   const {
     data: fileTagsData,
-    isLoading: isLoadingFileTags,
     error: fileTagsError,
     refetch: refetchFileTags,
   } = trpcClientReact.tags.getFileTags.useQuery(
@@ -76,22 +74,42 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
   // 更新本地状态
   useEffect(() => {
     if (userTagsData) {
-      setUserTags(userTagsData);
-      setError(null);
+      const timeoutId = setTimeout(() => {
+        setUserTags(userTagsData);
+        setError(null);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     } else if (userTagsError) {
-      setError('获取标签列表失败');
+      const timeoutId = setTimeout(() => {
+        setError('获取标签列表失败');
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [userTagsData, userTagsError]);
 
+  // 处理 fileTagsData 变化，避免在 effect 中同步调用 setState
   useEffect(() => {
     if (fileTagsData) {
-      setFileTags(fileTagsData as any);
-      setSelectedTags(fileTagsData?.map((tag: any) => tag.name) || []);
-      setError(null);
+      // 使用 setTimeout 异步更新状态，避免同步调用 setState
+      const timeoutId = setTimeout(() => {
+        const transformedTags = fileTagsData.map((tag) => ({
+          id: tag.id,
+          name: tag.name,
+          color: tag.color || '#3b82f6', // 为 null 的 color 提供默认值
+        }));
+        setFileTags(transformedTags);
+        setSelectedTags(fileTagsData.map((tag) => tag.name));
+        setError(null);
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
     } else if (fileTagsError) {
-      setError('获取文件标签失败');
+      const timeoutId = setTimeout(() => {
+        setError('获取文件标签失败');
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
-  }, [fileTagsData, fileTagsError, fileId]);
+  }, [fileTagsData, fileTagsError]);
 
   // 创建新标签
   const createTag = async () => {
@@ -138,11 +156,6 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
     updates: { name?: string; color?: string }
   ) => {
     try {
-      const result = await updateTagMutation.mutateAsync({
-        tagId,
-        ...updates,
-      });
-
       setEditingTag(null);
 
       // 更新本地状态

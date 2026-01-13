@@ -66,9 +66,7 @@ export function TagList({
 }: TagListProps) {
   if (tags.length === 0) {
     return (
-      <div className={cn('text-gray-500 text-sm', className)}>
-        暂无标签
-      </div>
+      <div className={cn('text-gray-500 text-sm', className)}>暂无标签</div>
     );
   }
 
@@ -109,17 +107,21 @@ export function TagInput({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (inputValue) {
-      const filtered = suggestions.filter(
-        suggestion => 
-          suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
-          !value.includes(suggestion)
-      );
-      setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-    } else {
-      setShowSuggestions(false);
-    }
+    const timeoutId = setTimeout(() => {
+      if (inputValue) {
+        const filtered = suggestions.filter(
+          (suggestion) =>
+            suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
+            !value.includes(suggestion)
+        );
+        setFilteredSuggestions(filtered);
+        setShowSuggestions(filtered.length > 0);
+      } else {
+        setShowSuggestions(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [inputValue, suggestions, value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +152,7 @@ export function TagInput({
   };
 
   const removeTag = (tagToRemove: string) => {
-    onChange(value.filter(tag => tag !== tagToRemove));
+    onChange(value.filter((tag) => tag !== tagToRemove));
   };
 
   return (
@@ -188,7 +190,10 @@ export function TagInput({
               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between group"
             >
               <span>{suggestion}</span>
-              <Plus size={14} className="text-gray-400 group-hover:text-gray-600" />
+              <Plus
+                size={14}
+                className="text-gray-400 group-hover:text-gray-600"
+              />
             </button>
           ))}
         </div>

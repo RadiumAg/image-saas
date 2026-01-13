@@ -309,7 +309,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
 
   const allSelected = useMemo(() => {
     if (!infinityQueryData?.pages) return false;
-    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
     return (
       allItems.length > 0 &&
       allItems.every((item) => selectedFiles.has(item.id))

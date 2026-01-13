@@ -27,16 +27,14 @@ type Props = {
 const EventPage: React.FC<Props> = (props) => {
   const { appId, tagId, uppy } = props;
 
-  // 如果没有 tagId，不渲染
-  if (!tagId) {
-    return <div className="container mx-auto mt-10">请选择一个标签</div>;
-  }
-
-  const query = {
-    limit: 10,
-    appId,
-    tagId,
-  };
+  const query = useMemo(
+    () => ({
+      limit: 10,
+      appId,
+      tagId,
+    }),
+    [appId, tagId]
+  );
 
   const {
     data: infinityQueryData,
@@ -146,7 +144,7 @@ const EventPage: React.FC<Props> = (props) => {
   const groupedData = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
@@ -182,6 +180,11 @@ const EventPage: React.FC<Props> = (props) => {
       count: items.length,
     }));
   }, [infinityQueryData?.pages]);
+
+  // 如果没有 tagId，不渲染
+  if (!tagId) {
+    return <div className="container mx-auto mt-10">请选择一个标签</div>;
+  }
 
   if (isPending) {
     return (
