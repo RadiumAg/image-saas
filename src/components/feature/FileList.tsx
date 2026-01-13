@@ -57,7 +57,7 @@ const FileList: React.FC<FileListProps> = (props) => {
   const groupedFiles = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
