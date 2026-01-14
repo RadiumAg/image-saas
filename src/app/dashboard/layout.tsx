@@ -1,9 +1,9 @@
 import { getServerSession } from '@/server/auth';
 import { redirect } from 'next/navigation';
-import { ThemeProvider } from './ThemeProvider';
-import { ThemeToggle } from './ThemeToggle';
-import UserMenu from '@/components/feature/UserMenu';
-import HomeButton from '@/components/feature/HomeButton';
+import { ThemeProvider } from './theme-provider';
+import { ThemeToggle } from './theme-toggle';
+import UserMenu from '@/components/feature/user-menu';
+import HomeButton from '@/components/feature/home-button';
 import '../globals.css';
 
 export default async function RootLayout({

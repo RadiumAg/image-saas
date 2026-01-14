@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { trpcClientReact } from '@/utils/api';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { Trash2, Eye, Copy, AlertCircle } from 'lucide-react';
 import copy from 'copy-to-clipboard';
 import { toast } from 'sonner';

@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { createAppSchema } from '@/server/db/validate-schema';
 import { serverCaller } from '@/utils/trpc';
 import { getServerSession } from 'next-auth';

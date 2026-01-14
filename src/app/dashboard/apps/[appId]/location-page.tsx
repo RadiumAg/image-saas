@@ -7,31 +7,31 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import InfiniteScroll from '@/components/feature/InfiniteScroll';
-import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
+import InfiniteScroll from '@/components/feature/infinite-scroll';
+import { RemoteFileItemWithTags } from '@/components/feature/file-item';
 import {
   DeleteFileAction,
   CopyUrl,
   PreView,
-} from '@/components/feature/FileItemAction';
+} from '@/components/feature/file-item-action';
 import Uppy from '@uppy/core';
-import Dropzone from '@/components/feature/Dropzone';
+import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
 
-type PeopleList = {
+type Props = {
   appId: string;
   tagId?: string;
   uppy: Uppy;
 };
 
-const PeopleList: React.FC<PeopleList> = (props) => {
+const LocationPage: React.FC<Props> = (props) => {
   const { appId, tagId, uppy } = props;
 
   const query = useMemo(
     () => ({
       limit: 10,
       appId,
-      tagId: tagId!,
+      tagId,
     }),
     [appId, tagId]
   );
@@ -45,7 +45,6 @@ const PeopleList: React.FC<PeopleList> = (props) => {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
-    enabled: !!tagId, // 只有当 tagId 存在时才启用查询
   });
 
   const utils = trpcClientReact.useUtils();
@@ -251,7 +250,7 @@ const PeopleList: React.FC<PeopleList> = (props) => {
                       open={openGroups[group.key] ?? true}
                       onOpenChange={() => toggleGroup(group.key)}
                     >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 -lg cursor-pointer transitionrounded-colors">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-lg">
                             {group.key}
@@ -272,37 +271,44 @@ const PeopleList: React.FC<PeopleList> = (props) => {
                       <CollapsibleContent className="mt-4">
                         <div className="flex flex-wrap gap-4">
                           {group.items.map((item) => (
-                            <RemoteFileItemWithTags
+                            <div
                               key={item.id}
-                              id={item.id}
-                              className="w-50 h-50 overflow-hidden rounded-full"
-                              name={item.name}
-                              contentType={item.contentType}
+                              className="relative w-52"
                             >
-                              {(props) => {
-                                const { setPreview } = props;
+                              <RemoteFileItemWithTags
+                                id={item.id}
+                                className="w-52 h-52"
+                                name={item.name}
+                                contentType={item.contentType}
+                              >
+                                {(props) => {
+                                  const { setPreview } = props;
 
-                                return (
-                                  <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                    <CopyUrl
-                                      url={`${window.location.host}/image/${item.id}`}
-                                    />
+                                  return (
+                                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                      <CopyUrl
+                                        url={`${window.location.protocol}//${window.location.host}/image/${item.id}`}
+                                      />
 
-                                    <DeleteFileAction
-                                      onDeleteSuccess={handleFileDelete}
-                                      fileId={item.id}
-                                      appId={appId}
-                                    />
+                                      <DeleteFileAction
+                                        onDeleteSuccess={handleFileDelete}
+                                        fileId={item.id}
+                                        appId={appId}
+                                      />
 
-                                    <PreView
-                                      onClick={() => {
-                                        setPreview(true);
-                                      }}
-                                    />
-                                  </div>
-                                );
-                              }}
-                            </RemoteFileItemWithTags>
+                                      <PreView
+                                        onClick={() => {
+                                          setPreview(true);
+                                        }}
+                                      />
+                                    </div>
+                                  );
+                                }}
+                              </RemoteFileItemWithTags>
+                              <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={item.name}>
+                                {item.name}
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </CollapsibleContent>
@@ -318,4 +324,4 @@ const PeopleList: React.FC<PeopleList> = (props) => {
   );
 };
 
-export default PeopleList;
+export default LocationPage;

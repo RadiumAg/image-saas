@@ -1,9 +1,9 @@
 'use client';
 
 import { use } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { S3StorageConfiguration } from '@/server/db/schema';
 import { trpcClientReact } from '@/utils/api';
 import { useRouter } from 'next/navigation';

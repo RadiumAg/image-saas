@@ -3,13 +3,13 @@ import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Image from 'next/image';
 import React from 'react';
-import { RemoteFileItemWithTags } from './FileItem';
-import { Button } from '../ui/Button';
-import { ScrollArea } from '../ui/ScrollArea';
+import { RemoteFileItemWithTags } from './file-item';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 import { FilesOrderByColumn } from '@/server/routes/file';
-import { DeleteFileAction, CopyUrl, PreView } from './FileItemAction';
+import { DeleteFileAction, CopyUrl, PreView } from './file-item-action';
 import { cn } from '@/lib/utils';
-import { SearchFilters } from './SearchBar';
+import { SearchFilters } from './search-bar';
 import {
   Collapsible,
   CollapsibleContent,

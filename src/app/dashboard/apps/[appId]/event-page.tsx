@@ -7,15 +7,15 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import InfiniteScroll from '@/components/feature/InfiniteScroll';
-import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
+import InfiniteScroll from '@/components/feature/infinite-scroll';
+import { RemoteFileItemWithTags } from '@/components/feature/file-item';
 import {
   DeleteFileAction,
   CopyUrl,
   PreView,
-} from '@/components/feature/FileItemAction';
-import Uppy from '@uppy/core';
-import Dropzone from '@/components/feature/Dropzone';
+} from '@/components/feature/file-item-action';
+import Uppy, { Meta, UppyFile } from '@uppy/core';
+import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -24,7 +24,7 @@ type Props = {
   uppy: Uppy;
 };
 
-const LocationPage: React.FC<Props> = (props) => {
+const EventPage: React.FC<Props> = (props) => {
   const { appId, tagId, uppy } = props;
 
   const query = useMemo(
@@ -51,7 +51,15 @@ const LocationPage: React.FC<Props> = (props) => {
 
   // 上传成功后刷新数据
   useEffect(() => {
-    const handler = (file: any, resp: any) => {
+    const handler: (
+      file: UppyFile<Meta, Record<string, never>> | undefined,
+      response: {
+        body?: Record<string, never> | undefined;
+        status: number;
+        bytesUploaded?: number;
+        uploadURL?: string;
+      }
+    ) => void = (file, resp) => {
       if (file) {
         trpcPureClient.file.saveFile
           .mutate({
@@ -250,7 +258,7 @@ const LocationPage: React.FC<Props> = (props) => {
                       open={openGroups[group.key] ?? true}
                       onOpenChange={() => toggleGroup(group.key)}
                     >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 -lg cursor-pointer transitionrounded-colors">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-lg">
                             {group.key}
@@ -271,44 +279,37 @@ const LocationPage: React.FC<Props> = (props) => {
                       <CollapsibleContent className="mt-4">
                         <div className="flex flex-wrap gap-4">
                           {group.items.map((item) => (
-                            <div
+                            <RemoteFileItemWithTags
                               key={item.id}
-                              className="relative w-52"
+                              id={item.id}
+                              className="w-50 h-50"
+                              name={item.name}
+                              contentType={item.contentType}
                             >
-                              <RemoteFileItemWithTags
-                                id={item.id}
-                                className="w-52 h-52"
-                                name={item.name}
-                                contentType={item.contentType}
-                              >
-                                {(props) => {
-                                  const { setPreview } = props;
+                              {(props) => {
+                                const { setPreview } = props;
 
-                                  return (
-                                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                      <CopyUrl
-                                        url={`${window.location.protocol}//${window.location.host}/image/${item.id}`}
-                                      />
+                                return (
+                                  <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                    <CopyUrl
+                                      url={`${window.location.host}/image/${item.id}`}
+                                    />
 
-                                      <DeleteFileAction
-                                        onDeleteSuccess={handleFileDelete}
-                                        fileId={item.id}
-                                        appId={appId}
-                                      />
+                                    <DeleteFileAction
+                                      onDeleteSuccess={handleFileDelete}
+                                      fileId={item.id}
+                                      appId={appId}
+                                    />
 
-                                      <PreView
-                                        onClick={() => {
-                                          setPreview(true);
-                                        }}
-                                      />
-                                    </div>
-                                  );
-                                }}
-                              </RemoteFileItemWithTags>
-                              <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={item.name}>
-                                {item.name}
-                              </div>
-                            </div>
+                                    <PreView
+                                      onClick={() => {
+                                        setPreview(true);
+                                      }}
+                                    />
+                                  </div>
+                                );
+                              }}
+                            </RemoteFileItemWithTags>
                           ))}
                         </div>
                       </CollapsibleContent>
@@ -324,4 +325,4 @@ const LocationPage: React.FC<Props> = (props) => {
   );
 };
 
-export default LocationPage;
+export default EventPage;

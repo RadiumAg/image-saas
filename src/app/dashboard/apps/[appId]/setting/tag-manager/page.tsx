@@ -1,16 +1,16 @@
 'use client';
 import React, { useState, useEffect, use } from 'react';
-import { Tag, TagList, TagInput } from '@/components/ui/Tag';
-import { Button } from '@/components/ui/Button';
+import { Tag, TagList, TagInput } from '@/components/ui/tag';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
-import { Label } from '@/components/ui/Label';
-import { Input } from '@/components/ui/Input';
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { trpcClientReact } from '@/utils/api';
 

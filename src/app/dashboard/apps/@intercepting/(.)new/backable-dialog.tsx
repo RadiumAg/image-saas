@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Dialog } from '@/components/ui/Dialog';
+import { Dialog } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 
 type Props = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import Uppy from '@uppy/core';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 
 type UploadButtonProps = {

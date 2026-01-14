@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import React, { useMemo } from 'react';
-import ImageReview from '../ui/ImageReview';
+import ImageReview from '../ui/image-review';
 import { cn } from '@/lib/utils';
 
 type Children = (options: {

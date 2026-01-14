@@ -1,10 +1,10 @@
 'use client';
 import { use, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { trpcClientReact } from '@/utils/api';
 import { Plus, Edit } from 'lucide-react';
 import Link from 'next/link';
-import EditStorageDialog from '@/components/feature/EditStorageDialog';
+import EditStorageDialog from '@/components/feature/edit-storage-dialog';
 
 export default function StoragePage(
   props: PageProps<'/dashboard/apps/[appId]/setting/storage'>

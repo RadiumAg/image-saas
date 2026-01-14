@@ -7,31 +7,31 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import InfiniteScroll from '@/components/feature/InfiniteScroll';
-import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
+import InfiniteScroll from '@/components/feature/infinite-scroll';
+import { RemoteFileItemWithTags } from '@/components/feature/file-item';
 import {
   DeleteFileAction,
   CopyUrl,
   PreView,
-} from '@/components/feature/FileItemAction';
-import Uppy, { Meta, UppyFile } from '@uppy/core';
-import Dropzone from '@/components/feature/Dropzone';
+} from '@/components/feature/file-item-action';
+import Uppy from '@uppy/core';
+import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
 
-type Props = {
+type PeopleList = {
   appId: string;
   tagId?: string;
   uppy: Uppy;
 };
 
-const EventPage: React.FC<Props> = (props) => {
+const PeopleList: React.FC<PeopleList> = (props) => {
   const { appId, tagId, uppy } = props;
 
   const query = useMemo(
     () => ({
       limit: 10,
       appId,
-      tagId,
+      tagId: tagId!,
     }),
     [appId, tagId]
   );
@@ -45,21 +45,14 @@ const EventPage: React.FC<Props> = (props) => {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
+    enabled: !!tagId, // 只有当 tagId 存在时才启用查询
   });
 
   const utils = trpcClientReact.useUtils();
 
   // 上传成功后刷新数据
   useEffect(() => {
-    const handler: (
-      file: UppyFile<Meta, Record<string, never>> | undefined,
-      response: {
-        body?: Record<string, never> | undefined;
-        status: number;
-        bytesUploaded?: number;
-        uploadURL?: string;
-      }
-    ) => void = (file, resp) => {
+    const handler = (file: any, resp: any) => {
       if (file) {
         trpcPureClient.file.saveFile
           .mutate({
@@ -282,7 +275,7 @@ const EventPage: React.FC<Props> = (props) => {
                             <RemoteFileItemWithTags
                               key={item.id}
                               id={item.id}
-                              className="w-50 h-50"
+                              className="w-50 h-50 overflow-hidden rounded-full"
                               name={item.name}
                               contentType={item.contentType}
                             >
@@ -325,4 +318,4 @@ const EventPage: React.FC<Props> = (props) => {
   );
 };
 
-export default EventPage;
+export default PeopleList;

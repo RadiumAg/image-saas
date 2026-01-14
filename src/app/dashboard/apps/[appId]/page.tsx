@@ -1,24 +1,24 @@
 'use client';
-import { Button } from '@/components/ui/Button';
-import Dropzone from '@/components/feature/Dropzone';
-import { UploadButton } from '@/components/feature/UploadButton';
+import { Button } from '@/components/ui/button';
+import Dropzone from '@/components/feature/dropzone';
+import { UploadButton } from '@/components/feature/upload-button';
 import { cn } from '@/lib/utils';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
 import { useMemo, use, useState, ReactNode, ReactElement } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
-import UploadPreview from '@/components/feature/UploadPreview';
-import FileList from '@/components/feature/FileList';
+import UploadPreview from '@/components/feature/upload-preview';
+import FileList from '@/components/feature/file-list';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import { Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
-import PeopleList from './PeopleList';
-import EventPage from './EventPage';
-import LocationPage from './LocationPage';
-import SearchBar, { SearchFilters } from '@/components/feature/SearchBar';
+import PeopleList from './people-list';
+import EventPage from './event-page';
+import LocationPage from './location-page';
+import SearchBar, { SearchFilters } from '@/components/feature/search-bar';
 
 export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const params = use(props.params);

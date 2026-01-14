@@ -3,7 +3,7 @@ import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
 
 import { TrpcProvider } from './trpc-provider';
-import { Toaster } from '@/components/ui/Sonner';
+import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 import './rc-image.scss';
 

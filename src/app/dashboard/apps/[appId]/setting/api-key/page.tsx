@@ -1,14 +1,14 @@
 'use client';
 import { use, useRef } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { trpcClientReact } from '@/utils/api';
 import { Plus } from 'lucide-react';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from '@/components/ui/Popover';
-import { Input } from '@/components/ui/Input';
+} from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 
 export default function StoragePage(
   props: PageProps<'/dashboard/apps/[appId]/setting/api-key'>

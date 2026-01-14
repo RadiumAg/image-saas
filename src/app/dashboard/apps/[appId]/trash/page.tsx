@@ -1,8 +1,8 @@
 'use client';
 import { trpcClientReact } from '@/utils/api';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/ScrollArea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, RotateCcw, Download, AlertCircle, Info } from 'lucide-react';
 import { useState, useMemo, FC, use } from 'react';
 import {
@@ -11,8 +11,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
-import { RemoteFileItemWithTags } from '@/components/feature/FileItem';
-import InfiniteScroll from '@/components/feature/InfiniteScroll';
+import { RemoteFileItemWithTags } from '@/components/feature/file-item';
+import InfiniteScroll from '@/components/feature/infinite-scroll';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,4 +1,4 @@
-import { DialogContent } from '@/components/ui/Dialog';
+import { DialogContent } from '@/components/ui/dialog';
 import CreateApp from '@/app/dashboard/apps/new/page';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import BackableDialog from './backable-dialog';

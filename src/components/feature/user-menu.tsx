@@ -1,13 +1,13 @@
 'use client';
 import { AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
-import { Avatar } from '@/components/ui/Avatar';
+import { Avatar } from '@/components/ui/avatar';
 import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
+} from '@/components/ui/dropdown-menu';
 import { LogOut } from 'lucide-react';
 
 interface UserMenuProps {

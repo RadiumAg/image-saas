@@ -6,11 +6,11 @@ import {
   DialogContent,
   DialogTitle,
   DialogFooter,
-} from '../ui/Dialog';
+} from '../ui/dialog';
 import { useUppyState } from '@/hooks/use-uppy-state';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { LocalFileItem } from './FileItem';
+import { LocalFileItem } from './file-item';
 
 type UploadPreviewProps = {
   uppy: Uppy;
