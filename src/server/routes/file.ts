@@ -406,6 +406,13 @@ const fileRoutes = router({
         orderBy: filesOrderByColumnSchema,
         appId: z.string(),
         tagId: z.string(),
+        search: z
+          .object({
+            query: z.string().optional(),
+            startDate: z.string().optional(),
+            endDate: z.string().optional(),
+          })
+          .optional(),
       })
     )
     .query(async ctx => {
@@ -413,12 +420,37 @@ const fileRoutes = router({
         cursor,
         limit,
         orderBy = { field: 'createdAt', order: 'desc' },
+        search,
       } = ctx.input;
 
       const tagFilter = eq(files_tags.tagId, ctx.input.tagId);
       const deletedFilter = isNull(files.deleteAt);
       const userFilter = eq(files.userId, ctx.ctx.session.user.id);
       const appFilter = eq(files.appId, ctx.input.appId);
+
+      // 构建搜索条件
+      const searchFilters = [];
+
+      if (search?.query) {
+        // 搜索文件名
+        const searchQuery = `%${search.query}%`;
+        searchFilters.push(sql`${files.name} ILIKE ${searchQuery}`);
+      }
+
+      if (search?.startDate) {
+        searchFilters.push(
+          sql`${files.createdAt} >= ${new Date(search.startDate).toISOString()}`
+        );
+      }
+
+      if (search?.endDate) {
+        searchFilters.push(
+          sql`${files.createdAt} <= ${new Date(search.endDate).toISOString()}`
+        );
+      }
+
+      const baseFilters = [tagFilter, deletedFilter, userFilter, appFilter];
+      const allFilters = [...baseFilters, ...searchFilters];
 
       const statement = db
         .select({
@@ -439,15 +471,12 @@ const fileRoutes = router({
         .where(
           cursor
             ? and(
-                tagFilter,
-                deletedFilter,
-                userFilter,
-                appFilter,
+                ...allFilters,
                 sql`("files"."created_at", "files"."id") < (${new Date(
                   cursor.createAt
                 ).toISOString()}, ${cursor.id})`
               )
-            : and(tagFilter, deletedFilter, userFilter, appFilter)
+            : and(...allFilters)
         );
 
       statement.orderBy(

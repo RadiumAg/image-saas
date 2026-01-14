@@ -17,23 +17,26 @@ import {
 import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
+import { SearchFilters } from '@/components/feature/search-bar';
 
 type Props = {
   appId: string;
   tagId?: string;
   uppy: Uppy;
+  searchFilters: SearchFilters;
 };
 
 const EventPage: React.FC<Props> = props => {
-  const { appId, tagId, uppy } = props;
+  const { appId, tagId, uppy, searchFilters } = props;
 
   const query = useMemo(
     () => ({
       limit: 10,
       appId,
       tagId,
+      search: searchFilters,
     }),
-    [appId, tagId]
+    [appId, tagId, searchFilters]
   );
 
   const {

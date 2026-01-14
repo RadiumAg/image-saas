@@ -17,23 +17,27 @@ import {
 import Uppy from '@uppy/core';
 import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
+import { SearchFilters } from '@/components/feature/search-bar';
 
 type PeopleList = {
   appId: string;
   tagId?: string;
   uppy: Uppy;
+  searchFilters: SearchFilters;
 };
 
 const PeopleList: React.FC<PeopleList> = props => {
   const { appId, tagId, uppy } = props;
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const query = useMemo(
     () => ({
       limit: 10,
       appId,
       tagId: tagId!,
+      search: searchFilters,
     }),
-    [appId, tagId]
+    [appId, tagId, searchFilters]
   );
 
   const {
