@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Search, X, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
+import { format } from 'date-fns';
 
 export interface SearchFilters {
   query?: string;
@@ -19,9 +22,11 @@ interface SearchBarProps {
 
 export function SearchBar({ onSearch, className }: SearchBarProps) {
   const [query, setQuery] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
 
   const handleSearch = () => {
     const filters: SearchFilters = {};
@@ -31,11 +36,11 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
     }
     
     if (startDate) {
-      filters.startDate = startDate;
+      filters.startDate = format(startDate, 'yyyy-MM-dd');
     }
     
     if (endDate) {
-      filters.endDate = endDate;
+      filters.endDate = format(endDate, 'yyyy-MM-dd');
     }
     
     onSearch(filters);
@@ -43,8 +48,8 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
 
   const handleClear = () => {
     setQuery('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate(undefined);
+    setEndDate(undefined);
     setIsExpanded(false);
     onSearch({});
   };
@@ -101,22 +106,62 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
             <label className="text-sm font-medium text-muted-foreground">
               开始日期
             </label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
+            <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, 'yyyy-MM-dd') : "选择开始日期"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setStartDateOpen(false);
+                  }}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               结束日期
             </label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, 'yyyy-MM-dd') : "选择结束日期"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setEndDateOpen(false);
+                  }}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       )}
@@ -131,12 +176,12 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
           )}
           {startDate && (
             <span className="inline-flex items-center gap-1 mr-4">
-              开始: <span className="font-medium">{startDate}</span>
+              开始: <span className="font-medium">{format(startDate, 'yyyy-MM-dd')}</span>
             </span>
           )}
           {endDate && (
             <span className="inline-flex items-center gap-1">
-              结束: <span className="font-medium">{endDate}</span>
+              结束: <span className="font-medium">{format(endDate, 'yyyy-MM-dd')}</span>
             </span>
           )}
         </div>
