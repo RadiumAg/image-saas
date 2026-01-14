@@ -9,7 +9,7 @@ type InfiniteScrollProps = {
   threshold?: number;
 };
 
-const InfiniteScroll: React.FC<InfiniteScrollProps> = (props) => {
+const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
   const { children, loadMore, hasMore, isLoading, threshold = 100 } = props;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -18,7 +18,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = (props) => {
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const [entry] = entries;
         if (entry.isIntersecting && hasMore && !isLoading) {
           loadMore();
@@ -40,7 +40,10 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = (props) => {
     <div>
       {children}
       {hasMore && (
-        <div ref={sentinelRef} className="flex justify-center items-center py-8">
+        <div
+          ref={sentinelRef}
+          className="flex justify-center items-center py-8"
+        >
           {isLoading && <div className="text-muted-foreground">加载中...</div>}
         </div>
       )}

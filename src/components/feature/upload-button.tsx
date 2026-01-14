@@ -7,7 +7,7 @@ type UploadButtonProps = {
   uppy: Uppy;
 };
 
-const UploadButton: React.FC<UploadButtonProps> = (props) => {
+const UploadButton: React.FC<UploadButtonProps> = props => {
   const { uppy } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -18,15 +18,15 @@ const UploadButton: React.FC<UploadButtonProps> = (props) => {
         multiple
         className="hidden"
         type="file"
-        onChange={(e) => {
+        onChange={e => {
           if (e.target.files) {
-            Array.from(e.target.files).forEach((file) => {
+            Array.from(e.target.files).forEach(file => {
               uppy.addFile(file);
             });
             if (inputRef.current) inputRef.current.value = '';
           }
         }}
-       />
+      />
 
       <Button
         variant="outline"

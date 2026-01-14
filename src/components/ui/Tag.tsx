@@ -72,7 +72,7 @@ export function TagList({
 
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
-      {tags.map((tag) => (
+      {tags.map(tag => (
         <Tag
           key={tag.id}
           name={tag.name}
@@ -110,7 +110,7 @@ export function TagInput({
     const timeoutId = setTimeout(() => {
       if (inputValue) {
         const filtered = suggestions.filter(
-          (suggestion) =>
+          suggestion =>
             suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
             !value.includes(suggestion)
         );
@@ -152,13 +152,13 @@ export function TagInput({
   };
 
   const removeTag = (tagToRemove: string) => {
-    onChange(value.filter((tag) => tag !== tagToRemove));
+    onChange(value.filter(tag => tag !== tagToRemove));
   };
 
   return (
     <div className={cn('relative', className)}>
       <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px] focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-        {value.map((tag) => (
+        {value.map(tag => (
           <Tag
             key={tag}
             name={tag}
@@ -182,7 +182,7 @@ export function TagInput({
 
       {showSuggestions && (
         <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
-          {filteredSuggestions.map((suggestion) => (
+          {filteredSuggestions.map(suggestion => (
             <button
               key={suggestion}
               type="button"

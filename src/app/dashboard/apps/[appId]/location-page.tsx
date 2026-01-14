@@ -24,7 +24,7 @@ type Props = {
   uppy: Uppy;
 };
 
-const LocationPage: React.FC<Props> = (props) => {
+const LocationPage: React.FC<Props> = props => {
   const { appId, tagId, uppy } = props;
 
   const query = useMemo(
@@ -41,7 +41,7 @@ const LocationPage: React.FC<Props> = (props) => {
     isPending,
     fetchNextPage,
   } = trpcClientReact.file.infinityQueryFilesByTag.useInfiniteQuery(query, {
-    getNextPageParam: (resp) => resp.nextCursor,
+    getNextPageParam: resp => resp.nextCursor,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
@@ -60,7 +60,7 @@ const LocationPage: React.FC<Props> = (props) => {
             type: file.data.type,
             appId,
           })
-          .then(async (savedFile) => {
+          .then(async savedFile => {
             // 对图片文件进行识别
             if (file.data.type && file.data.type.startsWith('image')) {
               try {
@@ -76,26 +76,23 @@ const LocationPage: React.FC<Props> = (props) => {
             }
 
             // 直接更新缓存数据
-            utils.file.infinityQueryFilesByTag.setInfiniteData(
-              query,
-              (prev) => {
-                if (!prev) return prev;
+            utils.file.infinityQueryFilesByTag.setInfiniteData(query, prev => {
+              if (!prev) return prev;
 
-                return {
-                  ...prev,
-                  pages: prev.pages.map((page, index) => {
-                    if (index === 0) {
-                      return {
-                        ...page,
-                        items: [savedFile, ...page.items],
-                      };
-                    }
-                    return page;
-                  }),
-                  pageParams: prev.pageParams,
-                };
-              }
-            );
+              return {
+                ...prev,
+                pages: prev.pages.map((page, index) => {
+                  if (index === 0) {
+                    return {
+                      ...page,
+                      items: [savedFile, ...page.items],
+                    };
+                  }
+                  return page;
+                }),
+                pageParams: prev.pageParams,
+              };
+            });
           });
       }
     };
@@ -114,14 +111,14 @@ const LocationPage: React.FC<Props> = (props) => {
   }, [uppy, utils, appId, query]);
 
   const handleFileDelete = (id: string) => {
-    utils.file.infinityQueryFilesByTag.setInfiniteData(query, (prev) => {
+    utils.file.infinityQueryFilesByTag.setInfiniteData(query, prev => {
       if (!prev) return prev;
 
       return {
         ...prev,
-        pages: prev.pages.map((page) => ({
+        pages: prev.pages.map(page => ({
           ...page,
-          items: page.items.filter((file) => file.id !== id),
+          items: page.items.filter(file => file.id !== id),
         })),
         pageParams: prev.pageParams,
       };
@@ -134,7 +131,7 @@ const LocationPage: React.FC<Props> = (props) => {
   });
 
   const toggleGroup = (key: string) => {
-    setOpenGroups((prev) => ({
+    setOpenGroups(prev => ({
       ...prev,
       [key]: prev[key] === undefined ? false : !prev[key],
     }));
@@ -144,11 +141,11 @@ const LocationPage: React.FC<Props> = (props) => {
   const groupedData = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
-    allItems.forEach((item) => {
+    allItems.forEach(item => {
       const date = new Date(item.createdAt!);
       const today = new Date();
       const yesterday = new Date(today);
@@ -198,7 +195,7 @@ const LocationPage: React.FC<Props> = (props) => {
     return (
       <div className="container mx-auto mt-10">
         <Dropzone uppy={uppy} className="w-full h-[calc(100vh-200px)]">
-          {(draggling) => {
+          {draggling => {
             return (
               <div
                 className={cn(
@@ -225,7 +222,7 @@ const LocationPage: React.FC<Props> = (props) => {
   return (
     <div className="container mx-auto mt-10">
       <Dropzone uppy={uppy} className="w-full">
-        {(draggling) => {
+        {draggling => {
           return (
             <div
               className={cn('relative', draggling && 'border border-dashed')}
@@ -244,7 +241,7 @@ const LocationPage: React.FC<Props> = (props) => {
                 isLoading={isPending}
               >
                 <div className="space-y-6">
-                  {groupedData.map((group) => (
+                  {groupedData.map(group => (
                     <Collapsible
                       key={group.key}
                       open={openGroups[group.key] ?? true}
@@ -270,18 +267,15 @@ const LocationPage: React.FC<Props> = (props) => {
                       </CollapsibleTrigger>
                       <CollapsibleContent className="mt-4">
                         <div className="flex flex-wrap gap-4">
-                          {group.items.map((item) => (
-                            <div
-                              key={item.id}
-                              className="relative w-52"
-                            >
+                          {group.items.map(item => (
+                            <div key={item.id} className="relative w-52">
                               <RemoteFileItemWithTags
                                 id={item.id}
                                 className="w-52 h-52"
                                 name={item.name}
                                 contentType={item.contentType}
                               >
-                                {(props) => {
+                                {props => {
                                   const { setPreview } = props;
 
                                   return (
@@ -305,7 +299,10 @@ const LocationPage: React.FC<Props> = (props) => {
                                   );
                                 }}
                               </RemoteFileItemWithTags>
-                              <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={item.name}>
+                              <div
+                                className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2"
+                                title={item.name}
+                              >
                                 {item.name}
                               </div>
                             </div>

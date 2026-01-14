@@ -17,8 +17,8 @@ export default function StoragePage(
   const newApiKeyName = useRef('');
   const utils = trpcClientReact.useUtils();
   const { mutate } = trpcClientReact.apiKeys.createApiKey.useMutation({
-    onSuccess: (data) => {
-      utils.apiKeys.listApiKeys.setData({ appId }, (prev) => {
+    onSuccess: data => {
+      utils.apiKeys.listApiKeys.setData({ appId }, prev => {
         newApiKeyName.current = '';
         if (!prev || !data) {
           return prev;
@@ -47,7 +47,7 @@ export default function StoragePage(
             <div className="flex flex-col gap-4">
               <Input
                 placeholder="Name"
-                onChange={(e) => {
+                onChange={e => {
                   newApiKeyName.current = e.target.value;
                 }}
               />
@@ -63,7 +63,7 @@ export default function StoragePage(
           </PopoverContent>
         </Popover>
       </div>
-      {apiKeys?.map((storage) => {
+      {apiKeys?.map(storage => {
         return (
           <div
             key={storage.id}

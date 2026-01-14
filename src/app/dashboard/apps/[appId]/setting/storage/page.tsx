@@ -15,12 +15,12 @@ export default function StoragePage(
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { mutate } = trpcClientReact.apps.changeStorage.useMutation({
     onSuccess(data, variables) {
-      utils.apps.listApps.setData(undefined, (prev) => {
+      utils.apps.listApps.setData(undefined, prev => {
         if (!prev) {
           return prev;
         }
 
-        return prev.map((p) =>
+        return prev.map(p =>
           p.id === appId
             ? {
                 ...p,
@@ -33,7 +33,7 @@ export default function StoragePage(
   });
   const { data: storages } = trpcClientReact.storages.listStorages.useQuery();
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery();
-  const currentApp = apps?.filter((app) => app.id === appId)[0];
+  const currentApp = apps?.filter(app => app.id === appId)[0];
 
   const handleEditStorage = (storage: any) => {
     setEditingStorage(storage);
@@ -55,7 +55,7 @@ export default function StoragePage(
           </Button>
         </Link>
       </div>
-      {storages?.map((storage) => {
+      {storages?.map(storage => {
         return (
           <div
             key={storage.id}

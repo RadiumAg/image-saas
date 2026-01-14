@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
+const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = props => {
   const { appId } = use(props.params);
 
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
@@ -57,7 +57,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
     isPending,
     fetchNextPage,
   } = trpcClientReact.file.getDeletedFiles.useInfiniteQuery(query, {
-    getNextPageParam: (resp) => resp.nextCursor,
+    getNextPageParam: resp => resp.nextCursor,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
@@ -80,7 +80,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
     batchPermanentlyDeleteFilesMutation.isPending;
 
   const toggleSelect = (id: string) => {
-    setSelectedFiles((prev) => {
+    setSelectedFiles(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -92,9 +92,9 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
   };
 
   const batchToggleSelect = (ids: string[], selected: boolean) => {
-    setSelectedFiles((prev) => {
+    setSelectedFiles(prev => {
       const newSet = new Set(prev);
-      ids.forEach((id) => {
+      ids.forEach(id => {
         if (selected) {
           newSet.add(id);
         } else {
@@ -106,7 +106,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
   };
 
   const toggleGroup = (key: string) => {
-    setOpenGroups((prev) => ({
+    setOpenGroups(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
@@ -156,22 +156,22 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
             { id: confirmDialog.id, appId },
             {
               onSuccess: () => {
-                utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                utils.file.getDeletedFiles.setInfiniteData(query, prev => {
                   if (!prev) return prev;
 
                   return {
                     ...prev,
-                    pages: prev.pages.map((page) => ({
+                    pages: prev.pages.map(page => ({
                       ...page,
                       items: page.items.filter(
-                        (file) => file.id !== confirmDialog.id
+                        file => file.id !== confirmDialog.id
                       ),
                     })),
                     pageParams: prev.pageParams,
                   };
                 });
 
-                setSelectedFiles((prev) => {
+                setSelectedFiles(prev => {
                   const newSet = new Set(prev);
                   newSet.delete(confirmDialog.id!);
                   return newSet;
@@ -188,15 +188,15 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
           { ids: restoreIds, appId },
           {
             onSuccess: () => {
-              utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+              utils.file.getDeletedFiles.setInfiniteData(query, prev => {
                 if (!prev) return prev;
 
                 return {
                   ...prev,
-                  pages: prev.pages.map((page) => ({
+                  pages: prev.pages.map(page => ({
                     ...page,
                     items: page.items.filter(
-                      (file) => !restoreIds.includes(file.id)
+                      file => !restoreIds.includes(file.id)
                     ),
                   })),
                   pageParams: prev.pageParams,
@@ -213,22 +213,22 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
             { id: confirmDialog.id, appId },
             {
               onSuccess: () => {
-                utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+                utils.file.getDeletedFiles.setInfiniteData(query, prev => {
                   if (!prev) return prev;
 
                   return {
                     ...prev,
-                    pages: prev.pages.map((page) => ({
+                    pages: prev.pages.map(page => ({
                       ...page,
                       items: page.items.filter(
-                        (file) => file.id !== confirmDialog.id
+                        file => file.id !== confirmDialog.id
                       ),
                     })),
                     pageParams: prev.pageParams,
                   };
                 });
 
-                setSelectedFiles((prev) => {
+                setSelectedFiles(prev => {
                   const newSet = new Set(prev);
                   newSet.delete(confirmDialog.id!);
                   return newSet;
@@ -245,15 +245,15 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
           { ids: deleteIds, appId },
           {
             onSuccess: () => {
-              utils.file.getDeletedFiles.setInfiniteData(query, (prev) => {
+              utils.file.getDeletedFiles.setInfiniteData(query, prev => {
                 if (!prev) return prev;
 
                 return {
                   ...prev,
-                  pages: prev.pages.map((page) => ({
+                  pages: prev.pages.map(page => ({
                     ...page,
                     items: page.items.filter(
-                      (file) => !deleteIds.includes(file.id)
+                      file => !deleteIds.includes(file.id)
                     ),
                   })),
                   pageParams: prev.pageParams,
@@ -270,11 +270,11 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
   const groupedData = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
-    allItems.forEach((item) => {
+    allItems.forEach(item => {
       const date = new Date(item.deleteAt!);
       const today = new Date();
       const yesterday = new Date(today);
@@ -309,10 +309,9 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
 
   const allSelected = useMemo(() => {
     if (!infinityQueryData?.pages) return false;
-    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
     return (
-      allItems.length > 0 &&
-      allItems.every((item) => selectedFiles.has(item.id))
+      allItems.length > 0 && allItems.every(item => selectedFiles.has(item.id))
     );
   }, [infinityQueryData?.pages, selectedFiles]);
 
@@ -321,8 +320,8 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
       setSelectedFiles(new Set());
     } else {
       const allIds =
-        infinityQueryData?.pages.flatMap((page) =>
-          page.items.map((item) => item.id)
+        infinityQueryData?.pages.flatMap(page =>
+          page.items.map(item => item.id)
         ) || [];
       setSelectedFiles(new Set(allIds));
     }
@@ -412,8 +411,8 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
               />
               <span className="text-sm text-muted-foreground">
                 全选 ({selectedFiles.size}/
-                {infinityQueryData?.pages.flatMap((page) => page.items)
-                  .length || 0}
+                {infinityQueryData?.pages.flatMap(page => page.items).length ||
+                  0}
                 )
               </span>
             </div>
@@ -428,7 +427,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
             isLoading={isPending}
           >
             <div className="space-y-6">
-              {groupedData.map((group) => (
+              {groupedData.map(group => (
                 <Collapsible
                   key={group.key}
                   open={openGroups[group.key] ?? true}
@@ -437,12 +436,12 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
                   <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
                     <div className="flex items-center gap-2">
                       <Checkbox
-                        checked={group.items.every((item) =>
+                        checked={group.items.every(item =>
                           selectedFiles.has(item.id)
                         )}
-                        onCheckedChange={(checked) => {
+                        onCheckedChange={checked => {
                           batchToggleSelect(
-                            group.items.map((item) => item.id),
+                            group.items.map(item => item.id),
                             checked === true
                           );
                         }}
@@ -460,7 +459,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-4">
                     <div className="flex flex-wrap gap-4">
-                      {group.items.map((item) => (
+                      {group.items.map(item => (
                         <div key={item.id} className="relative group">
                           <Checkbox
                             className="absolute top-2 left-2 z-10"
@@ -474,7 +473,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
                             className="w-56 h-56"
                             contentType={item.contentType}
                           >
-                            {(props) => {
+                            {props => {
                               const { setPreview } = props;
 
                               return (
@@ -537,7 +536,7 @@ const TrashPage: FC<PageProps<'/dashboard/apps/[appId]/trash'>> = (props) => {
       {/* 确认对话框 */}
       <AlertDialog
         open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        onOpenChange={open => setConfirmDialog(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>
           <AlertDialogHeader>

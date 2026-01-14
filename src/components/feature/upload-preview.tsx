@@ -16,16 +16,16 @@ type UploadPreviewProps = {
   uppy: Uppy;
 };
 
-const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
+const UploadPreview: React.FC<UploadPreviewProps> = props => {
   const { uppy } = props;
-  const files = Object.values(useUppyState(uppy, (s) => s.files));
+  const files = Object.values(useUppyState(uppy, s => s.files));
   const open = files.length > 0;
   const [index, setIndex] = React.useState(0);
   const file = files[index];
   if (file == null) return null;
 
   const clear = () => {
-    files.forEach((file) => {
+    files.forEach(file => {
       uppy.removeFile(file.id);
     });
 
@@ -35,14 +35,14 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
   return (
     <Dialog
       open={open}
-      onOpenChange={(flag) => {
+      onOpenChange={flag => {
         if (flag === false) {
           clear();
         }
       }}
     >
       <DialogContent
-        onPointerDownOutside={(e) => {
+        onPointerDownOutside={e => {
           e.preventDefault();
         }}
       >
@@ -60,7 +60,7 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
                   setIndex(index - 1);
                 }
               }}
-             />
+            />
           </Button>
 
           <div className="w-56 h-56 flex justify-center items-center border">
@@ -86,7 +86,7 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
             variant="destructive"
             onClick={() => {
               uppy.removeFile(file.id);
-              setIndex((oldIndex) => {
+              setIndex(oldIndex => {
                 if (oldIndex < files.length - 1 && oldIndex! == 0) {
                   return oldIndex - 1;
                 } else {
@@ -101,7 +101,7 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
           <Button
             onClick={() => {
               uppy.upload().then(() => {
-                files.forEach((file) => {
+                files.forEach(file => {
                   uppy.removeFile(file.id);
                 });
               });

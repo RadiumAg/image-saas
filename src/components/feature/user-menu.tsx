@@ -16,7 +16,7 @@ interface UserMenuProps {
   image?: string | null;
 }
 
-const UserMenu: React.FC<UserMenuProps> = (props) => {
+const UserMenu: React.FC<UserMenuProps> = props => {
   const { name, email, image } = props;
 
   const handleSignOut = () => {

@@ -14,7 +14,7 @@ interface FileItemProps {
   className?: string;
   children?: Children;
 }
-const FileItem: React.FC<FileItemProps> = (props) => {
+const FileItem: React.FC<FileItemProps> = props => {
   const { isImage, url, className, name, children } = props;
   const [preview, setPreview] = React.useState(false);
 

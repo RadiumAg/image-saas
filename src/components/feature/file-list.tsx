@@ -25,7 +25,7 @@ interface FileListProps {
   searchFilters?: SearchFilters;
 }
 
-const FileList: React.FC<FileListProps> = (props) => {
+const FileList: React.FC<FileListProps> = props => {
   const { uppy, appId, orderBy, searchFilters } = props;
   const query = useMemo(
     () => ({
@@ -42,7 +42,7 @@ const FileList: React.FC<FileListProps> = (props) => {
     isPending,
     fetchNextPage,
   } = trpcClientReact.file.infinityQueryFiles.useInfiniteQuery(query, {
-    getNextPageParam: (resp) => resp.nextCursor,
+    getNextPageParam: resp => resp.nextCursor,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -52,11 +52,11 @@ const FileList: React.FC<FileListProps> = (props) => {
   const groupedFiles = useMemo(() => {
     if (!infinityQueryData?.pages) return [];
 
-    const allItems = infinityQueryData?.pages.flatMap((page) => page.items);
+    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
 
     const groups: Record<string, typeof allItems> = {};
 
-    allItems.forEach((item) => {
+    allItems.forEach(item => {
       const date = new Date(item.createdAt!);
       const today = new Date();
       const yesterday = new Date(today);
@@ -95,7 +95,7 @@ const FileList: React.FC<FileListProps> = (props) => {
   });
 
   const toggleGroup = (key: string) => {
-    setOpenGroups((prev) => ({
+    setOpenGroups(prev => ({
       ...prev,
       [key]: prev[key] === undefined ? false : !prev[key],
     }));
@@ -104,7 +104,7 @@ const FileList: React.FC<FileListProps> = (props) => {
   const utils = trpcClientReact.useUtils();
 
   const handleFileDelete = (id: string) => {
-    utils.file.infinityQueryFiles.setInfiniteData(query, (prev) => {
+    utils.file.infinityQueryFiles.setInfiniteData(query, prev => {
       if (!prev) return prev;
 
       return {
@@ -113,7 +113,7 @@ const FileList: React.FC<FileListProps> = (props) => {
           if (index === 0) {
             return {
               ...page,
-              items: page.items.filter((file) => file.id !== id),
+              items: page.items.filter(file => file.id !== id),
             };
           }
           return page;
@@ -123,7 +123,7 @@ const FileList: React.FC<FileListProps> = (props) => {
     });
   };
 
-  const uppyFiles = useUppyState(uppy, (s) => s.files);
+  const uppyFiles = useUppyState(uppy, s => s.files);
   const [uploadingFilesIds, setUploadingFilesIds] = React.useState<string[]>(
     []
   );
@@ -134,7 +134,7 @@ const FileList: React.FC<FileListProps> = (props) => {
 
     if (bottomElRef) {
       const observer = new IntersectionObserver(
-        (e) => {
+        e => {
           if (e[0].intersectionRatio > 0.1) fetchNextPage();
         },
         { threshold: 0.1 }
@@ -167,7 +167,7 @@ const FileList: React.FC<FileListProps> = (props) => {
             type: file.data.type,
             appId,
           })
-          .then(async (resp) => {
+          .then(async resp => {
             // 对图片文件进行识别
             if (file.data.type && file.data.type.startsWith('image')) {
               try {
@@ -182,7 +182,7 @@ const FileList: React.FC<FileListProps> = (props) => {
               }
             }
 
-            utils.file.infinityQueryFiles.setInfiniteData(query, (prev) => {
+            utils.file.infinityQueryFiles.setInfiniteData(query, prev => {
               if (!prev) return prev;
 
               return {
@@ -207,9 +207,9 @@ const FileList: React.FC<FileListProps> = (props) => {
       uploadID: string,
       files: UppyFile<Meta, Record<string, never>>[]
     ) => void = (_, resp) => {
-      setUploadingFilesIds((currentFiles) => [
+      setUploadingFilesIds(currentFiles => [
         ...currentFiles,
-        ...resp.map((file) => file.id),
+        ...resp.map(file => file.id),
       ]);
     };
 
@@ -234,7 +234,7 @@ const FileList: React.FC<FileListProps> = (props) => {
     utils.tags.getTagsByCategory,
   ]);
 
-  const fileListEle = groupedFiles.map((group) => {
+  const fileListEle = groupedFiles.map(group => {
     const isToday = group.key === '今天';
 
     return (
@@ -263,7 +263,7 @@ const FileList: React.FC<FileListProps> = (props) => {
           <div className="flex flex-wrap gap-4">
             {isToday &&
               uploadingFilesIds.length > 0 &&
-              uploadingFilesIds.map((fileId) => {
+              uploadingFilesIds.map(fileId => {
                 const file = uppyFiles[fileId];
                 const isImage = file.data.type.startsWith('image');
                 const url = URL.createObjectURL(file.data);
@@ -293,7 +293,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                   </div>
                 );
               })}
-            {group.items.map((file) => (
+            {group.items.map(file => (
               <div key={file.id} className="relative w-56">
                 <RemoteFileItemWithTags
                   className="w-56 h-56"
@@ -301,7 +301,7 @@ const FileList: React.FC<FileListProps> = (props) => {
                   name={file.name}
                   contentType={file.contentType}
                 >
-                  {(props) => {
+                  {props => {
                     const { setPreview } = props;
 
                     return (
@@ -325,7 +325,10 @@ const FileList: React.FC<FileListProps> = (props) => {
                     );
                   }}
                 </RemoteFileItemWithTags>
-                <div className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2" title={file.name}>
+                <div
+                  className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2"
+                  title={file.name}
+                >
                   {file.name}
                 </div>
               </div>

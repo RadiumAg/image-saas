@@ -35,7 +35,7 @@ const fileOpenRoutes = router({
         contentType: z.string(),
         size: z.number(),
         appId: z.string(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const date = new Date();
@@ -92,7 +92,7 @@ const fileOpenRoutes = router({
         path: z.string(),
         type: z.string(),
         appId: z.string(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const url = new URL(input.path);
@@ -135,9 +135,9 @@ const fileOpenRoutes = router({
         limit: z.number().default(10),
         orderBy: filesOrderByColumnSchema,
         appId: z.string(),
-      }),
+      })
     )
-    .query(async (ctx) => {
+    .query(async ctx => {
       const {
         cursor,
         limit,
@@ -158,15 +158,15 @@ const fileOpenRoutes = router({
                 sql`("files"."created_at", "files"."id") < (${new Date(cursor.createAt).toISOString()}, ${cursor.id})`,
                 deletedFilter,
                 userFilter,
-                appFilter,
+                appFilter
               )
-            : and(deletedFilter, userFilter, appFilter),
+            : and(deletedFilter, userFilter, appFilter)
         );
 
       statement.orderBy(
         orderBy.order === 'asc'
           ? asc(files[orderBy.field])
-          : desc(files[orderBy.field]),
+          : desc(files[orderBy.field])
       );
 
       const result = await statement;

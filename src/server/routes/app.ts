@@ -32,7 +32,7 @@ export const appsRouter = router({
 
       // 为新应用创建默认的三个分类标签
       await db.insert(tags).values(
-        DEFAULT_TAGS.map((tag) => ({
+        DEFAULT_TAGS.map(tag => ({
           id: uuid(),
           name: tag.name,
           categoryType: tag.categoryType,
@@ -61,7 +61,7 @@ export const appsRouter = router({
       z.object({
         appId: z.string(),
         storageId: z.number(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const storage = await db.query.storageConfiguration.findFirst({
@@ -81,7 +81,7 @@ export const appsRouter = router({
           storageId: input.storageId,
         })
         .where(
-          and(eq(apps.id, input.appId), eq(apps.userId, ctx.session.user.id)),
+          and(eq(apps.id, input.appId), eq(apps.userId, ctx.session.user.id))
         );
     }),
 });

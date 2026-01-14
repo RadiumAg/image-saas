@@ -29,7 +29,7 @@ export function TagInput({
     const timeoutId = setTimeout(() => {
       if (inputValue) {
         const filtered = suggestions.filter(
-          (suggestion) =>
+          suggestion =>
             suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
             !value.includes(suggestion)
         );

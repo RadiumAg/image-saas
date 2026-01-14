@@ -15,7 +15,7 @@ export default function AppDashboardNav(
 ) {
   const { appId } = use(props.params);
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery();
-  const currentApp = apps?.find((app) => app.id === appId);
+  const currentApp = apps?.find(app => app.id === appId);
 
   return (
     <DropdownMenu>
@@ -26,7 +26,7 @@ export default function AppDashboardNav(
       </DropdownMenuTrigger>
 
       <DropdownMenuContent>
-        {apps?.map((app) => {
+        {apps?.map(app => {
           return (
             <DropdownMenuItem disabled={app.id === appId} key={app.id}>
               <Link className="w-full" href={`/dashboard/apps/${app.id}`}>

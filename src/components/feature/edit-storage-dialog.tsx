@@ -54,7 +54,7 @@ export function EditStorageDialog({
       },
     });
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = data => {
     if (!storage) return;
 
     mutate({

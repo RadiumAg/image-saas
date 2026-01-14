@@ -21,14 +21,13 @@ interface TagData {
   count: number;
 }
 
-interface TagManagerProps
-  extends PageProps<'/dashboard/apps/[appId]/setting/tag-manager'> {
+interface TagManagerProps extends PageProps<'/dashboard/apps/[appId]/setting/tag-manager'> {
   fileId?: string;
   trigger?: React.ReactNode;
   onTagsChange?: (tags: string[]) => void;
 }
 
-const TagManagerPage: React.FC<TagManagerProps> = (props) => {
+const TagManagerPage: React.FC<TagManagerProps> = props => {
   const { fileId } = props;
   const { appId } = use(props.params);
   const [userTags, setUserTags] = useState<TagData[]>([]);
@@ -92,13 +91,13 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
     if (fileTagsData) {
       // 使用 setTimeout 异步更新状态，避免同步调用 setState
       const timeoutId = setTimeout(() => {
-        const transformedTags = fileTagsData.map((tag) => ({
+        const transformedTags = fileTagsData.map(tag => ({
           id: tag.id,
           name: tag.name,
           color: tag.color || '#3b82f6', // 为 null 的 color 提供默认值
         }));
         setFileTags(transformedTags);
-        setSelectedTags(fileTagsData.map((tag) => tag.name));
+        setSelectedTags(fileTagsData.map(tag => tag.name));
         setError(null);
       }, 0);
 
@@ -126,7 +125,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
       setIsAddDialogOpen(false);
 
       // 更新本地状态
-      setUserTags((prev) => [
+      setUserTags(prev => [
         ...prev,
         {
           id: result.id,
@@ -159,11 +158,11 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
       setEditingTag(null);
 
       // 更新本地状态
-      setUserTags((prev) =>
-        prev.map((tag) => (tag.id === tagId ? { ...tag, ...updates } : tag))
+      setUserTags(prev =>
+        prev.map(tag => (tag.id === tagId ? { ...tag, ...updates } : tag))
       );
-      setFileTags((prev) =>
-        prev.map((tag) => (tag.id === tagId ? { ...tag, ...updates } : tag))
+      setFileTags(prev =>
+        prev.map(tag => (tag.id === tagId ? { ...tag, ...updates } : tag))
       );
 
       await refetchUserTags();
@@ -186,12 +185,10 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
       await deleteTagMutation.mutateAsync({ tagId });
 
       // 更新本地状态
-      const deletedTag = userTags.find((tag) => tag.id === tagId);
-      setUserTags((prev) => prev.filter((tag) => tag.id !== tagId));
-      setFileTags((prev) => prev.filter((tag) => tag.id !== tagId));
-      setSelectedTags((prev) =>
-        prev.filter((name) => name !== deletedTag?.name)
-      );
+      const deletedTag = userTags.find(tag => tag.id === tagId);
+      setUserTags(prev => prev.filter(tag => tag.id !== tagId));
+      setFileTags(prev => prev.filter(tag => tag.id !== tagId));
+      setSelectedTags(prev => prev.filter(name => name !== deletedTag?.name));
 
       await refetchUserTags();
       await refetchFileTags();
@@ -214,12 +211,12 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
       // 更新本地状态
       if (tagIds) {
         const removedTagIds = new Set(tagIds);
-        setFileTags((prev) => prev.filter((tag) => !removedTagIds.has(tag.id)));
+        setFileTags(prev => prev.filter(tag => !removedTagIds.has(tag.id)));
         const removedNames = fileTags
-          .filter((tag) => removedTagIds.has(tag.id))
-          .map((tag) => tag.name);
-        setSelectedTags((prev) =>
-          prev.filter((name) => !removedNames.includes(name))
+          .filter(tag => removedTagIds.has(tag.id))
+          .map(tag => tag.name);
+        setSelectedTags(prev =>
+          prev.filter(name => !removedNames.includes(name))
         );
       } else {
         setFileTags([]);
@@ -272,7 +269,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
                   <Input
                     id="tagName"
                     value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
+                    onChange={e => setNewTagName(e.target.value)}
                     placeholder="输入标签名称"
                     maxLength={20}
                   />
@@ -285,7 +282,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
                     id="tagColor"
                     type="color"
                     value={newTagColor}
-                    onChange={(e) => setNewTagColor(e.target.value)}
+                    onChange={e => setNewTagColor(e.target.value)}
                     className="w-20 h-10"
                   />
                 </div>
@@ -372,10 +369,8 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
                     <TagList
                       tags={fileTags}
                       removable
-                      onRemoveTag={(tagId) => {
-                        const tagToRemove = fileTags.find(
-                          (t) => t.id === tagId
-                        );
+                      onRemoveTag={tagId => {
+                        const tagToRemove = fileTags.find(t => t.id === tagId);
                         if (tagToRemove) {
                           removeTagsFromFile([tagId]);
                         }
@@ -394,7 +389,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
               <TagInput
                 value={selectedTags}
                 onChange={handleTagSelection}
-                suggestions={userTags.map((tag) => tag.name)}
+                suggestions={userTags.map(tag => tag.name)}
                 placeholder="输入标签名称或从现有标签中选择..."
               />
             </div>
@@ -415,7 +410,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
                 <Input
                   id="editTagName"
                   value={editTagName}
-                  onChange={(e) => setEditTagName(e.target.value)}
+                  onChange={e => setEditTagName(e.target.value)}
                   placeholder="输入标签名称"
                   maxLength={20}
                 />
@@ -426,7 +421,7 @@ const TagManagerPage: React.FC<TagManagerProps> = (props) => {
                   id="editTagColor"
                   type="color"
                   value={editTagColor}
-                  onChange={(e) => setEditTagColor(e.target.value)}
+                  onChange={e => setEditTagColor(e.target.value)}
                   className="w-20 h-10"
                 />
               </div>

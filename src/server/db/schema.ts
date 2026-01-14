@@ -58,7 +58,7 @@ export const accounts = pgTable(
     id_token: text('id_token'),
     session_state: text('session_state'),
   },
-  (account) => [
+  account => [
     {
       compoundKey: primaryKey({
         columns: [account.provider, account.providerAccountId],
@@ -82,7 +82,7 @@ export const verificationTokens = pgTable(
     token: text('token').notNull(),
     expires: timestamp('expires', { mode: 'date' }).notNull(),
   },
-  (verificationToken) => [
+  verificationToken => [
     {
       compositePk: primaryKey({
         columns: [verificationToken.identifier, verificationToken.token],
@@ -105,7 +105,7 @@ export const authenticators = pgTable(
     credentialBackedUp: boolean('credentialBackedUp').notNull(),
     transports: text('transports'),
   },
-  (authenticator) => [
+  authenticator => [
     {
       compositePK: primaryKey({
         columns: [authenticator.userId, authenticator.credentialID],
@@ -129,7 +129,7 @@ export const files = pgTable(
     contentType: varchar('content_type', { length: 100 }).notNull(),
     appId: uuid(),
   },
-  (table) => [index('cursor_idx').on(table.id, table.createdAt)]
+  table => [index('cursor_idx').on(table.id, table.createdAt)]
 );
 
 export const filesRelations = relations(files, ({ one, many }) => ({
@@ -212,7 +212,7 @@ export const tags = pgTable(
     description: varchar('description', { length: 500 }),
     sort: integer('sort').default(0),
   },
-  (table) => [
+  table => [
     index('tags_user_idx').on(table.userId),
     index('tags_name_idx').on(table.name),
     index('tags_category_idx').on(table.categoryType),
@@ -247,7 +247,7 @@ export const files_tags = pgTable(
       .references(() => tags.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   },
-  (table) => [
+  table => [
     { pk: primaryKey({ columns: [table.fileId, table.tagId] }) },
     index('files_tags_file_idx').on(table.fileId),
     index('files_tags_tag_idx').on(table.tagId),

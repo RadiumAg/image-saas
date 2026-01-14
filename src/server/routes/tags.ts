@@ -39,8 +39,8 @@ function generateRandomColor(): string {
 // 清理标签名称的辅助函数
 function cleanTagNames(tagNames: string[]): string[] {
   return tagNames
-    .map((name) => name.trim().toLowerCase())
-    .filter((name) => name.length > 0 && name.length <= 20);
+    .map(name => name.trim().toLowerCase())
+    .filter(name => name.length > 0 && name.length <= 20);
 }
 
 export const tagsRouter = router({
@@ -65,7 +65,7 @@ export const tagsRouter = router({
 
       const rows = result;
 
-      return rows.map((row) => ({
+      return rows.map(row => ({
         id: row.id as string,
         name: row.name as string,
         color: row.color as string,
@@ -103,7 +103,7 @@ export const tagsRouter = router({
         ORDER BY t.sort ASC, t.name ASC
       `);
 
-      return result.map((row) => ({
+      return result.map(row => ({
         id: row.id as string,
         name: row.name as string,
         categoryType: row.category_type as CategoryType,
@@ -261,9 +261,9 @@ export const tagsRouter = router({
         ),
       });
 
-      const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+      const existingTagNames = new Set(existingTags.map(tag => tag.name));
       const newTagNames = cleanNames.filter(
-        (name) => !existingTagNames.has(name)
+        name => !existingTagNames.has(name)
       );
 
       // 创建新标签
@@ -272,7 +272,7 @@ export const tagsRouter = router({
         const insertedTags = await db
           .insert(tags)
           .values(
-            newTagNames.map((name) => ({
+            newTagNames.map(name => ({
               id: uuid(),
               name,
               userId: ctx.session.user.id,
@@ -301,7 +301,7 @@ export const tagsRouter = router({
       if (!tagNames.length) return { addedTags: [] };
 
       // 获取或创建标签
-      const tagRecords = await db.transaction(async (tx) => {
+      const tagRecords = await db.transaction(async tx => {
         const cleanNames = cleanTagNames(tagNames);
 
         // 查找已存在的标签
@@ -312,9 +312,9 @@ export const tagsRouter = router({
           ),
         });
 
-        const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+        const existingTagNames = new Set(existingTags.map(tag => tag.name));
         const newTagNames = cleanNames.filter(
-          (name) => !existingTagNames.has(name)
+          name => !existingTagNames.has(name)
         );
 
         // 创建新标签
@@ -323,7 +323,7 @@ export const tagsRouter = router({
           const insertedTags = await tx
             .insert(tags)
             .values(
-              newTagNames.map((name) => ({
+              newTagNames.map(name => ({
                 id: uuid(),
                 name,
                 userId: ctx.session.user.id,
@@ -342,7 +342,7 @@ export const tagsRouter = router({
       await db
         .insert(files_tags)
         .values(
-          tagRecords.map((tag) => ({
+          tagRecords.map(tag => ({
             fileId,
             tagId: tag.id,
           }))
@@ -365,7 +365,7 @@ export const tagsRouter = router({
         },
       });
 
-      return result.map((ft) => ft.tag);
+      return result.map(ft => ft.tag);
     }),
 
   // 从文件移除标签
@@ -469,7 +469,7 @@ export const tagsRouter = router({
         }
 
         // 获取或创建标签
-        const tagRecords = await db.transaction(async (tx) => {
+        const tagRecords = await db.transaction(async tx => {
           // 查找已存在的标签
           const existingTags = await tx.query.tags.findMany({
             where: and(
@@ -478,9 +478,9 @@ export const tagsRouter = router({
             ),
           });
 
-          const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+          const existingTagNames = new Set(existingTags.map(tag => tag.name));
           const newTagNames = cleanedTags.filter(
-            (name) => !existingTagNames.has(name)
+            name => !existingTagNames.has(name)
           );
 
           // 创建新标签
@@ -489,7 +489,7 @@ export const tagsRouter = router({
             const insertedTags = await tx
               .insert(tags)
               .values(
-                newTagNames.map((name) => ({
+                newTagNames.map(name => ({
                   id: uuid(),
                   name,
                   userId: ctx.session.user.id,
@@ -508,7 +508,7 @@ export const tagsRouter = router({
         await db
           .insert(files_tags)
           .values(
-            tagRecords.map((tag) => ({
+            tagRecords.map(tag => ({
               fileId,
               tagId: tag.id,
             }))
@@ -640,7 +640,7 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
         ws.send(JSON.stringify(requestBody));
       });
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         try {
           const response = JSON.parse(data.toString());
 
@@ -670,8 +670,8 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
 
             const tags = tagsText
               .split(/[,，、\s\n]+/)
-              .map((tag) => tag.trim())
-              .filter((tag) => tag.length > 0 && tag.length <= 10);
+              .map(tag => tag.trim())
+              .filter(tag => tag.length > 0 && tag.length <= 10);
 
             resolve(tags);
           }
@@ -682,7 +682,7 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
         }
       });
 
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         console.error('讯飞星火 WebSocket 错误:', error);
         resolve([]);
       });

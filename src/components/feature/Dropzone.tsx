@@ -6,7 +6,7 @@ type DropzoneProps = {
   children: (draging: boolean) => React.ReactNode;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'children'>;
 
-const Dropzone: React.FC<DropzoneProps> = (props) => {
+const Dropzone: React.FC<DropzoneProps> = props => {
   const { uppy, children, ...otherProps } = props;
   const timer = React.useRef<ReturnType<typeof setTimeout>>(null);
   const [draging, setDragging] = React.useState(false);
@@ -14,11 +14,11 @@ const Dropzone: React.FC<DropzoneProps> = (props) => {
   return (
     <div
       {...otherProps}
-      onDragEnter={(e) => {
+      onDragEnter={e => {
         e.preventDefault();
         setDragging(true);
       }}
-      onDragLeave={(e) => {
+      onDragLeave={e => {
         e.preventDefault();
         if (timer.current) {
           clearTimeout(timer.current);
@@ -28,16 +28,16 @@ const Dropzone: React.FC<DropzoneProps> = (props) => {
           setDragging(false);
         }, 50);
       }}
-      onDragOver={(e) => {
+      onDragOver={e => {
         e.preventDefault();
         if (timer.current) {
           clearTimeout(timer.current);
         }
       }}
-      onDrop={(e) => {
+      onDrop={e => {
         e.preventDefault();
         const files = e.dataTransfer.files;
-        Array.from(files).forEach((file) => {
+        Array.from(files).forEach(file => {
           uppy.addFile(file);
         });
         setDragging(false);

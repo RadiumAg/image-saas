@@ -21,7 +21,7 @@ interface FileItemActionProps {
   onDeleteSuccess: (fileId: string) => void;
 }
 
-const DeleteFileAction: React.FC<FileItemActionProps> = (props) => {
+const DeleteFileAction: React.FC<FileItemActionProps> = props => {
   const { fileId, appId, onDeleteSuccess } = props;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { mutate: deleteFile, isPending } =
@@ -79,7 +79,7 @@ const DeleteFileAction: React.FC<FileItemActionProps> = (props) => {
   );
 };
 
-const CopyUrl: React.FC<{ url: string }> = (props) => {
+const CopyUrl: React.FC<{ url: string }> = props => {
   const { url } = props;
   return (
     <Button
@@ -98,7 +98,7 @@ type PreviewProps = {
   onClick: () => void;
 };
 
-const PreView: React.FC<PreviewProps> = (props) => {
+const PreView: React.FC<PreviewProps> = props => {
   const { onClick } = props;
 
   return (

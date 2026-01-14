@@ -22,9 +22,9 @@ export default function StoragePage(
   const { mutate, isPending, isSuccess } =
     trpcClientReact.storages.createStorage.useMutation();
 
-  const onSubmit: SubmitHandler<S3StorageConfiguration & { name: string }> = (
-    data
-  ) => {
+  const onSubmit: SubmitHandler<
+    S3StorageConfiguration & { name: string }
+  > = data => {
     mutate(data, {
       onSuccess: () => {
         router.push(`/dashboard/apps/${appId}/setting/storage`);

@@ -153,7 +153,7 @@ const fileRoutes = router({
           .optional(),
       })
     )
-    .query(async (ctx) => {
+    .query(async ctx => {
       const {
         cursor,
         limit,
@@ -354,7 +354,7 @@ const fileRoutes = router({
         appId: z.string(),
       })
     )
-    .query(async (ctx) => {
+    .query(async ctx => {
       const { cursor, limit, appId } = ctx.input;
 
       const deletedFilter = sql`${files.deleteAt} IS NOT NULL`;
@@ -408,7 +408,7 @@ const fileRoutes = router({
         tagId: z.string(),
       })
     )
-    .query(async (ctx) => {
+    .query(async ctx => {
       const {
         cursor,
         limit,

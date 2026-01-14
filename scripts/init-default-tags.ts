@@ -16,8 +16,7 @@ async function initDefaultTags() {
 
   // 获取所有应用
   const allApps = await db.query.apps.findMany({
-    where: (apps, { eq, and, isNull }) =>
-      and(isNull(apps.deleteAt)),
+    where: (apps, { eq, and, isNull }) => and(isNull(apps.deleteAt)),
   });
 
   console.log(`找到 ${allApps.length} 个应用`);
@@ -27,10 +26,7 @@ async function initDefaultTags() {
 
     // 检查该应用是否已有默认标签
     const existingTags = await db.query.tags.findMany({
-      where: and(
-        eq(tags.appId, app.id),
-        isNull(tags.parentId)
-      ),
+      where: and(eq(tags.appId, app.id), isNull(tags.parentId)),
     });
 
     const existingCategoryTypes = existingTags.map(t => t.categoryType);
@@ -46,11 +42,13 @@ async function initDefaultTags() {
     }
 
     console.log(`  需要创建 ${tagsToCreate.length} 个标签:`);
-    tagsToCreate.forEach(tag => console.log(`    - ${tag.name} (${tag.categoryType})`));
+    tagsToCreate.forEach(tag =>
+      console.log(`    - ${tag.name} (${tag.categoryType})`)
+    );
 
     // 创建标签
     await db.insert(tags).values(
-      tagsToCreate.map((tag) => ({
+      tagsToCreate.map(tag => ({
         id: uuid(),
         name: tag.name,
         categoryType: tag.categoryType,
@@ -69,7 +67,7 @@ async function initDefaultTags() {
   process.exit(0);
 }
 
-initDefaultTags().catch((error) => {
+initDefaultTags().catch(error => {
   console.error('初始化失败:', error);
   process.exit(1);
 });

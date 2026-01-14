@@ -3,7 +3,7 @@ import RcImage, { ImagePreviewType } from 'rc-image';
 import { ImageProps } from 'rc-image';
 import { defaultIcons } from './common';
 
-const ImageReview: React.FC<ImageProps> = (props) => {
+const ImageReview: React.FC<ImageProps> = props => {
   let previewProps: ImagePreviewType | boolean;
 
   if (typeof props.preview === 'boolean') {

@@ -31,7 +31,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       refetchOnMount: false,
     }
   );
-  const currentApp = apps?.find((app) => app.id === appId);
+  const currentApp = apps?.find(app => app.id === appId);
 
   // 获取按分类分组的标签
   const { data: categoryTags = [] } =
@@ -46,9 +46,9 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   // 按分类类型分组标签
   const groupedTags = useMemo(() => {
     const groups = {
-      person: categoryTags.filter((tag) => tag.categoryType === 'person'),
-      location: categoryTags.filter((tag) => tag.categoryType === 'location'),
-      event: categoryTags.filter((tag) => tag.categoryType === 'event'),
+      person: categoryTags.filter(tag => tag.categoryType === 'person'),
+      location: categoryTags.filter(tag => tag.categoryType === 'location'),
+      event: categoryTags.filter(tag => tag.categoryType === 'event'),
     };
     return groups;
   }, [categoryTags]);
@@ -58,7 +58,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
 
     uppy.use(AWS3, {
       shouldUseMultipart: false,
-      getUploadParameters: (file) => {
+      getUploadParameters: file => {
         return trpcPureClient.file.createPresignedUrl.mutate({
           filename: file.data instanceof File ? file.data.name : '',
           contentType: file.data.type || '',
@@ -74,7 +74,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   usePasteFile({
     onFilePaste(files) {
       uppy.addFiles(
-        files.map((file) => {
+        files.map(file => {
           return { data: file, name: file.name };
         })
       );
@@ -102,7 +102,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
         <p className="text-lg">App not found</p>
         <p className="text-sm">Chose another one</p>
         <div className="flex flex-col agp-4 items-center">
-          {apps?.map((app) => (
+          {apps?.map(app => (
             <Button key={app.id} asChild variant="link">
               <Link href={`/dashboard/apps/${app.id}`}>{app.name}</Link>
             </Button>
@@ -156,19 +156,19 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
             <TabsList>
               <TabsTrigger value="all">全部</TabsTrigger>
               {/* 动态生成人物分类的标签 */}
-              {groupedTags.person.map((tag) => (
+              {groupedTags.person.map(tag => (
                 <TabsTrigger key={tag.id} value={`person-${tag.id}`}>
                   {tag.name} ({tag.count})
                 </TabsTrigger>
               ))}
               {/* 动态生成地点分类的标签 */}
-              {groupedTags.location.map((tag) => (
+              {groupedTags.location.map(tag => (
                 <TabsTrigger key={tag.id} value={`location-${tag.id}`}>
                   {tag.name} ({tag.count})
                 </TabsTrigger>
               ))}
               {/* 动态生成事务分类的标签 */}
-              {groupedTags.event.map((tag) => (
+              {groupedTags.event.map(tag => (
                 <TabsTrigger key={tag.id} value={`event-${tag.id}`}>
                   {tag.name} ({tag.count})
                 </TabsTrigger>
@@ -180,7 +180,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
                 uppy={uppy}
                 className="mt-10 w-full h-[calc(100%-60px)]"
               >
-                {(draggling) => {
+                {draggling => {
                   return (
                     <div
                       className={cn(
@@ -206,7 +206,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
               </Dropzone>
             </TabsContent>
 
-            {categoryTags.map((tag) => {
+            {categoryTags.map(tag => {
               let component: ReactElement | null = null;
 
               switch (tag.categoryType) {

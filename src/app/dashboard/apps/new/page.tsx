@@ -28,12 +28,7 @@ export default function CreateApp() {
     <div className="h-full flex justify-center items-center">
       <form className="w-full max-w-md flex flex-col gap-4" action={createApp}>
         <h1 className="text-center text-xl font-bold">Create App</h1>
-        <Input
-          name="name"
-          placeholder="App Name"
-          minLength={3}
-          required
-         />
+        <Input name="name" placeholder="App Name" minLength={3} required />
         <Textarea name="description" placeholder="Description" />
         <SubmitButton />
       </form>
