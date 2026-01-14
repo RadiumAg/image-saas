@@ -11,6 +11,7 @@ import {
   index,
   serial,
   json,
+  date,
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from 'next-auth/adapters';
 
@@ -32,6 +33,8 @@ export const users = pgTable('user', {
   email: text('email').unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  plan: text('plan', { enum: ['free', 'payed'] }),
+  createAt: date('create_at').defaultNow(),
 });
 
 export const usersRelation = relations(users, ({ many }) => ({

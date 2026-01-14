@@ -14,10 +14,11 @@ interface UserMenuProps {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  plan?: string | null;
 }
 
 const UserMenu: React.FC<UserMenuProps> = props => {
-  const { name, email, image } = props;
+  const { name, email, image, plan } = props;
 
   const handleSignOut = () => {
     window.location.href = '/api/auth/signout';
@@ -34,7 +35,16 @@ const UserMenu: React.FC<UserMenuProps> = props => {
 
       <DropdownMenuContent align="end">
         <div className="px-2 py-1.5 text-sm font-medium">{name}</div>
-        <div className="px-2 py-1.5 text-xs text-muted-foreground">{email}</div>
+        {email && (
+          <div className="px-2 py-1.5 text-xs text-muted-foreground">
+            {email}
+          </div>
+        )}
+        {plan && (
+          <div className="px-2 py-1.5 text-xs text-muted-foreground">
+            套餐: {plan}
+          </div>
+        )}
         <div className="h-px bg-border my-1" />
         <DropdownMenuItem
           className="text-destructive cursor-pointer"
