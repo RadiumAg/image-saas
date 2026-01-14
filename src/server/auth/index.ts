@@ -61,16 +61,10 @@ const JiHuLabProvider = {
 };
 
 declare module 'next-auth' {
-  type Plan = 'free' | 'payed';
   interface Session extends DefaultSession {
     user: {
       id: string;
-      plan: Plan;
     } & DefaultSession['user'];
-  }
-
-  interface User extends DefaultUser {
-    plan: Plan;
   }
 }
 
@@ -81,7 +75,6 @@ const authOption: AuthOptions = {
       const { session, user } = params;
       if (session.user && user) {
         session.user.id = user.id;
-        session.user.plan = user.plan;
       }
 
       return session;

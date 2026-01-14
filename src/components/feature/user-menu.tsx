@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LogOut } from 'lucide-react';
+import { trpcClientReact } from '@/utils/api';
 
 interface UserMenuProps {
   name?: string | null;
@@ -23,6 +24,8 @@ const UserMenu: React.FC<UserMenuProps> = props => {
   const handleSignOut = () => {
     window.location.href = '/api/auth/signout';
   };
+
+  const { data: userData } = trpcClientReact.plan.getPlan.useQuery();
 
   return (
     <DropdownMenu>
@@ -40,9 +43,9 @@ const UserMenu: React.FC<UserMenuProps> = props => {
             {email}
           </div>
         )}
-        {plan && (
+        {userData && (
           <div className="px-2 py-1.5 text-xs text-muted-foreground">
-            套餐: {plan}
+            套餐: {userData?.plan}
           </div>
         )}
         <div className="h-px bg-border my-1" />

@@ -3,6 +3,7 @@ import { appsRouter } from '../routes/app';
 import { fileRoutes } from '../routes/file';
 import { storageRouter } from '../routes/storages';
 import { tagsRouter } from '../routes/tags';
+import { planRouter } from '../routes/user';
 import { router } from './trpc';
 
 const appRouter = router({
@@ -11,6 +12,7 @@ const appRouter = router({
   tags: tagsRouter,
   storages: storageRouter,
   apiKeys: apiKeysRouter,
+  plan: planRouter,
 });
 
 export { appRouter };
