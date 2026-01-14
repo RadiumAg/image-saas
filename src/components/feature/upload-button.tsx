@@ -26,7 +26,7 @@ const UploadButton: React.FC<UploadButtonProps> = (props) => {
             if (inputRef.current) inputRef.current.value = '';
           }
         }}
-      ></input>
+       />
 
       <Button
         variant="outline"

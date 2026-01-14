@@ -137,7 +137,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
               </Link>
             </Button>
 
-            <UploadButton uppy={uppy}></UploadButton>
+            <UploadButton uppy={uppy} />
 
             <Button asChild>
               <Link href="/dashboard/apps/new">new app</Link>

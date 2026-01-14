@@ -6,9 +6,9 @@ import BackableDialog from './backable-dialog';
 export default function InterceptingCreateApp() {
   return (
     <BackableDialog>
-      <DialogTitle></DialogTitle>
+      <DialogTitle />
       <DialogContent>
-        <CreateApp></CreateApp>
+        <CreateApp />
       </DialogContent>
     </BackableDialog>
   );

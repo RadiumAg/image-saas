@@ -27,7 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = (props) => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={image ?? ''}></AvatarImage>
+          <AvatarImage src={image ?? ''} />
           <AvatarFallback>{name?.substring(0, 2) ?? 'U'}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

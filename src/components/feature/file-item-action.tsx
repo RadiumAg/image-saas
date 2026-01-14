@@ -48,7 +48,7 @@ const DeleteFileAction: React.FC<FileItemActionProps> = (props) => {
         {isPending ? (
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
         ) : (
-          <Trash2></Trash2>
+          <Trash2 />
         )}
       </Button>
 
@@ -89,7 +89,7 @@ const CopyUrl: React.FC<{ url: string }> = (props) => {
         toast('Url Copy Success');
       }}
     >
-      <Copy></Copy>
+      <Copy />
     </Button>
   );
 };

@@ -51,7 +51,7 @@ export default function StoragePage(
         <h1 className="text-3xl mb-6">Storage</h1>
         <Link href={`/dashboard/apps/${appId}/setting/storage/new`}>
           <Button>
-            <Plus></Plus>
+            <Plus />
           </Button>
         </Link>
       </div>

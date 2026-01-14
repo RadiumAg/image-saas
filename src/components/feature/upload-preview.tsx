@@ -60,11 +60,11 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
                   setIndex(index - 1);
                 }
               }}
-            ></ChevronLeft>
+             />
           </Button>
 
           <div className="w-56 h-56 flex justify-center items-center border">
-            <LocalFileItem file={file.data}></LocalFileItem>
+            <LocalFileItem file={file.data} />
           </div>
 
           <Button
@@ -77,7 +77,7 @@ const UploadPreview: React.FC<UploadPreviewProps> = (props) => {
               }
             }}
           >
-            <ChevronRight></ChevronRight>
+            <ChevronRight />
           </Button>
         </div>
 

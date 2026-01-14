@@ -33,9 +33,9 @@ export default function CreateApp() {
           placeholder="App Name"
           minLength={3}
           required
-        ></Input>
-        <Textarea name="description" placeholder="Description"></Textarea>
-        <SubmitButton></SubmitButton>
+         />
+        <Textarea name="description" placeholder="Description" />
+        <SubmitButton />
       </form>
     </div>
   );
