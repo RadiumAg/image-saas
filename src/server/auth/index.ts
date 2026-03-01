@@ -1,7 +1,6 @@
 import {
   AuthOptions,
   DefaultSession,
-  DefaultUser,
   getServerSession as nextAuthGetServerSession,
 } from 'next-auth';
 import { db } from '@/server/db/db';
