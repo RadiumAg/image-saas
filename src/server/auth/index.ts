@@ -4,6 +4,7 @@ import {
   getServerSession as nextAuthGetServerSession,
 } from 'next-auth';
 import { db } from '@/server/db/db';
+import { users } from '@/server/db/schema';
 import GitHubProvider from 'next-auth/providers/github';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 
@@ -18,12 +19,13 @@ const GiteeProvider = {
   },
   token: 'https://gitee.com/oauth/token',
   userinfo: 'https://gitee.com/api/v5/user',
-  profile(profile: any) {
+  profile(profile: unknown) {
+    const typedProfile = profile as { id: number | string; name?: string; login?: string; email?: string; avatar_url?: string };
     return {
-      id: profile.id.toString(),
-      name: profile.name || profile.login,
-      email: profile.email,
-      image: profile.avatar_url,
+      id: typedProfile.id.toString(),
+      name: typedProfile.name || typedProfile.login,
+      email: typedProfile.email,
+      image: typedProfile.avatar_url,
     };
   },
   style: {
@@ -46,17 +48,56 @@ const JiHuLabProvider = {
   },
   token: 'https://jihulab.com/oauth/token',
   userinfo: 'https://jihulab.com/api/v4/user',
-  profile(profile: any) {
+  profile(profile: unknown) {
+    const typedProfile = profile as { id: number | string; name?: string; username?: string; email?: string; avatar_url?: string };
     return {
-      id: profile.id.toString(),
-      name: profile.name || profile.username,
-      email: profile.email,
-      image: profile.avatar_url,
+      id: typedProfile.id.toString(),
+      name: typedProfile.name || typedProfile.username,
+      email: typedProfile.email,
+      image: typedProfile.avatar_url,
     };
   },
   style: { logo: '/gitlab.svg', bg: '#8f6a64', text: '#fff' },
   clientId: process.env.JIHULAB_ID!,
   clientSecret: process.env.JIHULAB_SECRET!,
+};
+
+// SKIP_LOGIN 模式下的默认管理员用户
+const getAdminUser = async () => {
+  if (process.env.SKIP_LOGIN !== 'true') {
+    return null;
+  }
+
+  // 查找或创建默认 admin 用户
+  const adminEmail = 'admin@example.com';
+  const adminName = 'Admin';
+  
+  let user = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, adminEmail),
+  });
+
+  // 如果用户不存在，则创建
+  if (!user) {
+    const result = await db.insert(users).values({
+      name: adminName,
+      email: adminEmail,
+      emailVerified: new Date(),
+      plan: 'payed',
+    }).returning();
+    user = result[0];
+  }
+
+  if (!user) {
+    throw new Error('Failed to create admin user');
+  }
+
+  return {
+    id: user.id,
+    name: user.name || adminName,
+    email: user.email || adminEmail,
+    image: null,
+    plan: user.plan || 'payed',
+  };
 };
 
 declare module 'next-auth' {
@@ -78,6 +119,13 @@ const authOption: AuthOptions = {
 
       return session;
     },
+    async signIn({ user }) {
+      // 在 SKIP_LOGIN 模式下允许所有登录
+      if (process.env.SKIP_LOGIN === 'true') {
+        return true;
+      }
+      return true; // 默认允许登录
+    }
   },
   providers: [
     GitHubProvider({
@@ -89,7 +137,25 @@ const authOption: AuthOptions = {
   ],
 };
 
-function getServerSession() {
+// 扩展 getServerSession 以支持 SKIP_LOGIN 模式
+async function getServerSession() {
+  // 如果启用了 SKIP_LOGIN，返回默认管理员会话
+  if (process.env.SKIP_LOGIN === 'true') {
+    const adminUser = await getAdminUser();
+    if (adminUser) {
+      return {
+        user: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          image: adminUser.image,
+          plan: adminUser.plan,
+        },
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30天过期
+      };
+    }
+  }
+  
   return nextAuthGetServerSession(authOption);
 }
 

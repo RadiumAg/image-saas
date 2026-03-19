@@ -15,7 +15,8 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession();
 
-  if (!session?.user) {
+  // 在 SKIP_LOGIN 模式下，即使没有会话也不重定向
+  if (!session?.user && process.env.SKIP_LOGIN !== 'true') {
     redirect('/api/auth/signin');
   }
 
