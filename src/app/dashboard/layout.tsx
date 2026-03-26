@@ -22,11 +22,11 @@ export default async function RootLayout({
 
   return (
     <ThemeProvider>
-      <nav className="h-[80px] border-b flex justify-center">
-        <div className="container flex justify-between h-full items-center relative gap-2">
+      <nav className="sticky top-0 z-50 h-[64px] border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 transition-colors duration-200">
+        <div className="container flex justify-between h-full items-center relative gap-2 mx-auto">
           <HomeButton />
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <ThemeToggle />
 
             <UserMenu
@@ -42,7 +42,7 @@ export default async function RootLayout({
           </div>
         </div>
       </nav>
-      <main className="h-[calc(100vh-80px)]">{children}</main>
+      <main className="h-[calc(100vh-64px)]">{children}</main>
     </ThemeProvider>
   );
 }

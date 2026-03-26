@@ -88,7 +88,9 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
           <Calendar className="h-4 w-4" />
         </Button>
 
-        <Button onClick={handleSearch}>搜索</Button>
+        <Button onClick={handleSearch} className="cursor-pointer transition-colors duration-200">
+          搜索
+        </Button>
 
         {hasFilters && (
           <Button variant="outline" onClick={handleClear}>
@@ -100,7 +102,7 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
 
       {/* 高级搜索选项 */}
       {isExpanded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-200">
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               开始日期
@@ -167,14 +169,14 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
 
       {/* 搜索提示 */}
       {hasFilters && (
-        <div className="text-sm text-muted-foreground">
+        <div className="flex flex-wrap gap-2 text-sm animate-in fade-in-0 duration-200">
           {query && (
-            <span className="inline-flex items-center gap-1 mr-4">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary">
               关键词: <span className="font-medium">{query}</span>
             </span>
           )}
           {startDate && (
-            <span className="inline-flex items-center gap-1 mr-4">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary">
               开始:{' '}
               <span className="font-medium">
                 {format(startDate, 'yyyy-MM-dd')}
@@ -182,7 +184,7 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
             </span>
           )}
           {endDate && (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary">
               结束:{' '}
               <span className="font-medium">
                 {format(endDate, 'yyyy-MM-dd')}

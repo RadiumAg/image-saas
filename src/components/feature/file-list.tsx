@@ -271,7 +271,7 @@ const FileList: React.FC<FileListProps> = props => {
                 return (
                   <div
                     key={fileId}
-                    className="flex justify-center items-center border border-red-500"
+                    className="flex justify-center items-center rounded-lg border-2 border-dashed border-primary/30 bg-muted/50 overflow-hidden"
                   >
                     {isImage ? (
                       <Image
@@ -294,9 +294,9 @@ const FileList: React.FC<FileListProps> = props => {
                 );
               })}
             {group.items.map(file => (
-              <div key={file.id} className="relative w-56">
+              <div key={file.id} className="group relative w-56 cursor-pointer">
                 <RemoteFileItemWithTags
-                  className="w-56 h-56"
+                  className="w-56 h-56 rounded-lg overflow-hidden ring-1 ring-border transition-all duration-200 group-hover:ring-2 group-hover:ring-primary/40 group-hover:shadow-lg"
                   id={file.id}
                   name={file.name}
                   contentType={file.contentType}
@@ -305,7 +305,7 @@ const FileList: React.FC<FileListProps> = props => {
                     const { setPreview } = props;
 
                     return (
-                      <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm justify-center items-center flex opacity-0 group-hover:opacity-100 transition-all duration-200">
                         <CopyUrl
                           url={`${window.location.protocol}//${window.location.host}/image/${file.id}`}
                         />
@@ -346,23 +346,60 @@ const FileList: React.FC<FileListProps> = props => {
         fetchNextPage();
       }}
     >
-      {isPending && <div className="text-center">Loading...</div>}
+      {isPending && (
+        <div className="container space-y-6 py-4">
+          {[1, 2].map(groupIndex => (
+            <div key={groupIndex} className="space-y-4">
+              <div className="flex items-center gap-2 px-4 py-3">
+                <div className="skeleton h-6 w-16 rounded-md" />
+                <div className="skeleton h-4 w-10 rounded-md" />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="skeleton h-56 w-56 rounded-lg" />
+                    <div className="skeleton h-3 w-32 mx-auto rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={cn('relative container')}>{fileListEle}</div>
 
       <div className="space-y-4">
         {groupedFiles.length === 0 && !isPending && (
-          <div className="text-center text-muted-foreground py-8">暂无图片</div>
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <svg
+              className="h-16 w-16 mb-4 opacity-30"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+              />
+            </svg>
+            <p className="text-lg font-medium mb-1">暂无图片</p>
+            <p className="text-sm">拖拽、粘贴或点击上传按钮添加图片</p>
+          </div>
         )}
       </div>
 
-      <div ref={bottomRef} className="flex justify-center p-8">
+      <div ref={bottomRef} className="flex justify-center py-8">
         <Button
           variant="ghost"
+          className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors duration-200"
           onClick={() => {
             fetchNextPage();
           }}
         >
-          Load Next Page
+          加载更多
         </Button>
       </div>
     </ScrollArea>
