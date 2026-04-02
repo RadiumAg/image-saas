@@ -446,8 +446,20 @@ export const tagsRouter = router({
       }
 
       try {
-        // 调用AI服务识别图片标签
-        const recognizedTags = await recognizeImageWithAI(imageUrl);
+        // 获取该 appId 的所有标签
+        const appTags = await db.query.tags.findMany({
+          where: and(
+            eq(tags.userId, ctx.session.user.id),
+            eq(tags.appId, fileRecord.appId || '')
+          ),
+        });
+
+        // 调用AI服务识别图片标签，传入 appId 和标签列表
+        const recognizedTags = await recognizeImageWithAI(
+          imageUrl,
+          fileRecord.appId || '',
+          appTags.map(tag => tag.name)
+        );
 
         if (!recognizedTags || recognizedTags.length === 0) {
           return {
@@ -531,13 +543,17 @@ export const tagsRouter = router({
 });
 
 // AI图片识别服务函数
-async function recognizeImageWithAI(imageUrl: string): Promise<string[]> {
+async function recognizeImageWithAI(
+  imageUrl: string,
+  appId: string,
+  existingTags: string[]
+): Promise<string[]> {
   try {
     // 这里可以根据实际需求选择不同的AI服务
     // 以下是几个可选的实现方案：
 
     // 方案1: 使用OpenAI Vision API
-    const tags = await recognizeWithOpenAI(imageUrl);
+    const tags = await recognizeWithOpenAI(imageUrl, appId, existingTags);
     if (tags.length > 0) return tags;
 
     // 方案2: 使用Google Cloud Vision API (备选)
@@ -556,12 +572,16 @@ async function recognizeImageWithAI(imageUrl: string): Promise<string[]> {
 }
 
 // 讯飞星火图片理解 API 实现
-async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
-  const appId = process.env.XFYUN_APP_ID;
+async function recognizeWithOpenAI(
+  imageUrl: string,
+  appId: string,
+  existingTags: string[]
+): Promise<string[]> {
+  const xfyunAppId = process.env.XFYUN_APP_ID;
   const apiKey = process.env.XFYUN_API_KEY;
   const apiSecret = process.env.XFYUN_API_SECRET;
 
-  if (!appId || !apiKey || !apiSecret) {
+  if (!xfyunAppId || !apiKey || !apiSecret) {
     console.warn(
       '未配置讯飞星火 API 凭证（XFYUN_APP_ID, XFYUN_API_KEY, XFYUN_API_SECRET），跳过识别'
     );
@@ -596,7 +616,7 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
     // 3. 构建请求体
     const requestBody = {
       header: {
-        app_id: appId,
+        app_id: xfyunAppId,
       },
       parameter: {
         chat: {
@@ -616,8 +636,9 @@ async function recognizeWithOpenAI(imageUrl: string): Promise<string[]> {
             },
             {
               role: 'user',
-              content:
-                '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
+              content: existingTags.length > 0
+                ? `请分析这张图片，并判断它属于以下哪个类别：${existingTags.join('、')}。只返回一个类别名称，不要包含其他文字。例如：${existingTags.slice(0, 3).join('、')}`
+                : '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
               content_type: 'text',
             },
           ],
