@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
-import { useMemo, use, useState, ReactNode, ReactElement } from 'react';
+import { useMemo, use, useState, ReactNode } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
 import UploadPreview from '@/components/feature/upload-preview';
 import FileList from '@/components/feature/file-list';
@@ -15,9 +15,7 @@ import { Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabsContent } from '@radix-ui/react-tabs';
-import PeopleList from './people-list';
-import EventPage from './event-page';
-import LocationPage from './location-page';
+import TagFileList from './tag-file-list';
 import SearchBar, { SearchFilters } from '@/components/feature/search-bar';
 
 export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
@@ -43,13 +41,15 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       }
     );
 
-  // 按分类类型分组标签
+  // 按 categoryType 分组标签（动态支持所有分类类型）
   const groupedTags = useMemo(() => {
-    const groups = {
-      person: categoryTags.filter(tag => tag.categoryType === 'person'),
-      location: categoryTags.filter(tag => tag.categoryType === 'location'),
-      event: categoryTags.filter(tag => tag.categoryType === 'event'),
-    };
+    const groups: Record<string, typeof categoryTags> = {};
+    categoryTags.forEach(tag => {
+      if (!groups[tag.categoryType]) {
+        groups[tag.categoryType] = [];
+      }
+      groups[tag.categoryType].push(tag);
+    });
     return groups;
   }, [categoryTags]);
 
@@ -149,21 +149,12 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
           <Tabs defaultValue="all">
             <TabsList>
               <TabsTrigger value="all">全部</TabsTrigger>
-              {/* 动态生成人物分类的标签 */}
-              {groupedTags.person.map(tag => (
-                <TabsTrigger key={tag.id} value={`person-${tag.id}`}>
-                  {tag.name} ({tag.count})
-                </TabsTrigger>
-              ))}
-              {/* 动态生成地点分类的标签 */}
-              {groupedTags.location.map(tag => (
-                <TabsTrigger key={tag.id} value={`location-${tag.id}`}>
-                  {tag.name} ({tag.count})
-                </TabsTrigger>
-              ))}
-              {/* 动态生成事务分类的标签 */}
-              {groupedTags.event.map(tag => (
-                <TabsTrigger key={tag.id} value={`event-${tag.id}`}>
+              {/* 动态生成所有分类类型的标签 */}
+              {categoryTags.map(tag => (
+                <TabsTrigger
+                  key={tag.id}
+                  value={`${tag.categoryType}-${tag.id}`}
+                >
                   {tag.name} ({tag.count})
                 </TabsTrigger>
               ))}
@@ -215,53 +206,21 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
               </Dropzone>
             </TabsContent>
 
-            {categoryTags.map(tag => {
-              let component: ReactElement | null = null;
-
-              switch (tag.categoryType) {
-                case 'person':
-                  component = (
-                    <PeopleList
-                      searchFilters={searchFilters}
-                      uppy={uppy}
-                      appId={appId}
-                      tagId={tag.id}
-                    />
-                  );
-                  break;
-
-                case 'event':
-                  component = (
-                    <EventPage
-                      searchFilters={searchFilters}
-                      uppy={uppy}
-                      appId={appId}
-                      tagId={tag.id}
-                    />
-                  );
-                  break;
-
-                case 'location':
-                  component = (
-                    <LocationPage
-                      searchFilters={searchFilters}
-                      uppy={uppy}
-                      appId={appId}
-                      tagId={tag.id}
-                    />
-                  );
-                  break;
-              }
-
-              return (
-                <TabsContent
-                  key={tag.id}
-                  value={`${tag.categoryType}-${tag.id}`}
-                >
-                  {component}
-                </TabsContent>
-              );
-            })}
+            {/* 动态渲染所有分类标签的内容 */}
+            {categoryTags.map(tag => (
+              <TabsContent
+                key={tag.id}
+                value={`${tag.categoryType}-${tag.id}`}
+              >
+                <TagFileList
+                  searchFilters={searchFilters}
+                  uppy={uppy}
+                  appId={appId}
+                  tagId={tag.id}
+                  variant={tag.categoryType === 'person' ? 'person' : 'default'}
+                />
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
 

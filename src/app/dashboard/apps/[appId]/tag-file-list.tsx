@@ -14,26 +14,28 @@ import {
   CopyUrl,
   PreView,
 } from '@/components/feature/file-item-action';
-import Uppy from '@uppy/core';
+import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Dropzone from '@/components/feature/dropzone';
 import { cn } from '@/lib/utils';
 import { SearchFilters } from '@/components/feature/search-bar';
 
-type Props = {
+type TagFileListProps = {
   appId: string;
   tagId?: string;
-  searchFilters: SearchFilters;
   uppy: Uppy;
+  searchFilters: SearchFilters;
+  /** 展示样式变体：person 为圆形头像样式，default 为普通网格样式 */
+  variant?: 'person' | 'default';
 };
 
-const LocationPage: React.FC<Props> = props => {
-  const { appId, searchFilters, tagId, uppy } = props;
+const TagFileList: React.FC<TagFileListProps> = props => {
+  const { appId, tagId, uppy, searchFilters, variant = 'default' } = props;
 
   const query = useMemo(
     () => ({
       limit: 10,
       appId,
-      tagId,
+      tagId: tagId!,
       search: searchFilters,
     }),
     [appId, tagId, searchFilters]
@@ -48,13 +50,22 @@ const LocationPage: React.FC<Props> = props => {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
+    enabled: !!tagId, // 只有当 tagId 存在时才启用查询
   });
 
   const utils = trpcClientReact.useUtils();
 
   // 上传成功后刷新数据
   useEffect(() => {
-    const handler = (file: any, resp: any) => {
+    const handler: (
+      file: UppyFile<Meta, Record<string, never>> | undefined,
+      response: {
+        body?: Record<string, never> | undefined;
+        status: number;
+        bytesUploaded?: number;
+        uploadURL?: string;
+      }
+    ) => void = (file, resp) => {
       if (file) {
         trpcPureClient.file.saveFile
           .mutate({
@@ -250,7 +261,7 @@ const LocationPage: React.FC<Props> = props => {
                       open={openGroups[group.key] ?? true}
                       onOpenChange={() => toggleGroup(group.key)}
                     >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 -lg cursor-pointer transitionrounded-colors">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-lg">
                             {group.key}
@@ -271,44 +282,41 @@ const LocationPage: React.FC<Props> = props => {
                       <CollapsibleContent className="mt-4">
                         <div className="flex flex-wrap gap-4">
                           {group.items.map(item => (
-                            <div key={item.id} className="relative w-52">
-                              <RemoteFileItemWithTags
-                                id={item.id}
-                                className="w-52 h-52"
-                                name={item.name}
-                                contentType={item.contentType}
-                              >
-                                {props => {
-                                  const { setPreview } = props;
+                            <RemoteFileItemWithTags
+                              key={item.id}
+                              id={item.id}
+                              className={cn(
+                                variant === 'person'
+                                  ? 'w-50 h-50 overflow-hidden rounded-full'
+                                  : 'w-52 h-52'
+                              )}
+                              name={item.name}
+                              contentType={item.contentType}
+                            >
+                              {renderProps => {
+                                const { setPreview } = renderProps;
 
-                                  return (
-                                    <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                      <CopyUrl
-                                        url={`${window.location.protocol}//${window.location.host}/image/${item.id}`}
-                                      />
+                                return (
+                                  <div className="absolute inset-0 bg-background/80 justify-center items-center flex opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                    <CopyUrl
+                                      url={`${window.location.protocol}//${window.location.host}/image/${item.id}`}
+                                    />
 
-                                      <DeleteFileAction
-                                        onDeleteSuccess={handleFileDelete}
-                                        fileId={item.id}
-                                        appId={appId}
-                                      />
+                                    <DeleteFileAction
+                                      onDeleteSuccess={handleFileDelete}
+                                      fileId={item.id}
+                                      appId={appId}
+                                    />
 
-                                      <PreView
-                                        onClick={() => {
-                                          setPreview(true);
-                                        }}
-                                      />
-                                    </div>
-                                  );
-                                }}
-                              </RemoteFileItemWithTags>
-                              <div
-                                className="mt-2 text-center text-xs text-muted-foreground truncate w-full px-2"
-                                title={item.name}
-                              >
-                                {item.name}
-                              </div>
-                            </div>
+                                    <PreView
+                                      onClick={() => {
+                                        setPreview(true);
+                                      }}
+                                    />
+                                  </div>
+                                );
+                              }}
+                            </RemoteFileItemWithTags>
                           ))}
                         </div>
                       </CollapsibleContent>
@@ -324,4 +332,4 @@ const LocationPage: React.FC<Props> = props => {
   );
 };
 
-export default LocationPage;
+export default TagFileList;

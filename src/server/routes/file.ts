@@ -296,7 +296,7 @@ const fileRoutes = router({
     .input(
       z.object({
         id: z.string(),
-        appId: z.string(),
+        appId: z.string(),      
       })
     )
     .mutation(async ({ ctx, input }) => {

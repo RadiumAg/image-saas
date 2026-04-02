@@ -8,8 +8,8 @@ import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
 import crypto from 'crypto';
 
-// 定义分类类型
-export type CategoryType = 'person' | 'location' | 'event';
+// 定义分类类型（支持任意字符串，默认值为 'general'）
+export type CategoryType = string;
 
 // 生成随机颜色的辅助函数
 function generateRandomColor(): string {
@@ -83,7 +83,7 @@ export const tagsRouter = router({
     .query(async ({ ctx, input }) => {
       const { appId } = input;
 
-      // 使用原生SQL查询以获取标签及其文件数量
+      // 使用原生SQL查询以获取标签及其文件数量（支持所有分类类型）
       const result = await db.execute(`
         SELECT
           t.id,
@@ -97,7 +97,6 @@ export const tagsRouter = router({
         LEFT JOIN files f ON ft.file_id = f.id AND f.deleted_at IS NULL
         WHERE t.user_id = '${ctx.session.user.id}'
           AND t.app_id = '${appId}'
-          AND t.category_type IN ('person', 'location', 'event')
           AND t.parent_id IS NULL
         GROUP BY t.id, t.name, t.category_type, t.color, t.sort
         ORDER BY t.sort ASC, t.name ASC
