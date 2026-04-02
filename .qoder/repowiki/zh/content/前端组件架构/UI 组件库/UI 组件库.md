@@ -19,6 +19,7 @@
 - [src/components/ui/collapsible.tsx](file://src/components/ui/collapsible.tsx)
 - [src/components/ui/label.tsx](file://src/components/ui/label.tsx)
 - [src/components/ui/sonner.tsx](file://src/components/ui/sonner.tsx)
+- [src/components/ui/slider.tsx](file://src/components/ui/slider.tsx)
 - [src/lib/utils.ts](file://src/lib/utils.ts)
 </cite>
 
@@ -38,7 +39,7 @@
 本文件为 Image SaaS 项目的 UI 组件库文档，聚焦于基于 Radix UI 与 Tailwind CSS 的组件系统设计与实现。文档覆盖基础 UI 组件的功能特性、属性配置、变体系统、尺寸规格、样式定制、交互行为与无障碍支持，并提供组件组合使用示例与最佳实践，帮助 UI 开发者高效构建一致、可维护且可扩展的界面。
 
 ## 项目结构
-UI 组件集中位于 src/components/ui 目录下，采用“按功能分层”的组织方式：基础控件（按钮、输入框、文本域）、表单控件（复选框、标签输入）、浮层与对话（弹出框、下拉菜单、对话框、手风琴）、展示与导航（标签页、滚动区域、头像）、日历与提示（日历、警告、通知）等模块清晰划分，便于查找与复用。
+UI 组件集中位于 src/components/ui 目录下，采用"按功能分层"的组织方式：基础控件（按钮、输入框、文本域、滑块）、表单控件（复选框、标签输入）、浮层与对话（弹出框、下拉菜单、对话框、手风琴）、展示与导航（标签页、滚动区域、头像）、日历与提示（日历、警告、通知）等模块清晰划分，便于查找与复用。
 
 ```mermaid
 graph TB
@@ -46,6 +47,7 @@ subgraph "UI 组件层"
 Btn["Button<br/>按钮"]
 Inp["Input<br/>输入框"]
 Txt["Textarea<br/>多行文本"]
+Sl["Slider<br/>滑块"]
 Ckb["Checkbox<br/>复选框"]
 Tag["Tag / TagList / TagInput<br/>标签"]
 Cal["Calendar<br/>日历"]
@@ -70,9 +72,11 @@ Coll --> Radix
 Av --> Radix
 Ckb --> Radix
 Label --> Radix
+Sl --> Radix
 Btn --> Tailwind["Tailwind CSS 类名"]
 Inp --> Tailwind
 Txt --> Tailwind
+Sl --> Tailwind
 Tag --> Tailwind
 Cal --> Tailwind
 Dia --> Tailwind
@@ -87,7 +91,7 @@ Sonner --> Tailwind
 Label --> Tailwind
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
@@ -105,8 +109,9 @@ Label --> Tailwind
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
-章节来源
+**章节来源**
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
@@ -124,6 +129,7 @@ Label --> Tailwind
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ## 核心组件
 本节概述各组件的核心职责、关键属性与典型使用场景，帮助快速定位与选用。
@@ -145,6 +151,12 @@ Label --> Tailwind
   - 关键属性：className。
   - 使用场景：备注、描述、富文本编辑器前段。
   - 参考路径：[src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
+
+- 滑块 Slider
+  - 功能：数值范围选择控件，支持连续值调整，用于图像缩放等场景。
+  - 关键属性：value、min、max、step、onValueChange。
+  - 使用场景：图像缩放、音量调节、进度控制、参数调整。
+  - 参考路径：[src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 - 复选框 Checkbox
   - 功能：二元选择控件，支持选中态与焦点态样式。
@@ -226,10 +238,11 @@ Label --> Tailwind
   - 使用场景：表单说明、提示文字。
   - 参考路径：[src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
-章节来源
+**章节来源**
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/input.tsx:1-22](file://src/components/ui/input.tsx#L1-L22)
 - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 - [src/components/ui/checkbox.tsx:1-33](file://src/components/ui/checkbox.tsx#L1-L33)
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
@@ -246,8 +259,8 @@ Label --> Tailwind
 - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 ## 架构总览
-组件系统遵循“原子化 + 组合”的设计原则：
-- 原子组件：Button、Input、Textarea、Checkbox、Label 等，提供最小可用能力。
+组件系统遵循"原子化 + 组合"的设计原则：
+- 原子组件：Button、Input、Textarea、Checkbox、Label、Slider 等，提供最小可用能力。
 - 组合组件：Dialog、Popover、DropdownMenu、Tabs、ScrollArea、Calendar、Alert、Tag、TagInput 等，基于 Radix UI 提供可访问性与状态管理。
 - 样式系统：统一使用 Tailwind CSS 类名与 cn 工具函数进行合并与覆盖，确保一致性与可定制性。
 - 主题与无障碍：组件普遍支持焦点环、无效态、深色模式、键盘导航与屏幕阅读器友好。
@@ -262,7 +275,7 @@ Atoms --> Accessibility["无障碍支持<br/>焦点环/无效态/键盘导航"]
 Composed --> Accessibility
 ```
 
-图表来源
+**图表来源**
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -274,6 +287,7 @@ Composed --> Accessibility
 - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ## 详细组件分析
 
@@ -306,10 +320,10 @@ class buttonVariants {
 Button --> buttonVariants : "使用变体系统"
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/button.tsx:7-37](file://src/components/ui/button.tsx#L7-L37)
 
-章节来源
+**章节来源**
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 
 ### 输入 Input 与多行文本 Textarea
@@ -327,9 +341,34 @@ Button --> buttonVariants : "使用变体系统"
   - [src/components/ui/input.tsx:1-22](file://src/components/ui/input.tsx#L1-L22)
   - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
 
-章节来源
+**章节来源**
 - [src/components/ui/input.tsx:1-22](file://src/components/ui/input.tsx#L1-L22)
 - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
+
+### 滑块 Slider
+- 设计要点
+  - 基于 Radix UI 实现，提供连续数值选择能力。
+  - 轨道：圆角背景，支持渐变色彩。
+  - 范围：实心填充，跟随轨道主题。
+  - 滑块：圆形，带边框与焦点环，支持禁用态。
+  - 无障碍：完全支持键盘导航与屏幕阅读器。
+- 交互行为
+  - 连续值调整：支持鼠标拖拽与键盘微调。
+  - 精度控制：step 属性控制增量。
+  - 焦点管理：Tab 键导航，Enter/Space 激活。
+- 使用场景
+  - 图像缩放：zoom 值范围 1-3，步长 0.1。
+  - 音量调节：0-100 百分比范围。
+  - 参数调整：自定义范围与精度需求。
+- 最佳实践
+  - 为滑块提供数值显示，增强用户体验。
+  - 设置合理的 min/max 范围与 step 值。
+  - 在图像裁剪场景中，使用 1-3 范围配合 0.1 步长。
+- 参考路径
+  - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
+
+**章节来源**
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ### 复选框 Checkbox
 - 设计要点
@@ -344,7 +383,7 @@ Button --> buttonVariants : "使用变体系统"
 - 参考路径
   - [src/components/ui/checkbox.tsx:1-33](file://src/components/ui/checkbox.tsx#L1-L33)
 
-章节来源
+**章节来源**
 - [src/components/ui/checkbox.tsx:1-33](file://src/components/ui/checkbox.tsx#L1-L33)
 
 ### 标签 Tag / TagList / TagInput
@@ -375,10 +414,10 @@ Ignore --> End(["结束"])
 Clear --> End
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/tag-input.tsx:63-77](file://src/components/ui/tag-input.tsx#L63-L77)
 
-章节来源
+**章节来源**
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 
@@ -409,10 +448,10 @@ C->>B : 应用按钮变体样式
 C-->>U : 更新 UI 并聚焦
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/calendar.tsx:182-218](file://src/components/ui/calendar.tsx#L182-L218)
 
-章节来源
+**章节来源**
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
 
 ### 对话框 Dialog
@@ -444,10 +483,10 @@ U->>C : 点击关闭按钮
 C->>D : 关闭对话框
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/dialog.tsx:9-81](file://src/components/ui/dialog.tsx#L9-L81)
 
-章节来源
+**章节来源**
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 
 ### 弹出框 Popover
@@ -461,7 +500,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
 
-章节来源
+**章节来源**
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
 
 ### 下拉菜单 DropdownMenu
@@ -476,7 +515,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 
-章节来源
+**章节来源**
 - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 
 ### 标签页 Tabs
@@ -490,7 +529,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
 
-章节来源
+**章节来源**
 - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
 
 ### 滚动区域 ScrollArea
@@ -504,7 +543,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/scroll-area.tsx:1-59](file://src/components/ui/scroll-area.tsx#L1-L59)
 
-章节来源
+**章节来源**
 - [src/components/ui/scroll-area.tsx:1-59](file://src/components/ui/scroll-area.tsx#L1-L59)
 
 ### 手风琴 Collapsible
@@ -517,7 +556,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/collapsible.tsx:1-34](file://src/components/ui/collapsible.tsx#L1-L34)
 
-章节来源
+**章节来源**
 - [src/components/ui/collapsible.tsx:1-34](file://src/components/ui/collapsible.tsx#L1-L34)
 
 ### 头像 Avatar
@@ -530,7 +569,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/avatar.tsx:1-54](file://src/components/ui/avatar.tsx#L1-L54)
 
-章节来源
+**章节来源**
 - [src/components/ui/avatar.tsx:1-54](file://src/components/ui/avatar.tsx#L1-L54)
 
 ### 警告 Alert
@@ -543,7 +582,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
-章节来源
+**章节来源**
 - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
 ### 通知 Toaster
@@ -557,7 +596,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
-章节来源
+**章节来源**
 - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
 ### 标签 Label
@@ -570,7 +609,7 @@ C->>D : 关闭对话框
 - 参考路径
   - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
-章节来源
+**章节来源**
 - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 ## 依赖关系分析
@@ -579,6 +618,7 @@ C->>D : 关闭对话框
   - Dialog/Popover/DropdownMenu/Tabs/ScrollArea/Collapsible 均依赖 Radix UI 原子组件。
   - TagInput 依赖 Tag 组件。
   - Toaster 依赖主题钩子与第三方通知库。
+  - Slider 依赖 Radix UI Slider 原子组件与 cn 工具。
 - 工具函数
   - cn 工具负责类名合并与冲突修复，确保样式链路稳定。
 - 外部依赖
@@ -602,9 +642,11 @@ Coll["Collapsible"] --> Radix
 TagInput["TagInput"] --> Tag["Tag"]
 Toaster["Toaster"] --> Theme["next-themes"]
 Toaster --> Icons["lucide-react"]
+Slider["Slider"] --> Radix
+Slider --> cn
 ```
 
-图表来源
+**图表来源**
 - [src/components/ui/calendar.tsx:16-16](file://src/components/ui/calendar.tsx#L16-L16)
 - [src/components/ui/button.tsx:3-3](file://src/components/ui/button.tsx#L3-L3)
 - [src/components/ui/dialog.tsx:4-4](file://src/components/ui/dialog.tsx#L4-L4)
@@ -616,8 +658,10 @@ Toaster --> Icons["lucide-react"]
 - [src/components/ui/tag-input.tsx:1-3](file://src/components/ui/tag-input.tsx#L1-L3)
 - [src/components/ui/tag.tsx:1-3](file://src/components/ui/tag.tsx#L1-L3)
 - [src/components/ui/sonner.tsx:10-11](file://src/components/ui/sonner.tsx#L10-L11)
+- [src/components/ui/slider.tsx:4-4](file://src/components/ui/slider.tsx#L4-L4)
+- [src/components/ui/slider.tsx:6-6](file://src/components/ui/slider.tsx#L6-L6)
 
-章节来源
+**章节来源**
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -629,23 +673,26 @@ Toaster --> Icons["lucide-react"]
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ## 性能考量
 - 样式合并
   - 使用 cn 工具减少类名冲突与冗余，避免重复覆盖。
 - 动画与渲染
-  - 对话框、下拉菜单、弹出框均使用 Radix UI 的动画系统，确保流畅与可访问。
+  - 对话框、下拉菜单、弹出框、滑块均使用 Radix UI 的动画系统，确保流畅与可访问。
 - 计算复杂度
   - TagInput 的建议过滤在输入时进行，建议使用防抖或虚拟化长列表。
+  - Slider 的值变化监听在用户交互时触发，避免不必要的重渲染。
 - 主题切换
   - Toaster 与组件均支持主题感知，避免频繁重绘。
 - 建议
   - 大型列表使用虚拟滚动或分页。
   - 图标使用 lucide-react，按需引入以减小包体积。
+  - 滑块组件在高频值变化场景中，考虑使用节流优化性能。
 
 ## 故障排查指南
 - 焦点与键盘导航
-  - 若发现无法通过键盘操作，请检查是否正确包裹在 Tabs、DropdownMenu、Dialog 等容器内。
+  - 若发现无法通过键盘操作，请检查是否正确包裹在 Tabs、DropdownMenu、Dialog、Slider 等容器内。
 - 无效态样式未生效
   - 确认表单控件已正确绑定 aria-invalid 属性并与组件样式联动。
 - 图标尺寸异常
@@ -656,23 +703,28 @@ Toaster --> Icons["lucide-react"]
   - 确认 Toaster 已在应用根部注册，且主题配置正确。
 - 标签输入不响应
   - 检查最大数量与重复校验逻辑，确保 onChange 回调被正确调用。
+- 滑块值不更新
+  - 确认 onValueChange 回调正确接收数组形式的值，且 value 属性为数组。
+  - 检查 min/max/step 属性设置是否合理。
 
-章节来源
+**章节来源**
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 - [src/components/ui/calendar.tsx:182-218](file://src/components/ui/calendar.tsx#L182-L218)
 - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 
 ## 结论
-该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
+该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。新增的 Slider 组件为图像裁剪等功能提供了专业的数值控制能力。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
 
 ## 附录
 - 变体与尺寸速览
   - Button：variant(default/destructive/outline/secondary/ghost/link)，size(default/sm/lg/icon/icon-sm/icon-lg)
   - Input/Textarea：基础样式，支持无效态与焦点态
   - Checkbox：选中态与无效态
+  - Slider：连续数值选择，支持 min/max/step/value 控制
   - Tag：size(sm/md/lg)，可配色与可移除
   - Alert：variant(default/destructive)
   - DropdownMenu：item/radio/checkbox/label/separator/sub
@@ -680,9 +732,12 @@ Toaster --> Icons["lucide-react"]
   - ScrollArea：vertical/horizontal
   - Calendar：buttonVariant 与多种修饰符
 - 无障碍支持
-  - 焦点环与键盘导航：Button、Input、Textarea、Checkbox、Tabs、DropdownMenu、Calendar
+  - 焦点环与键盘导航：Button、Input、Textarea、Checkbox、Tabs、DropdownMenu、Calendar、Slider
   - 屏幕阅读器角色：Alert、Dialog、Label
   - 无障碍文本：Dialog 关闭按钮包含 sr-only 文本
 - 样式定制
   - 使用 cn 工具合并类名，避免样式冲突
   - 通过主题变量与 CSS 变量统一外观
+- 图像裁剪集成
+  - Slider 在 ImageCropDialog 中用于缩放控制，value 为数组形式，min=1，max=3，step=0.1
+  - 与 react-easy-crop 组件配合实现完整的图像裁剪体验
