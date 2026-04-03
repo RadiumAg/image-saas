@@ -1,7 +1,7 @@
 import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { tags, files_tags, files } from '../db/schema';
+import { tags, files_tags, files, apps } from '../db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
@@ -116,16 +116,18 @@ export const tagsRouter = router({
   createTag: protectedProcedure
     .input(
       z.object({
+        appId: z.string(),
         name: z.string().min(1).max(20),
         color: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { name, color } = input;
+      const { name, color, appId } = input;
 
       // 检查标签是否已存在
       const existingTag = await db.query.tags.findFirst({
         where: and(
+          eq(apps.id, appId),
           eq(tags.userId, ctx.session.user.id),
           eq(tags.name, name.trim().toLowerCase())
         ),
@@ -145,6 +147,7 @@ export const tagsRouter = router({
           id: uuid(),
           name: name.trim(),
           color,
+          appId,
           userId: ctx.session.user.id,
         })
         .returning();
@@ -156,13 +159,14 @@ export const tagsRouter = router({
   updateTag: protectedProcedure
     .input(
       z.object({
+        appId: z.string(),
         tagId: z.string(),
         name: z.string().min(1).max(20).optional(),
         color: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { tagId, name, color } = input;
+      const { tagId, name, appId, color } = input;
 
       // 构建更新对象
       const updates: { name?: string; color?: string } = {};
@@ -171,7 +175,11 @@ export const tagsRouter = router({
 
       // 检查标签是否存在且属于当前用户
       const existingTag = await db.query.tags.findFirst({
-        where: and(eq(tags.id, tagId), eq(tags.userId, ctx.session.user.id)),
+        where: and(
+          eq(tags.id, tagId),
+          eq(tags.userId, ctx.session.user.id),
+          eq(apps.id, appId)
+        ),
       });
 
       if (!existingTag) {

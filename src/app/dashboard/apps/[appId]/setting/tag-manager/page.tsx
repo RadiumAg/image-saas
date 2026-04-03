@@ -116,6 +116,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
 
     try {
       const result = await createTagMutation.mutateAsync({
+        appId,
         name: newTagName.trim(),
         color: newTagColor,
       });
@@ -164,7 +165,11 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
       setFileTags(prev =>
         prev.map(tag => (tag.id === tagId ? { ...tag, ...updates } : tag))
       );
-
+      await updateTagMutation.mutateAsync({
+        appId,
+        tagId,
+        ...updates,
+      });
       await refetchUserTags();
       await refetchFileTags();
     } catch (error) {
