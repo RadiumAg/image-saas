@@ -30,7 +30,6 @@ export default async function RootLayout({
             <ThemeToggle />
 
             <UserMenu
-              plan={session?.user?.plan}
               name={session?.user?.name}
               email={session?.user?.email}
               image={session?.user?.image}

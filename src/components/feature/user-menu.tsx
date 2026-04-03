@@ -19,20 +19,24 @@ interface UserMenuProps {
 }
 
 const UserMenu: React.FC<UserMenuProps> = props => {
-  const { name, email, image, plan } = props;
+  const { name, email, image } = props;
 
   const handleSignOut = () => {
     window.location.href = '/api/auth/signout';
   };
 
-  const { data: userData } = trpcClientReact.plan.getPlan.useQuery();
+  const { data: plan } = trpcClientReact.plan.getPlan.useQuery();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
           <AvatarImage src={image ?? ''} />
-          <AvatarFallback>{name?.substring(0, 2) ?? 'U'}</AvatarFallback>
+          <AvatarFallback>
+            <div className="flex items-center justify-center h-full">
+              {name?.substring(0, 2) ?? 'U'}
+            </div>
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
 
@@ -43,9 +47,9 @@ const UserMenu: React.FC<UserMenuProps> = props => {
             {email}
           </div>
         )}
-        {userData && (
+        {plan && (
           <div className="px-2 py-1.5 text-xs text-muted-foreground">
-            套餐: {userData?.plan}
+            套餐: {plan}
           </div>
         )}
         <div className="h-px bg-border my-1" />

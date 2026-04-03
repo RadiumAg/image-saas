@@ -1,6 +1,5 @@
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { plans } from '../db/schema';
 
 export const planRouter = router({
   getPlan: protectedProcedure.query(async ({ ctx }) => {
@@ -12,7 +11,7 @@ export const planRouter = router({
     });
 
     if (!user || !user.plan) {
-      return { plan: null };
+      return '';
     }
 
     return user.plan;
