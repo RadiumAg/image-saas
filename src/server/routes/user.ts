@@ -11,15 +11,10 @@ export const planRouter = router({
       },
     });
 
-    if (!user || !user.planId) {
+    if (!user || !user.plan) {
       return { plan: null };
     }
 
-    // 根据 planId 获取 plan 信息
-    const plan = await db.query.plans.findFirst({
-      where: (plans, { eq }) => eq(plans.id, user.planId),
-    });
-
-    return plan;
+    return user.plan;
   }),
 });
