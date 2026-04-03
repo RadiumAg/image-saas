@@ -17,18 +17,16 @@ import copy from 'copy-to-clipboard';
 
 interface ImageCropDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
   imageUrl: string;
-  fileId: string;
   appId: string;
   fileName: string;
+  onOpenChange: (open: boolean) => void;
 }
 
 const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   open,
   onOpenChange,
   imageUrl,
-  fileId,
   appId,
   fileName,
 }) => {
@@ -185,7 +183,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>裁剪图片</DialogTitle>
         </DialogHeader>
