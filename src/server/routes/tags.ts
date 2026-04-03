@@ -2,7 +2,7 @@ import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
 import { tags, files_tags, files, apps } from '../db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
@@ -49,26 +49,37 @@ export const tagsRouter = router({
     .input(z.object({ appId: z.string() }))
     .query(async ({ ctx, input }) => {
       const { appId } = input;
-      // 使用原生SQL查询以获取标签使用次数
-      const result = await db.execute(`
-      SELECT
-        t.id,
-        t.name,
-        t.color,
-        COUNT(ft.file_id) as count
-      FROM tags t
-      LEFT JOIN files_tags ft ON t.id = ft.tag_id
-      WHERE t.user_id = '${ctx.session.user.id}' and t.app_id = '${appId}'
-      GROUP BY t.id, t.name, t.color
-      ORDER BY count DESC, t.name ASC
-    `);
+      // 使用 Drizzle query builder 获取标签使用次数
+      const userTags = await db
+        .select({
+          id: tags.id,
+          name: tags.name,
+          color: tags.color,
+          count: sql<number>`count(${files.id})`.as('count'),
+        })
+        .from(tags)
+        .leftJoin(files_tags, eq(tags.id, files_tags.tagId))
+        .leftJoin(
+          files,
+          and(
+            eq(files_tags.fileId, files.id),
+            eq(files.appId, appId),
+            sql`${files.deleteAt} IS NULL`
+          )
+        )
+        .where(
+          and(
+            eq(tags.userId, ctx.session.user.id),
+            eq(tags.appId, appId)
+          )
+        )
+        .groupBy(tags.id, tags.name, tags.color)
+        .orderBy(sql`count DESC`, tags.name);
 
-      const rows = result;
-
-      return rows.map(row => ({
-        id: row.id as string,
-        name: row.name as string,
-        color: row.color as string,
+      return userTags.map(row => ({
+        id: row.id,
+        name: row.name,
+        color: row.color ?? '#3b82f6',
         count: Number(row.count),
       }));
     }),
@@ -83,20 +94,20 @@ export const tagsRouter = router({
     .query(async ({ ctx, input }) => {
       const { appId } = input;
 
-      // 使用原生SQL查询以获取标签及其文件数量（支持所有分类类型）
-      const result = await db.execute(`
+      // 使用参数化SQL查询以获取标签及其文件数量（支持所有分类类型）
+      const result = await db.execute(sql`
         SELECT
           t.id,
           t.name,
           t.category_type,
           t.color,
           t.sort,
-          COUNT(DISTINCT ft.file_id) as count
+          COUNT(DISTINCT f.id) as count
         FROM tags t
         LEFT JOIN files_tags ft ON t.id = ft.tag_id
-        LEFT JOIN files f ON ft.file_id = f.id AND f.deleted_at IS NULL
-        WHERE t.user_id = '${ctx.session.user.id}'
-          AND t.app_id = '${appId}'
+        LEFT JOIN files f ON ft.file_id = f.id AND f.${sql.identifier('appId')} = ${appId} AND f.deleted_at IS NULL
+        WHERE t.user_id = ${ctx.session.user.id}
+          AND t.app_id = ${appId}
           AND t.parent_id IS NULL
         GROUP BY t.id, t.name, t.category_type, t.color, t.sort
         ORDER BY t.sort ASC, t.name ASC
@@ -300,10 +311,11 @@ export const tagsRouter = router({
       z.object({
         fileId: z.string(),
         tagNames: z.array(z.string().min(1).max(20)),
+        appId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { fileId, tagNames } = input;
+      const { fileId, tagNames, appId } = input;
 
       if (!tagNames.length) return { addedTags: [] };
 
@@ -311,12 +323,17 @@ export const tagsRouter = router({
       const tagRecords = await db.transaction(async tx => {
         const cleanNames = cleanTagNames(tagNames);
 
-        // 查找已存在的标签
+        // 查找已存在的标签（按 appId 过滤）
+        const whereConditions = [
+          eq(tags.userId, ctx.session.user.id),
+          inArray(tags.name, cleanNames),
+        ];
+        if (appId) {
+          whereConditions.push(eq(tags.appId, appId));
+        }
+
         const existingTags = await tx.query.tags.findMany({
-          where: and(
-            eq(tags.userId, ctx.session.user.id),
-            inArray(tags.name, cleanNames)
-          ),
+          where: and(...whereConditions),
         });
 
         const existingTagNames = new Set(existingTags.map(tag => tag.name));
@@ -324,7 +341,7 @@ export const tagsRouter = router({
           name => !existingTagNames.has(name)
         );
 
-        // 创建新标签
+        // 创建新标签（带上 appId）
         const newTags = [];
         if (newTagNames.length > 0) {
           const insertedTags = await tx
@@ -335,6 +352,7 @@ export const tagsRouter = router({
                 name,
                 userId: ctx.session.user.id,
                 color: generateRandomColor(),
+                ...(appId ? { appId } : {}),
               }))
             )
             .returning();

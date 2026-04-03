@@ -167,6 +167,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
         await addTagsToFileMutation.mutateAsync({
           fileId,
           tagNames: [result.name],
+          appId,
         });
         await refetchFileTags();
       }
@@ -268,6 +269,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
         .mutateAsync({
           fileId,
           tagNames,
+          appId,
         })
         .then(() => {
           refetchFileTags();
