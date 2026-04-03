@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { trpcClientReact } from '@/utils/api';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TagData {
   id: string;
@@ -310,45 +311,47 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
           </Dialog>
         </div>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {userTags.map((tag, index) => (
-            <div
-              key={tag.id || index}
-              className="flex items-center justify-between p-2 border rounded-lg"
-            >
-              <div className="flex items-center space-x-2">
-                <Tag name={tag.name} size="sm" />
-                <span className="text-xs text-gray-500">
-                  {tag.count} 个文件
-                </span>
+        <ScrollArea className="max-h-100 overflow-y-auto">
+          <div className="space-y-2">
+            {userTags.map((tag, index) => (
+              <div
+                key={tag.id || index}
+                className="flex items-center justify-between p-2 border rounded-lg"
+              >
+                <div className="flex items-center space-x-2">
+                  <Tag name={tag.name} size="sm" />
+                  <span className="text-xs text-gray-500">
+                    {tag.count} 个文件
+                  </span>
+                </div>
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingTag(tag);
+                      setEditTagName(tag.name);
+                      setEditTagColor(tag.color);
+                      setIsEditDialogOpen(true);
+                    }}
+                    disabled={updateTagMutation.isPending}
+                  >
+                    <Edit2 size={14} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteTag(tag.id)}
+                    className="text-red-600 hover:text-red-700"
+                    disabled={deleteTagMutation.isPending}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </div>
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingTag(tag);
-                    setEditTagName(tag.name);
-                    setEditTagColor(tag.color);
-                    setIsEditDialogOpen(true);
-                  }}
-                  disabled={updateTagMutation.isPending}
-                >
-                  <Edit2 size={14} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTag(tag.id)}
-                  className="text-red-600 hover:text-red-700"
-                  disabled={deleteTagMutation.isPending}
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
 
       <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
