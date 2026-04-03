@@ -11,7 +11,7 @@ import z from 'zod';
 const DEFAULT_TAGS = [
   { name: '人物', categoryType: 'person', color: '#3b82f6' },
   { name: '地点', categoryType: 'location', color: '#22c55e' },
-  { name: '事务', categoryType: 'event', color: '#f59e0b' },
+  { name: '事物', categoryType: 'event', color: '#f59e0b' },
 ];
 
 export const appsRouter = router({

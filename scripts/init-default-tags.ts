@@ -8,7 +8,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 const DEFAULT_TAGS = [
   { name: '人物', categoryType: 'person' as const, color: '#3b82f6' },
   { name: '地点', categoryType: 'location' as const, color: '#22c55e' },
-  { name: '事务', categoryType: 'event' as const, color: '#f59e0b' },
+  { name: '事物', categoryType: 'event' as const, color: '#f59e0b' },
 ];
 
 async function initDefaultTags() {

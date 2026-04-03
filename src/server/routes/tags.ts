@@ -637,7 +637,7 @@ async function recognizeWithOpenAI(
               role: 'user',
               content: existingTags.length > 0
                 ? `请分析这张图片，并判断它属于以下哪个类别：${existingTags.join('、')}。只返回一个类别名称，不要包含其他文字。例如：${existingTags.slice(0, 3).join('、')}`
-                : '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事务。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事务',
+                : '请分析这张图片，并判断它属于以下哪个类别：人物、地点、事物。只返回一个类别名称，不要包含其他文字。例如：人物、地点或事物',
               content_type: 'text',
             },
           ],
