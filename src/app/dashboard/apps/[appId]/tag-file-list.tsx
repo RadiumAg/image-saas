@@ -199,7 +199,7 @@ const TagFileList: React.FC<TagFileListProps> = props => {
     return <div className="container mx-auto mt-10">请选择一个标签</div>;
   }
 
-  if (groupedData.length === 0) {
+  if (!isPending && !hasNextPage && groupedData.length === 0) {
     return (
       <div className="container mx-auto mt-10">
         <Dropzone uppy={uppy} className="w-full h-[calc(100vh-200px)]">
@@ -241,8 +241,8 @@ const TagFileList: React.FC<TagFileListProps> = props => {
                 </div>
               )}
               <InfiniteScroll
-                hasMore={hasNextPage}
-                isLoading={isFetching}
+                hasMore={isPending || hasNextPage}
+                isLoading={isPending || isFetching}
                 loadMore={() => fetchNextPage()}
               >
                 <div className="space-y-6">
