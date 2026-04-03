@@ -10,7 +10,7 @@ import { useState, useMemo, useEffect } from 'react';
 import InfiniteScroll from '@/components/feature/infinite-scroll';
 import { RemoteFileItemWithTags } from '@/components/feature/file-item';
 import {
-  DeleteFileAction,
+  DeleteFileAction, 
   CopyUrl,
   PreView,
 } from '@/components/feature/file-item-action';
@@ -56,6 +56,74 @@ const TagFileList: React.FC<TagFileListProps> = props => {
   });
 
   const utils = trpcClientReact.useUtils();
+
+  const handleFileDelete = (id: string) => {
+    utils.file.infinityQueryFilesByTag.setInfiniteData(query, prev => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        pages: prev.pages.map(page => ({
+          ...page,
+          items: page.items.filter(file => file.id !== id),
+        })),
+        pageParams: prev.pageParams,
+      };
+    });
+  };
+
+  // 展开状态管理
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    default: true,
+  });
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups(prev => ({
+      ...prev,
+      [key]: prev[key] === undefined ? false : !prev[key],
+    }));
+  };
+
+  // 按时间分组数据
+  const groupedData = useMemo(() => {
+    if (!infinityQueryData?.pages) return [];
+
+    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
+
+    const groups: Record<string, typeof allItems> = {};
+
+    allItems.forEach(item => {
+      const date = new Date(item.createdAt!);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let key = '';
+
+      if (date.toDateString() === today.toDateString()) {
+        key = '今天';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        key = '昨天';
+      } else if (date.getFullYear() === today.getFullYear()) {
+        key = `${date.getMonth() + 1}月${date.getDate()}日`;
+      } else {
+        key = `${date.getFullYear()}年${
+          date.getMonth() + 1
+        }月${date.getDate()}日`;
+      }
+
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(item);
+    });
+
+    return Object.entries(groups).map(([key, items]) => ({
+      key,
+      items,
+      count: items.length,
+    }));
+  }, [infinityQueryData?.pages]);
 
   // 上传成功后刷新数据
   useEffect(() => {
@@ -125,74 +193,6 @@ const TagFileList: React.FC<TagFileListProps> = props => {
       uppy.off('complete', completeHandler);
     };
   }, [uppy, utils, appId, query]);
-
-  const handleFileDelete = (id: string) => {
-    utils.file.infinityQueryFilesByTag.setInfiniteData(query, prev => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        pages: prev.pages.map(page => ({
-          ...page,
-          items: page.items.filter(file => file.id !== id),
-        })),
-        pageParams: prev.pageParams,
-      };
-    });
-  };
-
-  // 展开状态管理
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    default: true,
-  });
-
-  const toggleGroup = (key: string) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [key]: prev[key] === undefined ? false : !prev[key],
-    }));
-  };
-
-  // 按时间分组数据
-  const groupedData = useMemo(() => {
-    if (!infinityQueryData?.pages) return [];
-
-    const allItems = infinityQueryData?.pages.flatMap(page => page.items);
-
-    const groups: Record<string, typeof allItems> = {};
-
-    allItems.forEach(item => {
-      const date = new Date(item.createdAt!);
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      let key = '';
-
-      if (date.toDateString() === today.toDateString()) {
-        key = '今天';
-      } else if (date.toDateString() === yesterday.toDateString()) {
-        key = '昨天';
-      } else if (date.getFullYear() === today.getFullYear()) {
-        key = `${date.getMonth() + 1}月${date.getDate()}日`;
-      } else {
-        key = `${date.getFullYear()}年${
-          date.getMonth() + 1
-        }月${date.getDate()}日`;
-      }
-
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(item);
-    });
-
-    return Object.entries(groups).map(([key, items]) => ({
-      key,
-      items,
-      count: items.length,
-    }));
-  }, [infinityQueryData?.pages]);
 
   // 如果没有 tagId，不渲染
   if (!tagId) {
