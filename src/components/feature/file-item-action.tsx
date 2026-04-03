@@ -123,7 +123,7 @@ const CropAction: React.FC<CropActionProps> = props => {
     <>
       <Button
         variant="ghost"
-        className="p-2 rounded-full bg-background/90 hover:bg-background transition-colors"
+        className="cursor-pointer"
         onClick={() => setOpen(true)}
         title="裁剪图片"
       >
