@@ -39,10 +39,7 @@ export default function CreateApp() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label
-              htmlFor="name"
-              className="text-sm font-medium leading-none"
-            >
+            <label htmlFor="name" className="text-sm font-medium leading-none">
               应用名称
             </label>
             <Input

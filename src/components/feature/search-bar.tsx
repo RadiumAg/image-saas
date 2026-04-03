@@ -88,7 +88,10 @@ export function SearchBar({ onSearch, className }: SearchBarProps) {
           <Calendar className="h-4 w-4" />
         </Button>
 
-        <Button onClick={handleSearch} className="cursor-pointer transition-colors duration-200">
+        <Button
+          onClick={handleSearch}
+          className="cursor-pointer transition-colors duration-200"
+        >
           搜索
         </Button>
 

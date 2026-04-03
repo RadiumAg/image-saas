@@ -24,6 +24,7 @@
 </cite>
 
 ## 目录
+
 1. [简介](#简介)
 2. [项目结构](#项目结构)
 3. [核心组件](#核心组件)
@@ -36,9 +37,11 @@
 10. [附录](#附录)
 
 ## 简介
+
 本文件为 Image SaaS 项目的 UI 组件库文档，聚焦于基于 Radix UI 与 Tailwind CSS 的组件系统设计与实现。文档覆盖基础 UI 组件的功能特性、属性配置、变体系统、尺寸规格、样式定制、交互行为与无障碍支持，并提供组件组合使用示例与最佳实践，帮助 UI 开发者高效构建一致、可维护且可扩展的界面。
 
 ## 项目结构
+
 UI 组件集中位于 src/components/ui 目录下，采用"按功能分层"的组织方式：基础控件（按钮、输入框、文本域、滑块）、表单控件（复选框、标签输入）、浮层与对话（弹出框、下拉菜单、对话框、手风琴）、展示与导航（标签页、滚动区域、头像）、日历与提示（日历、警告、通知）等模块清晰划分，便于查找与复用。
 
 ```mermaid
@@ -92,6 +95,7 @@ Label --> Tailwind
 ```
 
 **图表来源**
+
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
@@ -112,6 +116,7 @@ Label --> Tailwind
 - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 **章节来源**
+
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
@@ -132,6 +137,7 @@ Label --> Tailwind
 - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ## 核心组件
+
 本节概述各组件的核心职责、关键属性与典型使用场景，帮助快速定位与选用。
 
 - 按钮 Button
@@ -239,6 +245,7 @@ Label --> Tailwind
   - 参考路径：[src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 **章节来源**
+
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/input.tsx:1-22](file://src/components/ui/input.tsx#L1-L22)
 - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
@@ -259,7 +266,9 @@ Label --> Tailwind
 - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 ## 架构总览
+
 组件系统遵循"原子化 + 组合"的设计原则：
+
 - 原子组件：Button、Input、Textarea、Checkbox、Label、Slider 等，提供最小可用能力。
 - 组合组件：Dialog、Popover、DropdownMenu、Tabs、ScrollArea、Calendar、Alert、Tag、TagInput 等，基于 Radix UI 提供可访问性与状态管理。
 - 样式系统：统一使用 Tailwind CSS 类名与 cn 工具函数进行合并与覆盖，确保一致性与可定制性。
@@ -276,6 +285,7 @@ Composed --> Accessibility
 ```
 
 **图表来源**
+
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -292,6 +302,7 @@ Composed --> Accessibility
 ## 详细组件分析
 
 ### 按钮 Button
+
 - 设计要点
   - 变体系统：default、destructive、outline、secondary、ghost、link。
   - 尺寸系统：default、sm、lg、icon、icon-sm、icon-lg。
@@ -321,12 +332,15 @@ Button --> buttonVariants : "使用变体系统"
 ```
 
 **图表来源**
+
 - [src/components/ui/button.tsx:7-37](file://src/components/ui/button.tsx#L7-L37)
 
 **章节来源**
+
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 
 ### 输入 Input 与多行文本 Textarea
+
 - 设计要点
   - 统一圆角、边框、背景与过渡动画。
   - 焦点态：ring 边框与阴影；无效态：destructive 颜色。
@@ -342,10 +356,12 @@ Button --> buttonVariants : "使用变体系统"
   - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
 
 **章节来源**
+
 - [src/components/ui/input.tsx:1-22](file://src/components/ui/input.tsx#L1-L22)
 - [src/components/ui/textarea.tsx:1-19](file://src/components/ui/textarea.tsx#L1-L19)
 
 ### 滑块 Slider
+
 - 设计要点
   - 基于 Radix UI 实现，提供连续数值选择能力。
   - 轨道：圆角背景，支持渐变色彩。
@@ -368,9 +384,11 @@ Button --> buttonVariants : "使用变体系统"
   - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 **章节来源**
+
 - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ### 复选框 Checkbox
+
 - 设计要点
   - 选中态：背景与前景色随 primary 变量变化。
   - 焦点态：ring 边框与阴影；无效态：destructive 颜色。
@@ -384,9 +402,11 @@ Button --> buttonVariants : "使用变体系统"
   - [src/components/ui/checkbox.tsx:1-33](file://src/components/ui/checkbox.tsx#L1-L33)
 
 **章节来源**
+
 - [src/components/ui/checkbox.tsx:1-33](file://src/components/ui/checkbox.tsx#L1-L33)
 
 ### 标签 Tag / TagList / TagInput
+
 - 设计要点
   - Tag：颜色可配、尺寸（sm/md/lg）、可移除。
   - TagList：空状态文案、自动换行。
@@ -415,13 +435,16 @@ Clear --> End
 ```
 
 **图表来源**
+
 - [src/components/ui/tag-input.tsx:63-77](file://src/components/ui/tag-input.tsx#L63-L77)
 
 **章节来源**
+
 - [src/components/ui/tag.tsx:1-204](file://src/components/ui/tag.tsx#L1-L204)
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 
 ### 日历 Calendar
+
 - 设计要点
   - 默认类名继承 react-day-picker，支持 RTL 翻转箭头方向。
   - 自定义按钮样式：通过 buttonVariant 应用 Button 变体。
@@ -449,12 +472,15 @@ C-->>U : 更新 UI 并聚焦
 ```
 
 **图表来源**
+
 - [src/components/ui/calendar.tsx:182-218](file://src/components/ui/calendar.tsx#L182-L218)
 
 **章节来源**
+
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
 
 ### 对话框 Dialog
+
 - 设计要点
   - Portal 渲染，固定定位，居中布局。
   - 遮罩：淡入淡出动画；内容区：缩放与淡入淡出动画。
@@ -484,12 +510,15 @@ C->>D : 关闭对话框
 ```
 
 **图表来源**
+
 - [src/components/ui/dialog.tsx:9-81](file://src/components/ui/dialog.tsx#L9-L81)
 
 **章节来源**
+
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 
 ### 弹出框 Popover
+
 - 设计要点
   - 非模态弹出，支持对齐与偏移。
   - 动画入场/出场，边缘吸附。
@@ -501,9 +530,11 @@ C->>D : 关闭对话框
   - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
 
 **章节来源**
+
 - [src/components/ui/popover.tsx:1-49](file://src/components/ui/popover.tsx#L1-L49)
 
 ### 下拉菜单 DropdownMenu
+
 - 设计要点
   - 支持普通项、勾选项、单选项、分隔符、快捷键提示与子菜单。
   - 焦点态：高亮背景与前景色；禁用态：半透明与不可交互。
@@ -516,9 +547,11 @@ C->>D : 关闭对话框
   - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 
 **章节来源**
+
 - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 
 ### 标签页 Tabs
+
 - 设计要点
   - 列表容器：背景与圆角；触发器：激活态阴影与边框。
   - 支持禁用态与键盘导航。
@@ -530,9 +563,11 @@ C->>D : 关闭对话框
   - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
 
 **章节来源**
+
 - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
 
 ### 滚动区域 ScrollArea
+
 - 设计要点
   - 自定义滚动条：垂直/水平；透明边框与过渡。
   - 容器与视口分离，保证样式隔离。
@@ -544,9 +579,11 @@ C->>D : 关闭对话框
   - [src/components/ui/scroll-area.tsx:1-59](file://src/components/ui/scroll-area.tsx#L1-L59)
 
 **章节来源**
+
 - [src/components/ui/scroll-area.tsx:1-59](file://src/components/ui/scroll-area.tsx#L1-L59)
 
 ### 手风琴 Collapsible
+
 - 设计要点
   - 原子组件封装，暴露根、触发器、内容三部分。
 - 交互行为
@@ -557,9 +594,11 @@ C->>D : 关闭对话框
   - [src/components/ui/collapsible.tsx:1-34](file://src/components/ui/collapsible.tsx#L1-L34)
 
 **章节来源**
+
 - [src/components/ui/collapsible.tsx:1-34](file://src/components/ui/collapsible.tsx#L1-L34)
 
 ### 头像 Avatar
+
 - 设计要点
   - 圆形裁剪，占位与回退文本。
 - 交互行为
@@ -570,9 +609,11 @@ C->>D : 关闭对话框
   - [src/components/ui/avatar.tsx:1-54](file://src/components/ui/avatar.tsx#L1-L54)
 
 **章节来源**
+
 - [src/components/ui/avatar.tsx:1-54](file://src/components/ui/avatar.tsx#L1-L54)
 
 ### 警告 Alert
+
 - 设计要点
   - 默认与破坏性两种样式；支持图标与描述区网格布局。
 - 交互行为
@@ -583,9 +624,11 @@ C->>D : 关闭对话框
   - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
 **章节来源**
+
 - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
 ### 通知 Toaster
+
 - 设计要点
   - 主题感知：跟随系统/浅色/深色；图标映射。
   - CSS 变量：与主题变量对齐。
@@ -597,9 +640,11 @@ C->>D : 关闭对话框
   - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
 **章节来源**
+
 - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
 ### 标签 Label
+
 - 设计要点
   - 与表单控件配对使用；禁用态与焦点态样式。
 - 交互行为
@@ -610,9 +655,11 @@ C->>D : 关闭对话框
   - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 **章节来源**
+
 - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
 ## 依赖关系分析
+
 - 组件间依赖
   - Calendar 依赖 Button 变体样式与 cn 工具。
   - Dialog/Popover/DropdownMenu/Tabs/ScrollArea/Collapsible 均依赖 Radix UI 原子组件。
@@ -647,6 +694,7 @@ Slider --> cn
 ```
 
 **图表来源**
+
 - [src/components/ui/calendar.tsx:16-16](file://src/components/ui/calendar.tsx#L16-L16)
 - [src/components/ui/button.tsx:3-3](file://src/components/ui/button.tsx#L3-L3)
 - [src/components/ui/dialog.tsx:4-4](file://src/components/ui/dialog.tsx#L4-L4)
@@ -662,6 +710,7 @@ Slider --> cn
 - [src/components/ui/slider.tsx:6-6](file://src/components/ui/slider.tsx#L6-L6)
 
 **章节来源**
+
 - [src/components/ui/calendar.tsx:1-221](file://src/components/ui/calendar.tsx#L1-L221)
 - [src/components/ui/button.tsx:1-63](file://src/components/ui/button.tsx#L1-L63)
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -676,6 +725,7 @@ Slider --> cn
 - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 
 ## 性能考量
+
 - 样式合并
   - 使用 cn 工具减少类名冲突与冗余，避免重复覆盖。
 - 动画与渲染
@@ -691,6 +741,7 @@ Slider --> cn
   - 滑块组件在高频值变化场景中，考虑使用节流优化性能。
 
 ## 故障排查指南
+
 - 焦点与键盘导航
   - 若发现无法通过键盘操作，请检查是否正确包裹在 Tabs、DropdownMenu、Dialog、Slider 等容器内。
 - 无效态样式未生效
@@ -708,6 +759,7 @@ Slider --> cn
   - 检查 min/max/step 属性设置是否合理。
 
 **章节来源**
+
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
 - [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
 - [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
@@ -717,9 +769,11 @@ Slider --> cn
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 
 ## 结论
+
 该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。新增的 Slider 组件为图像裁剪等功能提供了专业的数值控制能力。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
 
 ## 附录
+
 - 变体与尺寸速览
   - Button：variant(default/destructive/outline/secondary/ghost/link)，size(default/sm/lg/icon/icon-sm/icon-lg)
   - Input/Textarea：基础样式，支持无效态与焦点态

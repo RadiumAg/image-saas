@@ -129,10 +129,10 @@ services:
 services:
   app:
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 ```
 
 ### 5. 健康检查

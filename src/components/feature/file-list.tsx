@@ -34,7 +34,7 @@ const FileList: React.FC<FileListProps> = props => {
     fileId: string;
     fileName: string;
   }>({ open: false, imageUrl: '', fileId: '', fileName: '' });
-  
+
   const query = useMemo(
     () => ({
       limit: 10,
@@ -430,7 +430,7 @@ const FileList: React.FC<FileListProps> = props => {
 
       <ImageCropDialog
         open={cropDialog.open}
-        onOpenChange={(open) => setCropDialog(prev => ({ ...prev, open }))}
+        onOpenChange={open => setCropDialog(prev => ({ ...prev, open }))}
         imageUrl={cropDialog.imageUrl}
         fileId={cropDialog.fileId}
         appId={appId}

@@ -3,7 +3,12 @@
 import React, { useState, useCallback } from 'react';
 import type { Area, Point } from 'react-easy-crop';
 import Cropper from 'react-easy-crop';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { trpcClientReact } from '@/utils/api';
@@ -34,11 +39,15 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
   const [shareLink, setShareLink] = useState<string | null>(null);
 
   const saveFileMutation = trpcClientReact.file.saveFile.useMutation();
-  const createPresignedUrlMutation = trpcClientReact.file.createPresignedUrl.useMutation();
+  const createPresignedUrlMutation =
+    trpcClientReact.file.createPresignedUrl.useMutation();
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
 
   const getCroppedImg = async (
     imageSrc: string,
@@ -80,12 +89,16 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
     );
 
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        }
-      }, 'image/jpeg', 0.95);
+    return new Promise(resolve => {
+      canvas.toBlob(
+        blob => {
+          if (blob) {
+            resolve(blob);
+          }
+        },
+        'image/jpeg',
+        0.95
+      );
     });
   };
 
@@ -93,7 +106,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     new Promise((resolve, reject) => {
       const image = new Image();
       image.addEventListener('load', () => resolve(image));
-      image.addEventListener('error', (error) => reject(error));
+      image.addEventListener('error', error => reject(error));
       image.setAttribute('crossOrigin', 'anonymous');
       image.src = url;
     });
@@ -109,17 +122,18 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
     try {
       // 获取裁剪后的图片
       const croppedBlob = await getCroppedImg(imageUrl, croppedAreaPixels);
-      
+
       // 创建裁剪后的文件名
       const croppedFileName = `cropped_${Date.now()}_${fileName}`;
-      
+
       // 获取预签名 URL
-      const { url: uploadUrl, method } = await createPresignedUrlMutation.mutateAsync({
-        filename: croppedFileName,
-        contentType: 'image/jpeg',
-        size: croppedBlob.size,
-        appId,
-      });
+      const { url: uploadUrl, method } =
+        await createPresignedUrlMutation.mutateAsync({
+          filename: croppedFileName,
+          contentType: 'image/jpeg',
+          size: croppedBlob.size,
+          appId,
+        });
 
       // 上传裁剪后的图片
       const uploadResponse = await fetch(uploadUrl, {
@@ -145,7 +159,7 @@ const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
       // 生成分享链接
       const shareUrl = `${window.location.origin}/share/${savedFile.id}`;
       setShareLink(shareUrl);
-      
+
       toast.success('裁剪并上传成功！');
     } catch (error) {
       console.error('裁剪上传失败:', error);

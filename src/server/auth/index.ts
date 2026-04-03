@@ -20,7 +20,13 @@ const GiteeProvider = {
   token: 'https://gitee.com/oauth/token',
   userinfo: 'https://gitee.com/api/v5/user',
   profile(profile: unknown) {
-    const typedProfile = profile as { id: number | string; name?: string; login?: string; email?: string; avatar_url?: string };
+    const typedProfile = profile as {
+      id: number | string;
+      name?: string;
+      login?: string;
+      email?: string;
+      avatar_url?: string;
+    };
     return {
       id: typedProfile.id.toString(),
       name: typedProfile.name || typedProfile.login,
@@ -49,7 +55,13 @@ const JiHuLabProvider = {
   token: 'https://jihulab.com/oauth/token',
   userinfo: 'https://jihulab.com/api/v4/user',
   profile(profile: unknown) {
-    const typedProfile = profile as { id: number | string; name?: string; username?: string; email?: string; avatar_url?: string };
+    const typedProfile = profile as {
+      id: number | string;
+      name?: string;
+      username?: string;
+      email?: string;
+      avatar_url?: string;
+    };
     return {
       id: typedProfile.id.toString(),
       name: typedProfile.name || typedProfile.username,
@@ -71,19 +83,22 @@ const getAdminUser = async () => {
   // 查找或创建默认 admin 用户
   const adminEmail = 'admin@example.com';
   const adminName = 'Admin';
-  
+
   let user = await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.email, adminEmail),
   });
 
   // 如果用户不存在，则创建
   if (!user) {
-    const result = await db.insert(users).values({
-      name: adminName,
-      email: adminEmail,
-      emailVerified: new Date(),
-      plan: 'payed',
-    }).returning();
+    const result = await db
+      .insert(users)
+      .values({
+        name: adminName,
+        email: adminEmail,
+        emailVerified: new Date(),
+        plan: 'payed',
+      })
+      .returning();
     user = result[0];
   }
 
@@ -125,7 +140,7 @@ const authOption: AuthOptions = {
         return true;
       }
       return true; // 默认允许登录
-    }
+    },
   },
   providers: [
     GitHubProvider({
@@ -155,7 +170,7 @@ async function getServerSession() {
       };
     }
   }
-  
+
   return nextAuthGetServerSession(authOption);
 }
 
