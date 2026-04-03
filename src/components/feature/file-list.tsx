@@ -4,7 +4,6 @@ import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Image from 'next/image';
 import React from 'react';
 import { RemoteFileItemWithTags } from './file-item';
-import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { FilesOrderByColumn } from '@/server/routes/file';
 import {
@@ -22,6 +21,8 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import InfiniteScroll from './infinite-scroll';
+import { useLockFn } from 'ahooks';
 
 interface FileListProps {
   uppy: Uppy;
@@ -46,12 +47,14 @@ const FileList: React.FC<FileListProps> = props => {
   const {
     data: infinityQueryData,
     isPending,
+    isFetching,
+    hasNextPage,
     fetchNextPage,
   } = trpcClientReact.file.infinityQueryFiles.useInfiniteQuery(query, {
-    getNextPageParam: resp => resp.nextCursor,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
+    getNextPageParam: resp => resp.nextCursor,
   });
 
   // 按时间分组数据
@@ -133,27 +136,6 @@ const FileList: React.FC<FileListProps> = props => {
   const [uploadingFilesIds, setUploadingFilesIds] = React.useState<string[]>(
     []
   );
-  const bottomRef = React.useRef<HTMLDivElement | null>(null);
-
-  React.useEffect(() => {
-    const bottomElRef = bottomRef.current;
-
-    if (bottomElRef) {
-      const observer = new IntersectionObserver(
-        e => {
-          if (e[0].intersectionRatio > 0.1) fetchNextPage();
-        },
-        { threshold: 0.1 }
-      );
-
-      observer.observe(bottomElRef);
-
-      return () => {
-        if (bottomElRef) observer.unobserve(bottomElRef);
-        observer.disconnect();
-      };
-    }
-  }, [fetchNextPage]);
 
   React.useEffect(() => {
     const handler: (
@@ -354,68 +336,57 @@ const FileList: React.FC<FileListProps> = props => {
   });
 
   return (
-    <ScrollArea
-      className="h-full w-full @container"
-      onScrollEnd={() => {
-        fetchNextPage();
-      }}
-    >
-      {isPending && (
-        <div className="container space-y-6 py-4">
-          {[1, 2].map(groupIndex => (
-            <div key={groupIndex} className="space-y-4">
-              <div className="flex items-center gap-2 px-4 py-3">
-                <div className="skeleton h-6 w-16 rounded-md" />
-                <div className="skeleton h-4 w-10 rounded-md" />
+    <ScrollArea className="h-full w-full @container">
+      <InfiniteScroll
+        hasMore={hasNextPage}
+        isLoading={isFetching}
+        loadMore={useLockFn(fetchNextPage)}
+      >
+        {isPending && (
+          <div className="container space-y-6 py-4">
+            {[1, 2].map(groupIndex => (
+              <div key={groupIndex} className="space-y-4">
+                <div className="flex items-center gap-2 px-4 py-3">
+                  <div className="skeleton h-6 w-16 rounded-md" />
+                  <div className="skeleton h-4 w-10 rounded-md" />
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="skeleton h-56 w-56 rounded-lg" />
+                      <div className="skeleton h-3 w-32 mx-auto rounded" />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-4">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="skeleton h-56 w-56 rounded-lg" />
-                    <div className="skeleton h-3 w-32 mx-auto rounded" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className={cn('relative container')}>{fileListEle}</div>
-
-      <div className="space-y-4">
-        {groupedFiles.length === 0 && !isPending && (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <svg
-              className="h-16 w-16 mb-4 opacity-30"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
-              />
-            </svg>
-            <p className="text-lg font-medium mb-1">暂无图片</p>
-            <p className="text-sm">拖拽、粘贴或点击上传按钮添加图片</p>
+            ))}
           </div>
         )}
-      </div>
+        <div className={cn('relative container')}>{fileListEle}</div>
 
-      <div ref={bottomRef} className="flex justify-center py-8">
-        <Button
-          variant="ghost"
-          className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors duration-200"
-          onClick={() => {
-            fetchNextPage();
-          }}
-        >
-          加载更多
-        </Button>
-      </div>
+        <div className="space-y-4">
+          {groupedFiles.length === 0 && !isPending && (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <svg
+                className="h-16 w-16 mb-4 opacity-30"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+                />
+              </svg>
+              <p className="text-lg font-medium mb-1">暂无图片</p>
+              <p className="text-sm">拖拽、粘贴或点击上传按钮添加图片</p>
+            </div>
+          )}
+        </div>
+      </InfiniteScroll>
     </ScrollArea>
   );
 };

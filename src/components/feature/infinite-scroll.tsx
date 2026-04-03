@@ -3,14 +3,14 @@ import { useEffect, useRef, ReactNode } from 'react';
 
 type InfiniteScrollProps = {
   children: ReactNode;
-  loadMore: () => void;
   hasMore: boolean;
   isLoading: boolean;
   threshold?: number;
+  loadMore: () => void;
 };
 
 const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
-  const { children, loadMore, hasMore, isLoading, threshold = 100 } = props;
+  const { children, hasMore, isLoading, threshold = 100, loadMore } = props;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,14 +39,11 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
   return (
     <div>
       {children}
-      {hasMore && (
-        <div
-          ref={sentinelRef}
-          className="flex justify-center items-center py-8"
-        >
-          {isLoading && <div className="text-muted-foreground">加载中...</div>}
+      <div ref={sentinelRef} className="flex justify-center items-center py-8">
+        <div className="text-muted-foreground">
+          {hasMore && isLoading ? '加载中...' : '没有更多了'}
         </div>
-      )}
+      </div>
     </div>
   );
 };
