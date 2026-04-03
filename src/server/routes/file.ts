@@ -135,6 +135,8 @@ const fileRoutes = router({
   infinityQueryFiles: protectedProcedure
     .input(
       z.object({
+        appId: z.string(),
+        orderBy: filesOrderByColumnSchema,
         cursor: z
           .object({
             id: z.string(),
@@ -142,8 +144,6 @@ const fileRoutes = router({
           })
           .optional(),
         limit: z.number().default(10),
-        orderBy: filesOrderByColumnSchema,
-        appId: z.string(),
         search: z
           .object({
             query: z.string().optional(),
