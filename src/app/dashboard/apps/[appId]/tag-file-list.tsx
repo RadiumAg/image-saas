@@ -199,14 +199,6 @@ const TagFileList: React.FC<TagFileListProps> = props => {
     return <div className="container mx-auto mt-10">请选择一个标签</div>;
   }
 
-  if (isPending) {
-    return (
-      <div className="container mx-auto mt-10 flex justify-center items-center">
-        Loading...
-      </div>
-    );
-  }
-
   if (groupedData.length === 0) {
     return (
       <div className="container mx-auto mt-10">
