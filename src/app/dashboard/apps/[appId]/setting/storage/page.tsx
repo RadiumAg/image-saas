@@ -1,10 +1,33 @@
 'use client';
-import { use, useState } from 'react';
+import { FC, use, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { trpcClientReact } from '@/utils/api';
 import { Plus, Edit } from 'lucide-react';
 import Link from 'next/link';
 import EditStorageDialog from '@/components/feature/edit-storage-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const StorageSkeletonList: FC = () => {
+  return (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between border p-4 m-4 transition-opacity duration-200"
+        >
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-5 w-32 rounded-md" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-9 w-16 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function StoragePage(
   props: PageProps<'/dashboard/apps/[appId]/setting/storage'>
@@ -34,6 +57,7 @@ export default function StoragePage(
   const { data: storages } = trpcClientReact.storages.listStorages.useQuery();
   const { data: apps, isPending } = trpcClientReact.apps.listApps.useQuery();
   const currentApp = apps?.filter(app => app.id === appId)[0];
+  const isLoading = isPending || !storages;
 
   const handleEditStorage = (storage: any) => {
     setEditingStorage(storage);
@@ -55,7 +79,8 @@ export default function StoragePage(
           </Button>
         </Link>
       </div>
-      {storages?.map(storage => {
+      {isLoading && <StorageSkeletonList />}
+      {!isLoading && storages?.map(storage => {
         return (
           <div
             key={storage.id}
@@ -90,6 +115,12 @@ export default function StoragePage(
           </div>
         );
       })}
+
+      {!isLoading && storages?.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+          <p className="text-sm">No storage configured yet</p>
+        </div>
+      )}
 
       <EditStorageDialog
         storage={editingStorage}
