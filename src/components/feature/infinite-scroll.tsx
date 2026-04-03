@@ -41,7 +41,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
       {children}
       <div ref={sentinelRef} className="flex justify-center items-center py-8">
         <div className="text-muted-foreground">
-          {hasMore && isLoading ? '加载中...' : '没有更多了'}
+          {hasMore ? '加载中...' : '没有更多了'}
         </div>
       </div>
     </div>
