@@ -41,18 +41,6 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       }
     );
 
-  // 按 categoryType 分组标签（动态支持所有分类类型）
-  const groupedTags = useMemo(() => {
-    const groups: Record<string, typeof categoryTags> = {};
-    categoryTags.forEach(tag => {
-      if (!groups[tag.categoryType]) {
-        groups[tag.categoryType] = [];
-      }
-      groups[tag.categoryType].push(tag);
-    });
-    return groups;
-  }, [categoryTags]);
-
   const uppy = useMemo(() => {
     const uppy = new Uppy();
 
@@ -108,7 +96,12 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
         <p className="text-sm text-muted-foreground">请选择其他应用</p>
         <div className="flex flex-col gap-1 items-center w-full">
           {apps?.map(app => (
-            <Button key={app.id} asChild variant="link" className="cursor-pointer">
+            <Button
+              key={app.id}
+              asChild
+              variant="link"
+              className="cursor-pointer"
+            >
               <Link href={`/dashboard/apps/${app.id}`}>{app.name}</Link>
             </Button>
           ))}
@@ -125,7 +118,12 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
 
         <div className="container mx-auto flex justify-between items-center h-[60px]">
           <div className="flex items-center gap-2 ml-auto">
-            <Button asChild variant="outline" size="icon" className="cursor-pointer transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="cursor-pointer transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+            >
               <Link href={`/dashboard/apps/${appId}/trash`}>
                 <Trash2 className="h-4 w-4" />
               </Link>
@@ -133,11 +131,20 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
 
             <UploadButton uppy={uppy} />
 
-            <Button asChild variant="outline" className="cursor-pointer transition-colors duration-200">
+            <Button
+              asChild
+              variant="outline"
+              className="cursor-pointer transition-colors duration-200"
+            >
               <Link href="/dashboard/apps/new">新建应用</Link>
             </Button>
 
-            <Button asChild variant="outline" size="icon" className="cursor-pointer transition-colors duration-200">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="cursor-pointer transition-colors duration-200"
+            >
               <Link href={`/dashboard/apps/${appId}/setting/storage`}>
                 <Settings className="h-4 w-4" />
               </Link>
@@ -161,16 +168,14 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
             </TabsList>
 
             <TabsContent value="all">
-              <Dropzone
-                uppy={uppy}
-                className="mt-6 w-full h-[calc(100%-60px)]"
-              >
+              <Dropzone uppy={uppy} className="mt-6 w-full h-[calc(100%-60px)]">
                 {draggling => {
                   return (
                     <div
                       className={cn(
                         'flex flex-wrap gap-4 relative h-full container mx-auto rounded-xl transition-all duration-200',
-                        draggling && 'border-2 border-dashed border-primary/40 bg-primary/5'
+                        draggling &&
+                          'border-2 border-dashed border-primary/40 bg-primary/5'
                       )}
                     >
                       {draggling && (
@@ -189,8 +194,12 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
                               d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
                             />
                           </svg>
-                          <p className="text-lg font-medium text-primary/80">释放文件以上传</p>
-                          <p className="text-sm text-muted-foreground mt-1">支持图片和文件</p>
+                          <p className="text-lg font-medium text-primary/80">
+                            释放文件以上传
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            支持图片和文件
+                          </p>
                         </div>
                       )}
 
@@ -208,10 +217,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
 
             {/* 动态渲染所有分类标签的内容 */}
             {categoryTags.map(tag => (
-              <TabsContent
-                key={tag.id}
-                value={`${tag.categoryType}-${tag.id}`}
-              >
+              <TabsContent key={tag.id} value={`${tag.categoryType}-${tag.id}`}>
                 <TagFileList
                   searchFilters={searchFilters}
                   uppy={uppy}
