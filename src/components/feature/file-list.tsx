@@ -22,7 +22,6 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import InfiniteScroll from './infinite-scroll';
-import { useLockFn } from 'ahooks';
 
 interface FileListProps {
   uppy: Uppy;
@@ -338,30 +337,10 @@ const FileList: React.FC<FileListProps> = props => {
   return (
     <ScrollArea className="h-full w-full @container">
       <InfiniteScroll
-        hasMore={hasNextPage}
+        hasMore={isPending || hasNextPage}
         isLoading={isFetching}
-        loadMore={useLockFn(fetchNextPage)}
+        loadMore={fetchNextPage}
       >
-        {isPending && (
-          <div className="container space-y-6 py-4">
-            {[1, 2].map(groupIndex => (
-              <div key={groupIndex} className="space-y-4">
-                <div className="flex items-center gap-2 px-4 py-3">
-                  <div className="skeleton h-6 w-16 rounded-md" />
-                  <div className="skeleton h-4 w-10 rounded-md" />
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="skeleton h-56 w-56 rounded-lg" />
-                      <div className="skeleton h-3 w-32 mx-auto rounded" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
         <div className={cn('relative container')}>{fileListEle}</div>
 
         <div className="space-y-4">

@@ -44,13 +44,15 @@ const TagFileList: React.FC<TagFileListProps> = props => {
   const {
     data: infinityQueryData,
     isPending,
+    hasNextPage,
+    isFetching,
     fetchNextPage,
   } = trpcClientReact.file.infinityQueryFilesByTag.useInfiniteQuery(query, {
-    getNextPageParam: resp => resp.nextCursor,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
     enabled: !!tagId, // 只有当 tagId 存在时才启用查询
+    getNextPageParam: resp => resp.nextCursor,
   });
 
   const utils = trpcClientReact.useUtils();
@@ -247,12 +249,9 @@ const TagFileList: React.FC<TagFileListProps> = props => {
                 </div>
               )}
               <InfiniteScroll
+                hasMore={hasNextPage}
+                isLoading={isFetching}
                 loadMore={() => fetchNextPage()}
-                hasMore={
-                  infinityQueryData?.pages?.[infinityQueryData.pages.length - 1]
-                    ?.nextCursor !== undefined
-                }
-                isLoading={isPending}
               >
                 <div className="space-y-6">
                   {groupedData.map(group => (

@@ -1,19 +1,23 @@
 'use client';
-import { useEffect, useRef, ReactNode } from 'react';
+import { useLockFn } from 'ahooks';
+import React from 'react';
 
 type InfiniteScrollProps = {
-  children: ReactNode;
+  children: React.ReactNode;
   hasMore: boolean;
   isLoading: boolean;
   threshold?: number;
-  loadMore: () => void;
+  loadMore: () => Promise<any>;
 };
 
 const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
   const { children, hasMore, isLoading, threshold = 100, loadMore } = props;
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
+  const loadMoreLock = React.useEffectEvent(useLockFn(loadMore));
 
-  useEffect(() => {
+  console.log('[DEBUG] hasMore', hasMore);
+
+  React.useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
@@ -21,7 +25,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
       entries => {
         const [entry] = entries;
         if (entry.isIntersecting && hasMore && !isLoading) {
-          loadMore();
+          loadMoreLock();
         }
       },
       {
@@ -34,7 +38,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = props => {
     return () => {
       observer.unobserve(sentinel);
     };
-  }, [loadMore, hasMore, isLoading, threshold]);
+  }, [hasMore, isLoading, threshold]);
 
   return (
     <div>
