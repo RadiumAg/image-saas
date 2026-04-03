@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { trpcClientReact } from '@/utils/api';
 import { Button } from '../ui/button';
-import { Trash2, Eye, Copy, AlertCircle } from 'lucide-react';
+import { Trash2, Eye, Copy, AlertCircle, Crop } from 'lucide-react';
 import copy from 'copy-to-clipboard';
 import { toast } from 'sonner';
+import ImageCropDialog from './image-crop-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,4 +109,37 @@ const PreView: React.FC<PreviewProps> = props => {
   );
 };
 
-export { CopyUrl, PreView, DeleteFileAction };
+interface CropActionProps {
+  fileId: string;
+  fileName: string;
+  appId: string;
+}
+
+const CropAction: React.FC<CropActionProps> = props => {
+  const { fileId, fileName, appId } = props;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        className="p-2 rounded-full bg-background/90 hover:bg-background transition-colors"
+        onClick={() => setOpen(true)}
+        title="裁剪图片"
+      >
+        <Crop className="w-4 h-4" />
+      </Button>
+
+      <ImageCropDialog
+        open={open}
+        onOpenChange={setOpen}
+        imageUrl={`/image/${fileId}`}
+        fileId={fileId}
+        appId={appId}
+        fileName={fileName}
+      />
+    </>
+  );
+};
+
+export { CopyUrl, PreView, DeleteFileAction, CropAction };

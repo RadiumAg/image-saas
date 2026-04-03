@@ -7,7 +7,12 @@ import { RemoteFileItemWithTags } from './file-item';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { FilesOrderByColumn } from '@/server/routes/file';
-import { DeleteFileAction, CopyUrl, PreView } from './file-item-action';
+import {
+  DeleteFileAction,
+  CopyUrl,
+  PreView,
+  CropAction,
+} from './file-item-action';
 import { cn } from '@/lib/utils';
 import { SearchFilters } from './search-bar';
 import {
@@ -15,9 +20,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, Crop } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import ImageCropDialog from './image-crop-dialog';
 
 interface FileListProps {
   uppy: Uppy;
@@ -28,12 +32,6 @@ interface FileListProps {
 
 const FileList: React.FC<FileListProps> = props => {
   const { uppy, appId, orderBy, searchFilters } = props;
-  const [cropDialog, setCropDialog] = useState<{
-    open: boolean;
-    imageUrl: string;
-    fileId: string;
-    fileName: string;
-  }>({ open: false, imageUrl: '', fileId: '', fileName: '' });
 
   const query = useMemo(
     () => ({
@@ -331,20 +329,11 @@ const FileList: React.FC<FileListProps> = props => {
                         />
 
                         {file.contentType.startsWith('image') && (
-                          <button
-                            className="p-2 rounded-full bg-background/90 hover:bg-background transition-colors"
-                            onClick={() => {
-                              setCropDialog({
-                                open: true,
-                                imageUrl: `/image/${file.id}`,
-                                fileId: file.id,
-                                fileName: file.name,
-                              });
-                            }}
-                            title="裁剪图片"
-                          >
-                            <Crop className="w-4 h-4" />
-                          </button>
+                          <CropAction
+                            fileId={file.id}
+                            fileName={file.name}
+                            appId={appId}
+                          />
                         )}
                       </div>
                     );
@@ -428,14 +417,6 @@ const FileList: React.FC<FileListProps> = props => {
         </Button>
       </div>
 
-      <ImageCropDialog
-        open={cropDialog.open}
-        onOpenChange={open => setCropDialog(prev => ({ ...prev, open }))}
-        imageUrl={cropDialog.imageUrl}
-        fileId={cropDialog.fileId}
-        appId={appId}
-        fileName={cropDialog.fileName}
-      />
     </ScrollArea>
   );
 };
