@@ -55,3 +55,8 @@ drizzle/
 
 # Other
 .prettierignore
+
+
+.aone_copilot
+.codebuddy
+.qoder

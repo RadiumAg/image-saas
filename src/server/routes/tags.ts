@@ -69,7 +69,7 @@ export const tagsRouter = router({
         id: row.id as string,
         name: row.name as string,
         color: row.color as string,
-        count: Number(row.count), // 修复：使用实际统计数量而不是result.length
+        count: Number(row.count),
       }));
     }),
 

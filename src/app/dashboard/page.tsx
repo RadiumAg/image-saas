@@ -1,13 +1,34 @@
 'use client';
+import { FC } from 'react';
 import { Button } from '@/components/ui/button';
 import { trpcClientReact, trpcPureClient } from '@/utils/api';
 import AWS3 from '@uppy/aws-s3';
 import { Uppy } from '@uppy/core';
 import { useMemo, use, ReactNode, useEffect } from 'react';
 import { usePasteFile } from '@/hooks/user-paste-file';
-// import { FilesOrderByColumn } from '@/server/routes/file';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LayoutGrid } from 'lucide-react';
+
+const DashboardSkeleton: FC = () => {
+  return (
+    <div className="mx-auto mt-10 flex max-w-md flex-col gap-4 p-4">
+      <Skeleton className="mx-auto h-6 w-40" />
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-3 rounded-lg border bg-card p-4"
+          >
+            <Skeleton className="h-10 w-10 rounded-md" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   const router = useRouter();
@@ -20,12 +41,7 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       refetchOnMount: false,
     }
   );
-  // const [orderBy, setOrderBy] = useState<
-  //   Exclude<FilesOrderByColumn, undefined>
-  // >({
-  //   field: 'createdAt',
-  //   order: 'desc',
-  // });
+
   const currentApp = apps?.find(app => app.id === appId);
 
   const uppy = useMemo(() => {
@@ -56,7 +72,6 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
     },
   });
 
-  // 如果没有 app，重定向到创建页面
   useEffect(() => {
     if (!isPending && (!apps || apps.length === 0)) {
       router.push('/dashboard/apps/new');
@@ -66,19 +81,26 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
   let children: ReactNode;
 
   if (isPending || !apps || apps.length === 0) {
-    return <div className="flex items-center justify-center">Loading...</div>;
+    return <DashboardSkeleton />;
   }
 
   if (currentApp == null) {
     children = (
-      <div className="flex flex-col mt-10 p-4 border rounded-md max-w-48 mx-auto items-center">
-        <div className="flex flex-col agp-4 items-center">
+      <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-4 rounded-lg border bg-card p-6">
+        <h2 className="text-lg font-semibold tracking-tight">Select an App</h2>
+        <div className="flex w-full flex-col gap-2">
           {apps?.map(app => (
-            <div className="flex flex-col w-full" key={app.id}>
-              <Button asChild variant="link">
-                <Link href={`/dashboard/apps/${app.id}`}>{app.name}</Link>
-              </Button>
-            </div>
+            <Button
+              key={app.id}
+              asChild
+              variant="outline"
+              className="w-full cursor-pointer justify-start gap-2 transition-colors duration-200"
+            >
+              <Link href={`/dashboard/apps/${app.id}`}>
+                <LayoutGrid className="h-4 w-4 text-primary" />
+                {app.name}
+              </Link>
+            </Button>
           ))}
         </div>
       </div>
