@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { trpcClientReact } from '@/utils/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FC } from 'react';
 
 interface TagData {
   id: string;
@@ -21,6 +23,28 @@ interface TagData {
   color: string;
   count: number;
 }
+
+const TagManagerSkeletonList: FC = () => {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between p-2 border rounded-lg"
+        >
+          <div className="flex items-center space-x-2">
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-4 w-14 rounded-md" />
+          </div>
+          <div className="flex space-x-1">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 interface TagManagerProps extends PageProps<'/dashboard/apps/[appId]/setting/tag-manager'> {
   fileId?: string;
@@ -50,6 +74,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
   const {
     data: userTagsData,
     error: userTagsError,
+    isPending: isTagsLoading,
     refetch: refetchUserTags,
   } = trpcClientReact.tags.getUserTags.useQuery({ appId });
 
@@ -312,6 +337,13 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
         </div>
 
         <ScrollArea className="max-h-100 overflow-y-auto">
+          {isTagsLoading && <TagManagerSkeletonList />}
+          {!isTagsLoading && userTags.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <p className="text-sm">暂无标签，点击右上角创建</p>
+            </div>
+          )}
+          {!isTagsLoading && userTags.length > 0 && (
           <div className="space-y-2">
             {userTags.map((tag, index) => (
               <div
@@ -351,6 +383,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
               </div>
             ))}
           </div>
+          )}
         </ScrollArea>
       </div>
 
