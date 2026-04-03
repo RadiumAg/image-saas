@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { trpcClientReact } from '@/utils/api';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FC } from 'react';
 
@@ -336,7 +336,7 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
           </Dialog>
         </div>
 
-        <ScrollArea className="max-h-100 overflow-y-auto">
+        <ScrollArea className="max-h-100 h-10000 overflow-y-auto">
           {isTagsLoading && <TagManagerSkeletonList />}
           {!isTagsLoading && userTags.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -344,45 +344,45 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
             </div>
           )}
           {!isTagsLoading && userTags.length > 0 && (
-          <div className="space-y-2">
-            {userTags.map((tag, index) => (
-              <div
-                key={tag.id || index}
-                className="flex items-center justify-between p-2 border rounded-lg"
-              >
-                <div className="flex items-center space-x-2">
-                  <Tag name={tag.name} size="sm" />
-                  <span className="text-xs text-gray-500">
-                    {tag.count} 个文件
-                  </span>
+            <div className="space-y-2">
+              {userTags.map((tag, index) => (
+                <div
+                  key={tag.id || index}
+                  className="flex items-center justify-between p-2 border rounded-lg"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Tag name={tag.name} size="sm" />
+                    <span className="text-xs text-gray-500">
+                      {tag.count} 个文件
+                    </span>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingTag(tag);
+                        setEditTagName(tag.name);
+                        setEditTagColor(tag.color);
+                        setIsEditDialogOpen(true);
+                      }}
+                      disabled={updateTagMutation.isPending}
+                    >
+                      <Edit2 size={14} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTag(tag.id)}
+                      className="text-red-600 hover:text-red-700"
+                      disabled={deleteTagMutation.isPending}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setEditingTag(tag);
-                      setEditTagName(tag.name);
-                      setEditTagColor(tag.color);
-                      setIsEditDialogOpen(true);
-                    }}
-                    disabled={updateTagMutation.isPending}
-                  >
-                    <Edit2 size={14} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteTag(tag.id)}
-                    className="text-red-600 hover:text-red-700"
-                    disabled={deleteTagMutation.isPending}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           )}
         </ScrollArea>
       </div>
