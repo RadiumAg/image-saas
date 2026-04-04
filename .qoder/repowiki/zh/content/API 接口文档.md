@@ -20,7 +20,6 @@
 </cite>
 
 ## 目录
-
 1. [简介](#简介)
 2. [项目结构](#项目结构)
 3. [核心组件](#核心组件)
@@ -33,9 +32,7 @@
 10. [附录](#附录)
 
 ## 简介
-
 本文件为 Image SaaS 项目的 API 接口参考与最佳实践指南，聚焦于基于 tRPC 的端到端类型安全接口设计、过程调用模式与实时能力说明。文档覆盖：
-
 - 路由组织与中间件体系
 - 认证与授权策略（会话与 API Key/Signed Token）
 - 请求/响应格式与参数校验
@@ -46,7 +43,6 @@
 - 使用限制、速率限制与可观测性指标
 
 ## 项目结构
-
 - tRPC 路由入口位于 App Router 的 API 路径，通过适配器将请求交由 tRPC 处理。
 - 应用层路由按功能拆分为多个子路由模块（文件、应用、标签、存储、API Key、用户计划）。
 - 中间件统一处理日志、会话注入与认证（API Key/Signed Token）。
@@ -76,7 +72,6 @@ SubRouters --> DB
 ```
 
 图表来源
-
 - [src/app/api/trpc/[...trpc]/route.ts:1-14](file://src/app/api/trpc/[...trpc]/route.ts#L1-L14)
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
 - [src/server/trpc-middlewares/router.ts:1-20](file://src/server/trpc-middlewares/router.ts#L1-L20)
@@ -89,13 +84,11 @@ SubRouters --> DB
 - [src/server/db/schema.ts:1-270](file://src/server/db/schema.ts#L1-L270)
 
 章节来源
-
 - [src/app/api/trpc/[...trpc]/route.ts:1-14](file://src/app/api/trpc/[...trpc]/route.ts#L1-L14)
 - [src/server/trpc-middlewares/router.ts:1-20](file://src/server/trpc-middlewares/router.ts#L1-L20)
 - [src/server/db/schema.ts:1-270](file://src/server/db/schema.ts#L1-L270)
 
 ## 核心组件
-
 - 聚合路由 appRouter：将 file、apps、tags、storages、apiKeys、plan 子路由整合。
 - 中间件体系：
   - 日志中间件：记录每个过程耗时。
@@ -105,12 +98,10 @@ SubRouters --> DB
 - 子路由模块：按领域划分职责，统一使用 Zod 输入校验与 Drizzle ORM 数据访问。
 
 章节来源
-
 - [src/server/trpc-middlewares/router.ts:1-20](file://src/server/trpc-middlewares/router.ts#L1-L20)
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
 
 ## 架构总览
-
 下图展示客户端到服务端的端到端调用链路，包括认证与数据持久化路径。
 
 ```mermaid
@@ -135,7 +126,6 @@ E-->>C : 返回类型安全响应
 ```
 
 图表来源
-
 - [src/app/trpc-provider.tsx:1-18](file://src/app/trpc-provider.tsx#L1-L18)
 - [src/app/api/trpc/[...trpc]/route.ts:1-14](file://src/app/api/trpc/[...trpc]/route.ts#L1-L14)
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
@@ -145,7 +135,6 @@ E-->>C : 返回类型安全响应
 ## 详细组件分析
 
 ### 文件管理 API（file）
-
 - 功能范围：预签名上传 URL 生成、保存文件元数据、分页/无限滚动查询、软删除与批量操作、回收站查询、按标签筛选、永久删除。
 - 认证要求：受保护过程，需登录用户上下文。
 - 关键过程与输入输出要点：
@@ -162,11 +151,9 @@ E-->>C : 返回类型安全响应
 - 错误处理：针对资源不存在、权限不足、存储未配置等场景抛出相应状态码。
 
 章节来源
-
 - [src/server/routes/file.ts:1-561](file://src/server/routes/file.ts#L1-L561)
 
 ### 应用管理 API（apps）
-
 - 功能范围：创建应用、列出应用、切换应用绑定的存储。
 - 认证要求：受保护过程。
 - 关键过程：
@@ -175,11 +162,9 @@ E-->>C : 返回类型安全响应
   - changeStorage：将应用绑定到指定存储配置（校验所有权）。
 
 章节来源
-
 - [src/server/routes/app.ts:1-88](file://src/server/routes/app.ts#L1-L88)
 
 ### 标签管理 API（tags）
-
 - 功能范围：获取用户标签、按分类分组标签、创建/更新/删除标签、为文件创建或获取标签、添加/移除文件标签、清理未使用标签、AI 图片标签识别。
 - 认证要求：受保护过程。
 - 关键过程：
@@ -193,11 +178,9 @@ E-->>C : 返回类型安全响应
 - 错误处理：冲突、未找到、内部错误等。
 
 章节来源
-
 - [src/server/routes/tags.ts:1-735](file://src/server/routes/tags.ts#L1-L735)
 
 ### 存储配置 API（storages）
-
 - 功能范围：列出存储、创建存储、更新存储。
 - 认证要求：受保护过程。
 - 关键过程：
@@ -205,11 +188,9 @@ E-->>C : 返回类型安全响应
   - createStorage/updateStorage：输入包含名称、桶、区域、凭证与可选 API 端点，更新时校验所有权。
 
 章节来源
-
 - [src/server/routes/storages.ts:1-74](file://src/server/routes/storages.ts#L1-L74)
 
 ### API Key 管理 API（api-keys）
-
 - 功能范围：列出 API Key、创建 API Key（生成 key 与 clientId）。
 - 认证要求：受保护过程。
 - 关键过程：
@@ -217,22 +198,18 @@ E-->>C : 返回类型安全响应
   - createApiKey：输入名称与 appId，返回生成的 key 与 clientId。
 
 章节来源
-
 - [src/server/routes/api-keys.ts:1-38](file://src/server/routes/api-keys.ts#L1-L38)
 
 ### 用户计划 API（plan）
-
 - 功能范围：查询当前用户所属计划。
 - 认证要求：受保护过程。
 - 关键过程：
   - getPlan：根据用户记录中的 planId 查询计划详情。
 
 章节来源
-
 - [src/server/routes/user.ts:1-26](file://src/server/routes/user.ts#L1-L26)
 
 ### 认证与授权机制
-
 - 会话认证：受保护过程要求已登录用户，上下文注入 session。
 - 应用级认证：支持两种凭据：
   - API Key：通过请求头 api-key 校验，需未删除且关联应用与用户。
@@ -264,15 +241,12 @@ Found --> |是| InjectCtx2["注入 app 与 user 上下文"] --> End2(["通过"])
 ```
 
 图表来源
-
 - [src/server/trpc-middlewares/trpc.ts:47-127](file://src/server/trpc-middlewares/trpc.ts#L47-L127)
 
 章节来源
-
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
 
 ### 数据模型与关系
-
 - 主要实体：users、apps、files、tags、files_tags、storageConfiguration、apiKeys。
 - 关系概览：
   - users 与 apps 一对多
@@ -329,15 +303,12 @@ FILES ||--o{ FILES_TAGS : "被关联"
 ```
 
 图表来源
-
 - [src/server/db/schema.ts:1-270](file://src/server/db/schema.ts#L1-L270)
 
 章节来源
-
 - [src/server/db/schema.ts:1-270](file://src/server/db/schema.ts#L1-L270)
 
 ### 客户端集成指南
-
 - Next.js 应用内集成：
   - 在应用根部包裹 TrpcProvider，初始化 QueryClient。
   - 通过 utils/api 导出的客户端发起请求。
@@ -348,13 +319,11 @@ FILES ||--o{ FILES_TAGS : "被关联"
   - 通过 /api/trpc 直接访问，适用于无需 React Query 的场景。
 
 章节来源
-
 - [src/app/trpc-provider.tsx:1-18](file://src/app/trpc-provider.tsx#L1-L18)
 - [packages/api/src/index.ts:1-35](file://packages/api/src/index.ts#L1-L35)
 - [src/utils/open-api.ts:1-14](file://src/utils/open-api.ts#L1-L14)
 
 ### API 调用示例（步骤说明）
-
 - 生成上传预签名 URL：
   - 步骤：调用 createPresignedUrl，传入文件名、类型、大小与 appId，获得 URL 与方法。
   - 说明：随后使用该 URL 直接向对象存储上传。
@@ -368,7 +337,6 @@ FILES ||--o{ FILES_TAGS : "被关联"
   - 步骤：在请求头设置 api-key 或 signed-token，调用任意受保护过程。
 
 章节来源
-
 - [src/server/routes/file.ts:26-90](file://src/server/routes/file.ts#L26-L90)
 - [src/server/routes/file.ts:91-133](file://src/server/routes/file.ts#L91-L133)
 - [src/server/routes/file.ts:135-234](file://src/server/routes/file.ts#L135-L234)
@@ -376,7 +344,6 @@ FILES ||--o{ FILES_TAGS : "被关联"
 - [src/server/trpc-middlewares/trpc.ts:47-127](file://src/server/trpc-middlewares/trpc.ts#L47-L127)
 
 ## 依赖关系分析
-
 - 组件耦合：
   - 聚合路由依赖各子路由模块，子路由依赖中间件与数据库。
   - 中间件依赖会话与数据库，用于注入上下文与鉴权。
@@ -405,7 +372,6 @@ Tags --> AI["AI 识别WebSocket"]
 ```
 
 图表来源
-
 - [src/server/trpc-middlewares/router.ts:1-20](file://src/server/trpc-middlewares/router.ts#L1-L20)
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
 - [src/server/routes/file.ts:1-561](file://src/server/routes/file.ts#L1-L561)
@@ -416,12 +382,10 @@ Tags --> AI["AI 识别WebSocket"]
 - [src/server/routes/user.ts:1-26](file://src/server/routes/user.ts#L1-L26)
 
 章节来源
-
 - [src/server/trpc-middlewares/router.ts:1-20](file://src/server/trpc-middlewares/router.ts#L1-L20)
 - [src/server/trpc-middlewares/trpc.ts:1-130](file://src/server/trpc-middlewares/trpc.ts#L1-L130)
 
 ## 性能考虑
-
 - 批量请求：使用 httpBatchLink 合并多次调用，减少往返开销。
 - 分页与游标：infinityQuery 系列过程采用游标分页，避免大偏移导致的性能问题。
 - 索引优化：数据库表在常用查询字段上建立索引（如文件表的复合索引）。
@@ -430,14 +394,12 @@ Tags --> AI["AI 识别WebSocket"]
 - AI 识别：WebSocket 调用具备超时控制，避免长时间占用连接。
 
 章节来源
-
 - [packages/api/src/index.ts:24-30](file://packages/api/src/index.ts#L24-L30)
 - [src/server/routes/file.ts:135-234](file://src/server/routes/file.ts#L135-L234)
 - [src/server/db/schema.ts:135](file://src/server/db/schema.ts#L135)
 - [src/server/routes/tags.ts:629-703](file://src/server/routes/tags.ts#L629-L703)
 
 ## 故障排查指南
-
 - 常见错误码与场景：
   - FORBIDDEN：未登录或缺少凭据（API Key/Signed Token）。
   - NOT_FOUND：资源不存在（应用、存储、API Key、文件）。
@@ -455,20 +417,17 @@ Tags --> AI["AI 识别WebSocket"]
   - 观察 AI 识别成功率与超时比例。
 
 章节来源
-
 - [src/server/trpc-middlewares/trpc.ts:11-45](file://src/server/trpc-middlewares/trpc.ts#L11-L45)
 - [src/server/routes/file.ts:46-61](file://src/server/routes/file.ts#L46-L61)
 - [src/server/routes/file.ts:508-531](file://src/server/routes/file.ts#L508-L531)
 - [src/server/routes/tags.ts:523-529](file://src/server/routes/tags.ts#L523-L529)
 
 ## 结论
-
 本项目通过 tRPC 实现了类型安全、可维护的 API 层，配合严格的输入校验、会话与应用级认证、完善的分页与搜索能力，以及可扩展的标签与存储体系，为图像管理场景提供了清晰的接口契约与良好的开发体验。建议在生产环境中结合批量传输、游标分页与缓存策略进一步优化性能，并完善对象存储的同步删除与 AI 识别的降级策略。
 
 ## 附录
 
 ### API 版本控制、兼容性与弃用迁移
-
 - 版本控制建议：
   - 采用路径版本（如 /api/v1/trpc），逐步迁移旧过程。
   - 新增过程时保持向后兼容，避免破坏现有客户端。
@@ -480,7 +439,6 @@ Tags --> AI["AI 识别WebSocket"]
   - 通过双写与回滚策略降低迁移风险。
 
 ### 使用限制、速率限制与监控指标
-
 - 使用限制：
   - 单次批量操作上限（如批量删除条数）可在过程内限制。
   - 文件大小与数量限制可通过输入校验与存储配额控制。
@@ -491,7 +449,6 @@ Tags --> AI["AI 识别WebSocket"]
   - 请求量、错误率、P95 延迟、AI 识别成功率、对象存储上传成功率。
 
 ### 最佳实践清单
-
 - 客户端侧：
   - 使用 React Query 管理缓存与重试。
   - 上传前先调用预签名 URL，失败即刻重试。
