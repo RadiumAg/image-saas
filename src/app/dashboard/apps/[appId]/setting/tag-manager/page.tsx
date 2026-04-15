@@ -16,6 +16,7 @@ import { trpcClientReact } from '@/utils/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FC } from 'react';
+import { toast } from 'sonner';
 
 interface TagData {
   id: string;
@@ -88,9 +89,30 @@ const TagManagerPage: React.FC<TagManagerProps> = props => {
   );
 
   // Mutations
-  const createTagMutation = trpcClientReact.tags.createTag.useMutation();
-  const updateTagMutation = trpcClientReact.tags.updateTag.useMutation();
-  const deleteTagMutation = trpcClientReact.tags.deleteTag.useMutation();
+  const createTagMutation = trpcClientReact.tags.createTag.useMutation({
+    onSuccess: () => {
+      toast.success('标签创建成功');
+    },
+    onError: error => {
+      toast.error(`创建标签失败: ${error.message}`);
+    },
+  });
+  const updateTagMutation = trpcClientReact.tags.updateTag.useMutation({
+    onSuccess: () => {
+      toast.success('标签更新成功');
+    },
+    onError: error => {
+      toast.error(`更新标签失败: ${error.message}`);
+    },
+  });
+  const deleteTagMutation = trpcClientReact.tags.deleteTag.useMutation({
+    onSuccess: () => {
+      toast.success('标签删除成功');
+    },
+    onError: error => {
+      toast.error(`删除标签失败: ${error.message}`);
+    },
+  });
   const addTagsToFileMutation =
     trpcClientReact.tags.addTagsToFile.useMutation();
   const removeTagsFromFileMutation =

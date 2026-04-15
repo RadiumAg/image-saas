@@ -138,7 +138,7 @@ export const tagsRouter = router({
       // 检查标签是否已存在
       const existingTag = await db.query.tags.findFirst({
         where: and(
-          eq(apps.id, appId),
+          eq(tags.appId, appId),
           eq(tags.userId, ctx.session.user.id),
           eq(tags.name, name.trim().toLowerCase())
         ),
@@ -189,7 +189,7 @@ export const tagsRouter = router({
         where: and(
           eq(tags.id, tagId),
           eq(tags.userId, ctx.session.user.id),
-          eq(apps.id, appId)
+          eq(tags.appId, appId)
         ),
       });
 
@@ -208,6 +208,7 @@ export const tagsRouter = router({
         const conflictingTag = await db.query.tags.findFirst({
           where: and(
             eq(tags.userId, ctx.session.user.id),
+            eq(tags.name, name.trim().toLowerCase()),
             eq(tags.id, tagId) // 排除当前标签
           ),
         });
