@@ -53,6 +53,8 @@ const TagFileList: React.FC<TagFileListProps> = props => {
     refetchOnReconnect: false,
     enabled: !!tagId, // 只有当 tagId 存在时才启用查询
     getNextPageParam: resp => resp.nextCursor,
+    staleTime: 0, // 数据立即过期，强制重新获取
+    gcTime: 0, // 缓存立即回收，不保留旧数据
   });
 
   const utils = trpcClientReact.useUtils();

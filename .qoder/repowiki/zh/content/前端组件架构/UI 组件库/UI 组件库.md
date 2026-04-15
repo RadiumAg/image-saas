@@ -663,18 +663,23 @@ C->>D : 关闭对话框
   - 样式冲突：使用 cn 工具函数确保类名正确合并。
   - 主题不匹配：确认主题变量在当前环境下正常工作。
   - 性能问题：避免在同一页面中使用过多骨架屏实例。
-- 参考路径
+- **新增** 在多个页面中的实际应用
+  - **API Key 页面**：使用 ApiKeySkeletonList 组件，包含圆形图标、标题和描述的骨架元素。
+  - **存储配置页面**：使用 StorageSkeletonList 组件，包含标题和操作按钮的骨架元素。
+  - **标签管理页面**：使用 TagManagerSkeletonList 组件，包含标签和操作按钮的骨架元素。
+  - **仪表板页面**：使用 DashboardSkeleton 组件，包含应用列表的骨架元素。
+- **章节来源**
   - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
   - [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
   - [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
-  - [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:27-47](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L27-L47)
+  - [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:28-48](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L28-L48)
   - [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
 
 **章节来源**
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
 - [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
 - [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
-- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:27-47](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L27-L47)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:28-48](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L28-L48)
 - [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
 
 ## 依赖关系分析
@@ -787,6 +792,7 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - 验证 cn 工具函数正常工作，避免类名冲突导致样式失效。
   - 检查 Tailwind CSS 配置是否正确加载动画类。
   - 确认主题变量在当前环境下正常解析。
+  - **检查页面中是否正确使用了 Skeleton 组件，如 API Key 页面的 ApiKeySkeletonList、存储配置页面的 StorageSkeletonList 等。**
 
 **章节来源**
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -799,7 +805,7 @@ Skeleton --> Tailwind["Tailwind 动画"]
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
 
 ## 结论
-该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。新增的 Skeleton 组件为加载状态提供了统一的视觉解决方案，广泛应用于 API Key 管理、存储配置、标签管理和仪表板等多个页面组件中，显著提升了用户体验的一致性和流畅性。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
+该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。新增的 Skeleton 组件为加载状态提供了统一的视觉解决方案，广泛应用于 API Key 管理、存储配置、标签管理和仪表板等多个页面组件中，显著提升了用户体验的一致性和流畅性。通过在各个页面中的实际应用（API Key 页面、存储配置页面、标签管理页面、仪表板页面），Skeleton 组件展现了其在复杂布局和多样化场景下的强大适应能力。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
 
 ## 附录
 - 变体与尺寸速览
@@ -827,9 +833,10 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - Slider 在 ImageCropDialog 中用于缩放控制，value 为数组形式，min=1，max=3，step=0.1
   - 与 react-easy-crop 组件配合实现完整的图像裁剪体验
 - **骨架屏应用场景**
-  - **API Key 页面：使用多个不同尺寸的骨架元素模拟卡片列表**
-  - **存储配置页面：使用矩形和圆形骨架元素模拟列表项**
-  - **标签管理页面：使用圆形和矩形骨架元素模拟标签项**
-  - **仪表板页面：使用标题和卡片骨架元素模拟应用列表**
+  - **API Key 页面：使用 ApiKeySkeletonList 组件，包含圆形图标、标题和描述的骨架元素**
+  - **存储配置页面：使用 StorageSkeletonList 组件，包含标题和操作按钮的骨架元素**
+  - **标签管理页面：使用 TagManagerSkeletonList 组件，包含标签和操作按钮的骨架元素**
+  - **仪表板页面：使用 DashboardSkeleton 组件，包含应用列表的骨架元素**
   - **复杂布局：通过组合多个骨架元素精确模拟真实内容结构**
   - **性能优化：在大量数据加载场景中提供流畅的视觉反馈**
+  - **主题适配：骨架屏颜色会自动随主题变化，无需额外处理**
