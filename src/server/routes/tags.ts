@@ -208,7 +208,6 @@ export const tagsRouter = router({
         const conflictingTag = await db.query.tags.findFirst({
           where: and(
             eq(tags.userId, ctx.session.user.id),
-            eq(tags.name, name.trim().toLowerCase()),
             eq(tags.id, tagId) // 排除当前标签
           ),
         });

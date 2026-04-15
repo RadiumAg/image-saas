@@ -22,6 +22,10 @@
 - [src/components/ui/slider.tsx](file://src/components/ui/slider.tsx)
 - [src/components/ui/skeleton.tsx](file://src/components/ui/skeleton.tsx)
 - [src/lib/utils.ts](file://src/lib/utils.ts)
+- [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx)
+- [src/app/dashboard/apps/[appId]/setting/storage/page.tsx](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx)
+- [src/app/dashboard/page.tsx](file://src/app/dashboard/page.tsx)
 </cite>
 
 ## 目录
@@ -243,7 +247,7 @@ Skel --> Tailwind
   - 使用场景：表单说明、提示文字。
   - 参考路径：[src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
-- **骨架屏 Skeleton**（新增）
+- **骨架屏 Skeleton**
   - 功能：统一的加载状态占位符，提供脉冲动画效果，用于数据加载时的视觉反馈。
   - 关键属性：className（支持自定义高度、宽度、圆角等样式）。
   - 使用场景：API Key 列表、存储配置、标签管理、仪表板应用列表等页面的数据加载占位。
@@ -627,7 +631,7 @@ C->>D : 关闭对话框
 **章节来源**
 - [src/components/ui/label.tsx:1-25](file://src/components/ui/label.tsx#L1-L25)
 
-### 骨架屏 Skeleton（新增）
+### 骨架屏 Skeleton
 - 设计要点
   - 基于 cn 工具函数合并类名，使用 animate-pulse 实现脉冲动画效果。
   - 默认样式：rounded-md 圆角边框，bg-primary/10 浅色背景。
@@ -645,11 +649,33 @@ C->>D : 关闭对话框
   - 合理设置骨架元素的尺寸比例，避免视觉失真。
   - 在复杂布局中使用多个骨架元素组合，模拟真实内容。
   - 注意与整体设计系统的协调，保持一致的圆角和间距。
+- 动画效果详解
+  - 脉冲动画：使用 Tailwind CSS 的 animate-pulse 类实现平滑的明暗交替效果。
+  - 性能优化：CSS 动画相比 JavaScript 动画性能更优，GPU 加速渲染。
+  - 可访问性：骨架屏不参与交互，不影响屏幕阅读器的正常工作。
+- 自定义样式指南
+  - 尺寸控制：使用 h-*、w-* 类名控制高度和宽度。
+  - 形状控制：使用 rounded-* 类名控制圆角大小。
+  - 颜色控制：使用 bg-* 类名控制背景色，支持主题变量。
+  - 间距控制：使用 m-*、p-* 类名控制外边距和内边距。
+- 故障排查
+  - 动画不显示：检查 animate-pulse 类名是否正确应用。
+  - 样式冲突：使用 cn 工具函数确保类名正确合并。
+  - 主题不匹配：确认主题变量在当前环境下正常工作。
+  - 性能问题：避免在同一页面中使用过多骨架屏实例。
 - 参考路径
   - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
+  - [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
+  - [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
+  - [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:27-47](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L27-L47)
+  - [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
 
 **章节来源**
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
+- [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
+- [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:27-47](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L27-L47)
+- [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
 
 ## 依赖关系分析
 - 组件间依赖
@@ -759,6 +785,8 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - 检查 className 属性是否正确设置高度、宽度和圆角样式。
   - 确认 animate-pulse 动画类名未被其他样式覆盖。
   - 验证 cn 工具函数正常工作，避免类名冲突导致样式失效。
+  - 检查 Tailwind CSS 配置是否正确加载动画类。
+  - 确认主题变量在当前环境下正常解析。
 
 **章节来源**
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -803,3 +831,5 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - **存储配置页面：使用矩形和圆形骨架元素模拟列表项**
   - **标签管理页面：使用圆形和矩形骨架元素模拟标签项**
   - **仪表板页面：使用标题和卡片骨架元素模拟应用列表**
+  - **复杂布局：通过组合多个骨架元素精确模拟真实内容结构**
+  - **性能优化：在大量数据加载场景中提供流畅的视觉反馈**
