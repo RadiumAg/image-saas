@@ -41,6 +41,11 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
       }
     );
 
+  // 当前激活的 tab
+  const [activeTab, setActiveTab] = useState('all');
+  // 已经访问过的 tabs（用于保持已访问 tab 的状态）
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set(['all']));
+
   const uppy = useMemo(() => {
     const uppy = new Uppy();
 
@@ -153,7 +158,14 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
         </div>
 
         <div className="container mx-auto mb-5">
-          <Tabs defaultValue="all">
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={value => {
+              setActiveTab(value);
+              setVisitedTabs(prev => new Set([...prev, value]));
+            }}
+          >
             <TabsList>
               <TabsTrigger value="all">全部</TabsTrigger>
               {/* 动态生成所有分类类型的标签 */}
@@ -167,66 +179,89 @@ export default function AppPage(props: PageProps<'/dashboard/apps/[appId]'>) {
               ))}
             </TabsList>
 
-            <TabsContent value="all">
-              <Dropzone uppy={uppy} className="mt-6 w-full h-[calc(100%-60px)]">
-                {draggling => {
-                  return (
-                    <div
-                      className={cn(
-                        'flex flex-wrap gap-4 relative h-full container mx-auto rounded-xl transition-all duration-200',
-                        draggling &&
-                          'border-2 border-dashed border-primary/40 bg-primary/5'
-                      )}
-                    >
-                      {draggling && (
-                        <div className="absolute inset-0 bg-primary/5 backdrop-blur-sm z-10 flex flex-col justify-center items-center rounded-xl">
-                          <svg
-                            className="h-12 w-12 text-primary/60 mb-3"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                            />
-                          </svg>
-                          <p className="text-lg font-medium text-primary/80">
-                            释放文件以上传
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            支持图片和文件
-                          </p>
-                        </div>
-                      )}
+            {/* 全部标签页 - 始终渲染但条件显示 */}
+            <TabsContent value="all" forceMount>
+              {activeTab === 'all' && (
+                <Dropzone
+                  uppy={uppy}
+                  className="mt-6 w-full h-[calc(100%-60px)]"
+                >
+                  {draggling => {
+                    return (
+                      <div
+                        className={cn(
+                          'flex flex-wrap gap-4 relative h-full container mx-auto rounded-xl transition-all duration-200',
+                          draggling &&
+                            'border-2 border-dashed border-primary/40 bg-primary/5'
+                        )}
+                      >
+                        {draggling && (
+                          <div className="absolute inset-0 bg-primary/5 backdrop-blur-sm z-10 flex flex-col justify-center items-center rounded-xl">
+                            <svg
+                              className="h-12 w-12 text-primary/60 mb-3"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                              />
+                            </svg>
+                            <p className="text-lg font-medium text-primary/80">
+                              释放文件以上传
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              支持图片和文件
+                            </p>
+                          </div>
+                        )}
 
-                      <FileList
-                        appId={appId}
-                        orderBy={orderBy}
-                        uppy={uppy}
-                        searchFilters={searchFilters}
-                      />
-                    </div>
-                  );
-                }}
-              </Dropzone>
+                        <FileList
+                          appId={appId}
+                          orderBy={orderBy}
+                          uppy={uppy}
+                          searchFilters={searchFilters}
+                        />
+                      </div>
+                    );
+                  }}
+                </Dropzone>
+              )}
             </TabsContent>
 
-            {/* 动态渲染所有分类标签的内容 */}
-            {categoryTags.map(tag => (
-              <TabsContent key={tag.id} value={`${tag.categoryType}-${tag.id}`}>
-                <TagFileList
-                  searchFilters={searchFilters}
-                  uppy={uppy}
-                  appId={appId}
-                  tagId={tag.id}
-                  variant={tag.categoryType === 'person' ? 'person' : 'default'}
-                />
-              </TabsContent>
-            ))}
+            {/* 动态渲染所有分类标签的内容 - 只有当前或已访问过的 tab 才渲染 */}
+            {categoryTags.map(tag => {
+              const tabValue = `${tag.categoryType}-${tag.id}`;
+              const isActive = activeTab === tabValue;
+              const hasVisited = visitedTabs.has(tabValue);
+
+              // 如果既不是当前 tab 也没访问过，则不渲染
+              if (!isActive && !hasVisited) return null;
+
+              return (
+                <TabsContent
+                  key={tag.id}
+                  value={tabValue}
+                  forceMount
+                >
+                  {isActive && (
+                    <TagFileList
+                      searchFilters={searchFilters}
+                      uppy={uppy}
+                      appId={appId}
+                      tagId={tag.id}
+                      variant={
+                        tag.categoryType === 'person' ? 'person' : 'default'
+                      }
+                    />
+                  )}
+                </TabsContent>
+              );
+            })}
           </Tabs>
         </div>
 
