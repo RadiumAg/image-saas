@@ -26,6 +26,9 @@
 - [src/app/dashboard/apps/[appId]/setting/storage/page.tsx](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx)
 - [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx)
 - [src/app/dashboard/page.tsx](file://src/app/dashboard/page.tsx)
+- [src/app/layout.tsx](file://src/app/layout.tsx)
+- [src/components/feature/file-item-action.tsx](file://src/components/feature/file-item-action.tsx)
+- [src/components/feature/image-crop-dialog.tsx](file://src/components/feature/image-crop-dialog.tsx)
 </cite>
 
 ## 目录
@@ -42,6 +45,8 @@
 
 ## 简介
 本文件为 Image SaaS 项目的 UI 组件库文档，聚焦于基于 Radix UI 与 Tailwind CSS 的组件系统设计与实现。文档覆盖基础 UI 组件的功能特性、属性配置、变体系统、尺寸规格、样式定制、交互行为与无障碍支持，并提供组件组合使用示例与最佳实践，帮助 UI 开发者高效构建一致、可维护且可扩展的界面。
+
+**更新** 本版本重点更新了通知系统（Sonner）作为核心组件的重要功能，包括主题适配、图标映射、样式定制和在多个业务场景中的实际应用。
 
 ## 项目结构
 UI 组件集中位于 src/components/ui 目录下，采用"按功能分层"的组织方式：基础控件（按钮、输入框、文本域、滑块）、表单控件（复选框、标签输入）、浮层与对话（弹出框、下拉菜单、对话框、手风琴）、展示与导航（标签页、滚动区域、头像）、日历与提示（日历、警告、通知）、**加载占位（骨架屏）**等模块清晰划分，便于查找与复用。
@@ -64,7 +69,7 @@ Scroll["ScrollArea<br/>滚动区域"]
 Coll["Collapsible<br/>手风琴"]
 Av["Avatar<br/>头像"]
 Alert["Alert<br/>警告"]
-Sonner["Toaster<br/>通知"]
+Sonner["Toaster<br/>通知系统"]
 Label["Label<br/>标签"]
 Skel["Skeleton<br/>骨架屏"]
 end
@@ -235,10 +240,11 @@ Skel --> Tailwind
   - 使用场景：错误提示、成功反馈、一般性提示。
   - 参考路径：[src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
-- 通知 Toaster
-  - 功能：全局通知，支持主题适配与图标映射。
-  - 关键属性：ToasterProps（由第三方库提供）。
-  - 使用场景：异步结果反馈、加载状态、错误提示。
+- **通知 Toaster（核心组件）**
+  - 功能：全局通知系统，支持主题适配、图标映射、样式定制与多种通知类型。
+  - 关键属性：theme（系统/浅色/深色）、icons（success/info/warning/error/loading）、style（CSS 变量定制）。
+  - 使用场景：异步结果反馈、加载状态、错误提示、成功通知、警告提醒。
+  - 集成方式：在应用根组件中注册，全局生效。
   - 参考路径：[src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
 - 标签 Label
@@ -278,6 +284,7 @@ Skel --> Tailwind
 组件系统遵循"原子化 + 组合"的设计原则：
 - 原子组件：Button、Input、Textarea、Checkbox、Label、Slider、**Skeleton** 等，提供最小可用能力。
 - 组合组件：Dialog、Popover、DropdownMenu、Tabs、ScrollArea、Calendar、Alert、Tag、TagInput 等，基于 Radix UI 提供可访问性与状态管理。
+- **通知系统：Toaster 作为核心组件，提供全局状态管理与主题适配。**
 - 样式系统：统一使用 Tailwind CSS 类名与 cn 工具函数进行合并与覆盖，确保一致性与可定制性。
 - 主题与无障碍：组件普遍支持焦点环、无效态、深色模式、键盘导航与屏幕阅读器友好。
 
@@ -291,6 +298,9 @@ Atoms --> Accessibility["无障碍支持<br/>焦点环/无效态/键盘导航"]
 Composed --> Accessibility
 Skeleton["Skeleton<br/>骨架屏"] --> Styles
 Skeleton --> Pulse["脉冲动画"]
+Toaster["Toaster<br/>通知系统"] --> Theme["主题适配"]
+Toaster --> Icons["图标映射"]
+Toaster --> Styles
 ```
 
 **图表来源**
@@ -307,6 +317,7 @@ Skeleton --> Pulse["脉冲动画"]
 - [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
 - [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
+- [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
 
 ## 详细组件分析
 
@@ -604,19 +615,50 @@ C->>D : 关闭对话框
 **章节来源**
 - [src/components/ui/alert.tsx:1-67](file://src/components/ui/alert.tsx#L1-L67)
 
-### 通知 Toaster
+### 通知 Toaster（核心组件）
 - 设计要点
-  - 主题感知：跟随系统/浅色/深色；图标映射。
-  - CSS 变量：与主题变量对齐。
+  - **主题适配：自动检测系统主题（light/dark/system），与 next-themes 集成。**
+  - **图标映射：success（CircleCheckIcon）、info（InfoIcon）、warning（TriangleAlertIcon）、error（OctagonXIcon）、loading（Loader2Icon + animate-spin）。**
+  - **样式定制：通过 CSS 变量与主题变量对齐（--normal-bg/--normal-text/--normal-border/--border-radius）。**
+  - **全局注册：在应用根组件中一次性注册，全局生效。**
 - 交互行为
-  - 全局注册，按队列显示。
+  - **全局状态管理：通过 toast 函数调用，自动排队显示。**
+  - **动画效果：淡入淡出动画，支持自动消失。**
+  - **响应式布局：适配移动端与桌面端显示。**
+- 使用场景
+  - **标签管理：创建/更新/删除标签的成功与错误反馈。**
+  - **文件操作：文件删除确认与成功提示。**
+  - **图片裁剪：裁剪区域选择、上传状态与结果反馈。**
+  - **链接复制：URL 复制成功提示。**
 - 最佳实践
-  - 成功/错误/警告/信息/加载分别使用对应类型。
-- 参考路径
-  - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
+  - **统一使用 toast.success/error/warning/info/loading 进行不同类型的通知。**
+  - **错误信息包含具体错误原因，便于用户理解与处理。**
+  - **成功通知简洁明了，避免冗长文本。**
+  - **在异步操作前后使用 loading 状态，提供更好的用户体验。**
+- 集成方式
+  - **在应用根组件（layout.tsx）中导入并渲染 Toaster 组件。**
+  - **在业务组件中直接导入 toast 函数进行调用。**
+- **新增** 在多个业务场景中的实际应用
+  - **标签管理页面：使用 toast.success/error 进行 CRUD 操作反馈。**
+  - **文件项操作：使用 toast 进行删除确认与 URL 复制反馈。**
+  - **图片裁剪对话框：使用 toast.error/warning/success 进行完整流程反馈。**
+- **章节来源**
+- [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
+- [src/app/layout.tsx:40-41](file://src/app/layout.tsx#L40-L41)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:93-114](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L93-L114)
+- [src/components/feature/file-item-action.tsx:31-32](file://src/components/feature/file-item-action.tsx#L31-L32)
+- [src/components/feature/file-item-action.tsx:89-90](file://src/components/feature/file-item-action.tsx#L89-L90)
+- [src/components/feature/image-crop-dialog.tsx:113-115](file://src/components/feature/image-crop-dialog.tsx#L113-L115)
+- [src/components/feature/image-crop-dialog.tsx:160-165](file://src/components/feature/image-crop-dialog.tsx#L160-L165)
 
 **章节来源**
 - [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
+- [src/app/layout.tsx:40-41](file://src/app/layout.tsx#L40-L41)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:93-114](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L93-L114)
+- [src/components/feature/file-item-action.tsx:31-32](file://src/components/feature/file-item-action.tsx#L31-L32)
+- [src/components/feature/file-item-action.tsx:89-90](file://src/components/feature/file-item-action.tsx#L89-L90)
+- [src/components/feature/image-crop-dialog.tsx:113-115](file://src/components/feature/image-crop-dialog.tsx#L113-L115)
+- [src/components/feature/image-crop-dialog.tsx:160-165](file://src/components/feature/image-crop-dialog.tsx#L160-L165)
 
 ### 标签 Label
 - 设计要点
@@ -669,11 +711,11 @@ C->>D : 关闭对话框
   - **标签管理页面**：使用 TagManagerSkeletonList 组件，包含标签和操作按钮的骨架元素。
   - **仪表板页面**：使用 DashboardSkeleton 组件，包含应用列表的骨架元素。
 - **章节来源**
-  - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
-  - [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
-  - [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
-  - [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:28-48](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L28-L48)
-  - [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
+- [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
+- [src/app/dashboard/apps/[appId]/setting/api-key/page.tsx:59-79](file://src/app/dashboard/apps/[appId]/setting/api-key/page.tsx#L59-L79)
+- [src/app/dashboard/apps/[appId]/setting/storage/page.tsx:10-30](file://src/app/dashboard/apps/[appId]/setting/storage/page.tsx#L10-L30)
+- [src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx:28-48](file://src/app/dashboard/apps/[appId]/setting/tag-manager/page.tsx#L28-L48)
+- [src/app/dashboard/page.tsx:14-31](file://src/app/dashboard/page.tsx#L14-L31)
 
 **章节来源**
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
@@ -687,7 +729,7 @@ C->>D : 关闭对话框
   - Calendar 依赖 Button 变体样式与 cn 工具。
   - Dialog/Popover/DropdownMenu/Tabs/ScrollArea/Collapsible 均依赖 Radix UI 原子组件。
   - TagInput 依赖 Tag 组件。
-  - Toaster 依赖主题钩子与第三方通知库。
+  - **Toaster 依赖 next-themes 主题系统与 sonner 第三方通知库。**
   - Slider 依赖 Radix UI Slider 原子组件与 cn 工具。
   - **Skeleton 依赖 cn 工具函数与 Tailwind CSS 动画系统。**
 - 工具函数
@@ -697,29 +739,12 @@ C->>D : 关闭对话框
   - Tailwind CSS：原子化样式。
   - lucide-react：图标库。
   - react-day-picker：日历组件。
-  - next-themes：主题感知。
-  - sonner：通知系统。
-
-```mermaid
-graph LR
-Calendar["Calendar"] --> Button["Button 变体样式"]
-Calendar --> cn["cn 工具"]
-Dialog["Dialog"] --> Radix["Radix UI"]
-Popover["Popover"] --> Radix
-Dropdown["DropdownMenu"] --> Radix
-Tabs["Tabs"] --> Radix
-Scroll["ScrollArea"] --> Radix
-Coll["Collapsible"] --> Radix
-TagInput["TagInput"] --> Tag["Tag"]
-Toaster["Toaster"] --> Theme["next-themes"]
-Toaster --> Icons["lucide-react"]
-Slider["Slider"] --> Radix
-Slider --> cn
-Skeleton["Skeleton"] --> cn
-Skeleton --> Tailwind["Tailwind 动画"]
-```
-
-**图表来源**
+  - **next-themes：主题感知与系统主题检测。**
+  - **sonner：现代化通知系统。**
+- **新增** 通知系统依赖关系
+  - **Toaster 组件依赖：useTheme（主题检测）、lucide-react（图标）、sonner（通知核心）。**
+  - **业务组件依赖：toast 函数（success/error/warning/info/loading）。**
+- **章节来源**
 - [src/components/ui/calendar.tsx:16-16](file://src/components/ui/calendar.tsx#L16-L16)
 - [src/components/ui/button.tsx:3-3](file://src/components/ui/button.tsx#L3-L3)
 - [src/components/ui/dialog.tsx:4-4](file://src/components/ui/dialog.tsx#L4-L4)
@@ -756,18 +781,22 @@ Skeleton --> Tailwind["Tailwind 动画"]
 - 动画与渲染
   - 对话框、下拉菜单、弹出框、滑块均使用 Radix UI 的动画系统，确保流畅与可访问。
   - **骨架屏使用 CSS 动画实现脉冲效果，性能开销极小。**
+  - **通知系统使用 CSS 变量与硬件加速，确保动画流畅性。**
 - 计算复杂度
   - TagInput 的建议过滤在输入时进行，建议使用防抖或虚拟化长列表。
   - Slider 的值变化监听在用户交互时触发，避免不必要的重渲染。
   - **骨架屏组件为纯静态元素，不会产生计算开销。**
+  - **Toaster 组件使用全局状态管理，避免重复渲染。**
 - 主题切换
   - Toaster 与组件均支持主题感知，避免频繁重绘。
   - **骨架屏的颜色会随主题自动调整，无需额外处理。**
+  - **通知系统通过 CSS 变量实现主题切换，性能优异。**
 - 建议
   - 大型列表使用虚拟滚动或分页。
   - 图标使用 lucide-react，按需引入以减小包体积。
   - 滑块组件在高频值变化场景中，考虑使用节流优化性能。
   - **在需要大量占位符的场景中，优先使用骨架屏组件而非自定义实现。**
+  - **通知系统使用 toast 函数进行异步操作反馈，避免阻塞主线程。**
 
 ## 故障排查指南
 - 焦点与键盘导航
@@ -778,8 +807,12 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - 确保未手动覆盖 size 类名，或使用组件提供的 icon 变体。
 - 日历焦点未对齐
   - 确认已启用焦点修饰符，组件会在选中日期时自动聚焦。
-- 通知未显示
-  - 确认 Toaster 已在应用根部注册，且主题配置正确。
+- **通知系统问题**
+  - **Toaster 未显示：确认已在应用根组件中正确导入并渲染 Toaster 组件。**
+  - **主题不匹配：检查 next-themes 配置与 CSS 变量是否正确设置。**
+  - **图标不显示：确认 lucide-react 版本兼容性与图标导入正确。**
+  - **通知类型不正确：检查 toast 函数调用参数与类型映射。**
+  - **样式异常：检查 CSS 变量覆盖与主题变量解析。**
 - 标签输入不响应
   - 检查最大数量与重复校验逻辑，确保 onChange 回调被正确调用。
 - 滑块值不更新
@@ -793,6 +826,15 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - 检查 Tailwind CSS 配置是否正确加载动画类。
   - 确认主题变量在当前环境下正常解析。
   - **检查页面中是否正确使用了 Skeleton 组件，如 API Key 页面的 ApiKeySkeletonList、存储配置页面的 StorageSkeletonList 等。**
+- **章节来源**
+- [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
+- [src/components/ui/dropdown-menu.tsx:1-258](file://src/components/ui/dropdown-menu.tsx#L1-L258)
+- [src/components/ui/tabs.tsx:1-67](file://src/components/ui/tabs.tsx#L1-L67)
+- [src/components/ui/slider.tsx:1-29](file://src/components/ui/slider.tsx#L1-L29)
+- [src/components/ui/calendar.tsx:182-218](file://src/components/ui/calendar.tsx#L182-L218)
+- [src/components/ui/sonner.tsx:1-41](file://src/components/ui/sonner.tsx#L1-L41)
+- [src/components/ui/tag-input.tsx:1-158](file://src/components/ui/tag-input.tsx#L1-L158)
+- [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
 
 **章节来源**
 - [src/components/ui/dialog.tsx:1-144](file://src/components/ui/dialog.tsx#L1-L144)
@@ -805,7 +847,13 @@ Skeleton --> Tailwind["Tailwind 动画"]
 - [src/components/ui/skeleton.tsx:1-16](file://src/components/ui/skeleton.tsx#L1-L16)
 
 ## 结论
-该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。新增的 Skeleton 组件为加载状态提供了统一的视觉解决方案，广泛应用于 API Key 管理、存储配置、标签管理和仪表板等多个页面组件中，显著提升了用户体验的一致性和流畅性。通过在各个页面中的实际应用（API Key 页面、存储配置页面、标签管理页面、仪表板页面），Skeleton 组件展现了其在复杂布局和多样化场景下的强大适应能力。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
+该 UI 组件库以 Radix UI 为核心，结合 Tailwind CSS 实现了高可访问性、强一致性的组件体系。通过变体系统与尺寸规范，组件在不同场景下保持统一风格；通过 cn 工具与主题感知，实现灵活定制与良好体验。
+
+**更新** 新增的通知系统（Sonner）作为核心组件，提供了现代化的全局状态管理与主题适配能力。通过与 next-themes 的深度集成，实现了智能的主题检测与切换；通过丰富的图标映射与 CSS 变量定制，确保了视觉一致性与可扩展性。在标签管理、文件操作、图片裁剪等多个业务场景中得到广泛应用，显著提升了用户体验的一致性与反馈及时性。
+
+新增的 Skeleton 组件为加载状态提供了统一的视觉解决方案，广泛应用于 API Key 管理、存储配置、标签管理和仪表板等多个页面组件中，显著提升了用户体验的一致性和流畅性。通过在各个页面中的实际应用（API Key 页面、存储配置页面、标签管理页面、仪表板页面），Skeleton 组件展现了其在复杂布局和多样化场景下的强大适应能力。
+
+建议在实际项目中遵循本文档的最佳实践，合理组合组件，特别是在通知系统的使用上，统一使用 toast 函数进行异步操作反馈，确保用户体验的一致性与专业性。通过在各个页面中的实际应用，这些组件展现了其在复杂布局和多样化场景下的强大适应能力。建议在实际项目中遵循本文档的最佳实践，合理组合组件，确保可维护性与可扩展性。
 
 ## 附录
 - 变体与尺寸速览
@@ -820,15 +868,18 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - ScrollArea：vertical/horizontal
   - Calendar：buttonVariant 与多种修饰符
   - **Skeleton：支持所有 Tailwind 尺寸类名，如 h-4、w-24、rounded-md 等**
+  - **Toaster：支持 success/error/warning/info/loading 五种通知类型**
 - 无障碍支持
   - 焦点环与键盘导航：Button、Input、Textarea、Checkbox、Tabs、DropdownMenu、Calendar、Slider
   - 屏幕阅读器角色：Alert、Dialog、Label
   - 无障碍文本：Dialog 关闭按钮包含 sr-only 文本
   - **骨架屏：作为静态占位符，不参与无障碍交互**
+  - **通知系统：支持屏幕阅读器朗读通知内容**
 - 样式定制
   - 使用 cn 工具合并类名，避免样式冲突
   - 通过主题变量与 CSS 变量统一外观
   - **骨架屏支持通过 className 自定义所有 Tailwind 样式属性**
+  - **通知系统通过 CSS 变量实现主题定制**
 - 图像裁剪集成
   - Slider 在 ImageCropDialog 中用于缩放控制，value 为数组形式，min=1，max=3，step=0.1
   - 与 react-easy-crop 组件配合实现完整的图像裁剪体验
@@ -840,3 +891,10 @@ Skeleton --> Tailwind["Tailwind 动画"]
   - **复杂布局：通过组合多个骨架元素精确模拟真实内容结构**
   - **性能优化：在大量数据加载场景中提供流畅的视觉反馈**
   - **主题适配：骨架屏颜色会自动随主题变化，无需额外处理**
+- **通知系统应用场景**
+  - **标签管理：创建/更新/删除标签的成功与错误反馈**
+  - **文件操作：文件删除确认与 URL 复制反馈**
+  - **图片裁剪：裁剪区域选择、上传状态与结果反馈**
+  - **全局状态：应用级别的异步操作反馈**
+  - **主题适配：自动跟随系统主题变化**
+  - **图标映射：统一的视觉标识与用户体验**
