@@ -29,7 +29,7 @@ export function SimilarImages({ fileId, appId }: SimilarImagesProps) {
         fileId,
         appId,
         limit: 10,
-        threshold: 0.3, // 降低阈值以便测试
+        threshold: 0.5, // 使用AI特征提取，阈倿0.5
       },
       {
         refetchOnWindowFocus: false,

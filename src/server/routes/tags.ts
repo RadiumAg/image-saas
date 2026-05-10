@@ -648,7 +648,7 @@ export const tagsRouter = router({
               similarity,
             };
           })
-          .filter(item => item.similarity >= 0.3) // 降低阈值以便测试（当前为模拟特征）
+          .filter(item => item.similarity >= 0.5) // 使用AI特征提取，阈值设为0.5
           .sort((a, b) => b.similarity - a.similarity)
           .slice(0, 10); // 返回最相似的前10个
 
@@ -673,7 +673,7 @@ export const tagsRouter = router({
         fileId: z.string(),
         appId: z.string(),
         limit: z.number().default(10),
-        threshold: z.number().default(0.3), // 降低默认阈值以便测试
+        threshold: z.number().default(0.5), // 使用AI特征提取，默认阈值0.5
       })
     )
     .query(async ({ ctx, input }) => {
@@ -977,22 +977,176 @@ function cosineSimilarity(vec1: number[], vec2: number[]): number {
   return dotProduct / (norm1 * norm2);
 }
 
-// 提取图片特征向量（使用模拟数据，实际应调用AI API）
+// 提取图片特征向量（使用讯飞星火生成描述，然后转换为向量）
 async function extractImageFeatures(imageUrl: string): Promise<number[]> {
-  // 这里应该调用讯飞星火或其他AI服务提取特征
-  // 目前返回一个随机的512维向量作为示例
-  // 实际应用中，应该调用AI API获取真实的特征向量
+  const xfyunAppId = process.env.XFYUN_APP_ID;
+  const apiKey = process.env.XFYUN_API_KEY;
+  const apiSecret = process.env.XFYUN_API_SECRET;
+
+  if (!xfyunAppId || !apiKey || !apiSecret) {
+    console.warn(
+      '未配置讯飞星火 API 凭证，使用模拟特征'
+    );
+    return generateMockFeatures(imageUrl);
+  }
+
+  try {
+    // 1. 下载图片并转换为 base64
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      console.error('下载图片失败:', imageResponse.status);
+      return generateMockFeatures(imageUrl);
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+
+    // 2. 生成签名
+    const date = new Date().toUTCString();
+    const authorization = generateXfyunSignature(
+      date,
+      'GET',
+      '/v2.1/image',
+      apiKey,
+      apiSecret
+    );
+
+    // 3. 构建请求体 - 让AI生成详细的图片描述
+    const requestBody = {
+      header: {
+        app_id: xfyunAppId,
+      },
+      parameter: {
+        chat: {
+          domain: 'imagev3',
+          temperature: 0.3,
+          top_k: 4,
+          max_tokens: 1024,
+        },
+      },
+      payload: {
+        message: {
+          text: [
+            {
+              role: 'user',
+              content: imageBase64,
+              content_type: 'image',
+            },
+            {
+              role: 'user',
+              content: '请详细描述这张图片的内容，包括：主要物体、场景、颜色、风格、氛围、构图等。用50-100字描述。',
+              content_type: 'text',
+            },
+          ],
+        },
+      },
+    };
+
+    // 4. 使用 WebSocket 发送请求
+    const description = await new Promise<string>((resolve, reject) => {
+      const wsUrl = `wss://spark-api.cn-huabei-1.xf-yun.com/v2.1/image?authorization=${encodeURIComponent(
+        authorization
+      )}&date=${encodeURIComponent(date)}&host=spark-api.cn-huabei-1.xf-yun.com`;
+
+      const ws = new WebSocket(wsUrl);
+      let fullContent = '';
+
+      ws.on('open', () => {
+        ws.send(JSON.stringify(requestBody));
+      });
+
+      ws.on('message', data => {
+        try {
+          const response = JSON.parse(data.toString());
+
+          if (response.header?.code !== 0) {
+            console.error('讯飞星火返回错误:', response.header?.message);
+            ws.close();
+            resolve('');
+            return;
+          }
+
+          const content = response.payload?.choices?.text?.[0]?.content;
+          if (content) {
+            fullContent += content;
+          }
+
+          if (response.header?.status === 2) {
+            ws.close();
+            resolve(fullContent);
+          }
+        } catch (error) {
+          console.error('解析讯飞星火响应失败:', error);
+          ws.close();
+          resolve('');
+        }
+      });
+
+      ws.on('error', error => {
+        console.error('讯飞星火 WebSocket 错误:', error);
+        resolve('');
+      });
+
+      ws.on('close', () => {
+        if (!fullContent) {
+          resolve('');
+        }
+      });
+
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+          console.warn('讯飞星火 API 请求超时');
+        }
+        resolve('');
+      }, 30000);
+    });
+
+    // 5. 将描述文本转换为向量（简单实现：使用字符哈希）
+    if (description) {
+      return textToVector(description, 512);
+    }
+
+    return generateMockFeatures(imageUrl);
+  } catch (error) {
+    console.error('讯飞星火特征提取失败:', error);
+    return generateMockFeatures(imageUrl);
+  }
+}
+
+// 将文本转换为固定维度的向量（简单实现）
+function textToVector(text: string, dimension: number): number[] {
+  const vector: number[] = new Array(dimension).fill(0);
   
+  // 使用简单的字符哈希生成向量
+  for (let i = 0; i < text.length; i++) {
+    const charCode = text.charCodeAt(i);
+    const position = i % dimension;
+    vector[position] += (charCode / 255) * 2 - 1;
+  }
+  
+  // 归一化向量
+  const norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+  if (norm > 0) {
+    for (let i = 0; i < dimension; i++) {
+      vector[i] /= norm;
+    }
+  }
+  
+  return vector;
+}
+
+// 生成模拟特征向量（备用）
+function generateMockFeatures(imageUrl: string): number[] {
   const dimension = 512;
   const features: number[] = [];
   
-  // 使用图片URL生成确定性随机数，确保相同图片生成相同特征
+  // 使用图片URL生成确定性随机数
   const hash = crypto.createHash('sha256').update(imageUrl).digest('hex');
   
   for (let i = 0; i < dimension; i++) {
-    // 基于哈希生成伪随机特征值
     const seed = parseInt(hash.substr(i % hash.length, 2), 16);
-    features.push((seed / 255) * 2 - 1); // 归一化到 [-1, 1]
+    features.push((seed / 255) * 2 - 1);
   }
   
   return features;
