@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { trpcClientReact } from '@/utils/api';
 import {
   Dialog,
@@ -7,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Sparkles } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-
+import Image from 'next/image'
 interface SimilarImage {
   fileId: string;
   fileName: string;
@@ -111,7 +112,7 @@ function SimilarImageCard({ image, onClick }: SimilarImageCardProps) {
     >
       <div className="relative aspect-square">
         <img
-          src={`/api/image/${image.fileId}?_width=320&_height=320`}
+          src={`/image/${image.fileId}?_width=320&_height=320`}
           alt={image.fileName}
           className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
         />
