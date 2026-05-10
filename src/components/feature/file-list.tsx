@@ -11,6 +11,7 @@ import {
   CopyUrl,
   PreView,
   CropAction,
+  SimilarAction,
 } from './file-item-action';
 import { cn } from '@/lib/utils';
 import { SearchFilters } from './search-bar';
@@ -158,6 +159,7 @@ const FileList: React.FC<FileListProps> = props => {
             // 对图片文件进行识别
             if (file.data.type && file.data.type.startsWith('image')) {
               try {
+                // 1. AI标签识别
                 await trpcPureClient.tags.recognizeImageTags.mutate({
                   fileId: resp.id,
                 });
@@ -165,7 +167,17 @@ const FileList: React.FC<FileListProps> = props => {
                 // AI识别成功后刷新tags
                 utils.tags.getTagsByCategory.refetch({ appId });
               } catch (error) {
-                console.error('AI识别失败:', error);
+                console.error('AI标签识别失败:', error);
+              }
+
+              try {
+                // 2. 图片特征提取（用于相似度推荐）
+                await trpcPureClient.tags.recognizeImageFeatures.mutate({
+                  fileId: resp.id,
+                  appId,
+                });
+              } catch (error) {
+                console.error('图片特征提取失败:', error);
               }
             }
 
@@ -310,11 +322,14 @@ const FileList: React.FC<FileListProps> = props => {
                         />
 
                         {file.contentType.startsWith('image') && (
-                          <CropAction
-                            fileId={file.id}
-                            fileName={file.name}
-                            appId={appId}
-                          />
+                          <>
+                            <CropAction
+                              fileId={file.id}
+                              fileName={file.name}
+                              appId={appId}
+                            />
+                            <SimilarAction fileId={file.id} appId={appId} />
+                          </>
                         )}
                       </div>
                     );

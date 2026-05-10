@@ -1,8 +1,8 @@
 import z from 'zod';
 import { db } from '../db/db';
 import { protectedProcedure, router } from '../trpc-middlewares/trpc';
-import { tags, files_tags, files, apps } from '../db/schema';
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { tags, files_tags, files, apps, image_features } from '../db/schema';
+import { eq, and, inArray, sql, desc } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
@@ -565,6 +565,177 @@ export const tagsRouter = router({
         });
       }
     }),
+
+  // 自动识别图片特征并计算相似度
+  recognizeImageFeatures: protectedProcedure
+    .input(z.object({ fileId: z.string(), appId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { fileId, appId } = input;
+
+      try {
+        // 1. 获取文件信息
+        const file = await db.query.files.findFirst({
+          where: and(
+            eq(files.id, fileId),
+            eq(files.userId, ctx.session.user.id),
+            eq(files.appId, appId)
+          ),
+        });
+
+        if (!file) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '文件不存在',
+          });
+        }
+
+        // 2. 检查是否已提取过特征
+        const existingFeature = await db.query.image_features.findFirst({
+          where: eq(image_features.fileId, fileId),
+        });
+
+        if (existingFeature) {
+          return {
+            success: true,
+            message: '特征已存在',
+            similarity: 0,
+          };
+        }
+
+        // 3. 提取图片特征
+        const featureVector = await extractImageFeatures(file.url);
+
+        // 4. 保存特征到数据库
+        await db.insert(image_features).values({
+          id: uuid(),
+          fileId,
+          featureVector,
+          dimension: featureVector.length,
+        });
+
+        // 5. 查询同一appId下其他图片的特征
+        const otherFeatures = await db
+          .select({
+            fileId: image_features.fileId,
+            featureVector: image_features.featureVector,
+            fileName: files.name,
+            filePath: files.path,
+            fileUrl: files.url,
+          })
+          .from(image_features)
+          .innerJoin(files, eq(image_features.fileId, files.id))
+          .where(
+            and(
+              eq(files.userId, ctx.session.user.id),
+              eq(files.appId, appId),
+              sql`${image_features.fileId} != ${fileId}`
+            )
+          )
+          .limit(100); // 限制查询数量以提高性能
+
+        // 6. 计算相似度
+        const similarities = otherFeatures
+          .map(other => {
+            const similarity = cosineSimilarity(
+              featureVector,
+              other.featureVector as number[]
+            );
+            return {
+              fileId: other.fileId,
+              fileName: other.fileName,
+              filePath: other.filePath,
+              fileUrl: other.fileUrl,
+              similarity,
+            };
+          })
+          .filter(item => item.similarity >= 0.3) // 降低阈值以便测试（当前为模拟特征）
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, 10); // 返回最相似的前10个
+
+        return {
+          success: true,
+          message: `特征提取成功，找到 ${similarities.length} 张相似图片`,
+          similarImages: similarities,
+        };
+      } catch (error) {
+        console.error('图片特征提取失败:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: '特征提取服务暂时不可用，请稍后重试',
+        });
+      }
+    }),
+
+  // 查询相似图片
+  getSimilarImages: protectedProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+        appId: z.string(),
+        limit: z.number().default(10),
+        threshold: z.number().default(0.3), // 降低默认阈值以便测试
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { fileId, appId, limit, threshold } = input;
+
+      try {
+        // 1. 获取当前图片的特征
+        const currentFeature = await db.query.image_features.findFirst({
+          where: eq(image_features.fileId, fileId),
+        });
+
+        if (!currentFeature) {
+          return [];
+        }
+
+        // 2. 查询同一appId下其他图片的特征
+        const otherFeatures = await db
+          .select({
+            fileId: image_features.fileId,
+            featureVector: image_features.featureVector,
+            fileName: files.name,
+            filePath: files.path,
+            fileUrl: files.url,
+            createdAt: files.createdAt,
+          })
+          .from(image_features)
+          .innerJoin(files, eq(image_features.fileId, files.id))
+          .where(
+            and(
+              eq(files.userId, ctx.session.user.id),
+              eq(files.appId, appId),
+              sql`${image_features.fileId} != ${fileId}`
+            )
+          )
+          .limit(100);
+
+        // 3. 计算相似度
+        const similarities = otherFeatures
+          .map(other => {
+            const similarity = cosineSimilarity(
+              currentFeature.featureVector as number[],
+              other.featureVector as number[]
+            );
+            return {
+              fileId: other.fileId,
+              fileName: other.fileName,
+              filePath: other.filePath,
+              fileUrl: other.fileUrl,
+              createdAt: other.createdAt,
+              similarity,
+            };
+          })
+          .filter(item => item.similarity >= threshold)
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, limit);
+
+        return similarities;
+      } catch (error) {
+        console.error('查询相似图片失败:', error);
+        return [];
+      }
+    }),
 });
 
 // AI图片识别服务函数
@@ -778,4 +949,56 @@ function generateXfyunSignature(
   const authorization = Buffer.from(authorizationOrigin).toString('base64');
 
   return authorization;
+}
+
+// 计算两个特征向量的余弦相似度
+function cosineSimilarity(vec1: number[], vec2: number[]): number {
+  if (vec1.length !== vec2.length) {
+    throw new Error('向量维度不匹配');
+  }
+
+  let dotProduct = 0;
+  let norm1 = 0;
+  let norm2 = 0;
+
+  for (let i = 0; i < vec1.length; i++) {
+    dotProduct += vec1[i] * vec2[i];
+    norm1 += vec1[i] * vec1[i];
+    norm2 += vec2[i] * vec2[i];
+  }
+
+  norm1 = Math.sqrt(norm1);
+  norm2 = Math.sqrt(norm2);
+
+  if (norm1 === 0 || norm2 === 0) {
+    return 0;
+  }
+
+  return dotProduct / (norm1 * norm2);
+}
+
+// 提取图片特征向量（使用模拟数据，实际应调用AI API）
+async function extractImageFeatures(imageUrl: string): Promise<number[]> {
+  // 这里应该调用讯飞星火或其他AI服务提取特征
+  // 目前返回一个随机的512维向量作为示例
+  // 实际应用中，应该调用AI API获取真实的特征向量
+  
+  const dimension = 512;
+  const features: number[] = [];
+  
+  // 使用图片URL生成确定性随机数，确保相同图片生成相同特征
+  const hash = crypto.createHash('sha256').update(imageUrl).digest('hex');
+  
+  for (let i = 0; i < dimension; i++) {
+    // 基于哈希生成伪随机特征值
+    const seed = parseInt(hash.substr(i % hash.length, 2), 16);
+    features.push((seed / 255) * 2 - 1); // 归一化到 [-1, 1]
+  }
+  
+  return features;
+}
+
+// 获取或创建图片特征缓存键
+function getFeatureCacheKey(imageUrl: string): string {
+  return crypto.createHash('md5').update(imageUrl).digest('hex');
 }

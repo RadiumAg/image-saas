@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    // 允许本地图片使用查询字符串
+    localPatterns: [
+      {
+        pathname: '/api/image/**',
+        search: '', // 允许所有查询参数
+      },
+    ],
   },
 };
 

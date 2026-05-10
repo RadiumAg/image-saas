@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { trpcClientReact } from '@/utils/api';
 import { Button } from '../ui/button';
-import { Trash2, Eye, Copy, AlertCircle, Crop } from 'lucide-react';
+import { Trash2, Eye, Copy, AlertCircle, Crop, Sparkles } from 'lucide-react';
 import copy from 'copy-to-clipboard';
 import { toast } from 'sonner';
 import ImageCropDialog from './image-crop-dialog';
+import { SimilarImagesDialog } from './similar-images-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -134,7 +135,6 @@ const CropAction: React.FC<CropActionProps> = props => {
         open={open}
         onOpenChange={setOpen}
         imageUrl={`/image/${fileId}`}
-        fileId={fileId}
         appId={appId}
         fileName={fileName}
       />
@@ -142,4 +142,34 @@ const CropAction: React.FC<CropActionProps> = props => {
   );
 };
 
-export { CopyUrl, PreView, DeleteFileAction, CropAction };
+interface SimilarActionProps {
+  fileId: string;
+  appId: string;
+}
+
+const SimilarAction: React.FC<SimilarActionProps> = props => {
+  const { fileId, appId } = props;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        className="cursor-pointer"
+        onClick={() => setOpen(true)}
+        title="查看相似图片"
+      >
+        <Sparkles className="w-4 h-4" />
+      </Button>
+
+      <SimilarImagesDialog
+        open={open}
+        onOpenChange={setOpen}
+        fileId={fileId}
+        appId={appId}
+      />
+    </>
+  );
+};
+
+export { CopyUrl, PreView, DeleteFileAction, CropAction, SimilarAction };

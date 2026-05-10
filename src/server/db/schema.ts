@@ -257,6 +257,25 @@ export const files_tags = pgTable(
   ]
 );
 
+export const image_features = pgTable('image_features', {
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  fileId: uuid('file_id').notNull().references(() => files.id, { onDelete: 'cascade' }),
+  // 存储AI提取的特征向量（JSON数组格式）
+  featureVector: json('feature_vector').$type<number[]>().notNull(),
+  // 特征维度
+  dimension: integer('dimension').notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+}, table => [
+  index('image_features_file_idx').on(table.fileId),
+]);
+
+export const image_featuresRelations = relations(image_features, ({ one }) => ({
+  file: one(files, {
+    fields: [image_features.fileId],
+    references: [files.id],
+  }),
+}));
+
 export const files_tagsRelations = relations(files_tags, ({ one }) => ({
   file: one(files, {
     fields: [files_tags.fileId],

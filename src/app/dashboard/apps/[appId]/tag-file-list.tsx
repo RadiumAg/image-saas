@@ -13,6 +13,8 @@ import {
   DeleteFileAction, 
   CopyUrl,
   PreView,
+  CropAction,
+  SimilarAction,
 } from '@/components/feature/file-item-action';
 import Uppy, { Meta, UppyFile } from '@uppy/core';
 import Dropzone from '@/components/feature/dropzone';
@@ -150,6 +152,7 @@ const TagFileList: React.FC<TagFileListProps> = props => {
             // 对图片文件进行识别
             if (file.data.type && file.data.type.startsWith('image')) {
               try {
+                // 1. AI标签识别
                 await trpcPureClient.tags.recognizeImageTags.mutate({
                   fileId: savedFile.id,
                 });
@@ -157,7 +160,17 @@ const TagFileList: React.FC<TagFileListProps> = props => {
                 // AI识别成功后刷新tags
                 utils.tags.getTagsByCategory.refetch({ appId });
               } catch (error) {
-                console.error('AI识别失败:', error);
+                console.error('AI标签识别失败:', error);
+              }
+
+              try {
+                // 2. 图片特征提取（用于相似度推荐）
+                await trpcPureClient.tags.recognizeImageFeatures.mutate({
+                  fileId: savedFile.id,
+                  appId,
+                });
+              } catch (error) {
+                console.error('图片特征提取失败:', error);
               }
             }
 
@@ -306,6 +319,17 @@ const TagFileList: React.FC<TagFileListProps> = props => {
                                         setPreview(true);
                                       }}
                                     />
+
+                                    {item.contentType.startsWith('image') && (
+                                      <>
+                                        <CropAction
+                                          fileId={item.id}
+                                          fileName={item.name}
+                                          appId={appId}
+                                        />
+                                        <SimilarAction fileId={item.id} appId={appId} />
+                                      </>
+                                    )}
                                   </div>
                                 );
                               }}
