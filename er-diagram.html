@@ -18,7 +18,7 @@
     }
 
     .edgeLabel {
-      font-size: 35px;
+      font-size: 60px;
     }
 
 
@@ -53,10 +53,11 @@
 <body>
   <div id="diagram">
     <pre class="mermaid">
-      %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '35px',
+      %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '60px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       erDiagram
       direction LR
+
       User {
       int id PK
       string name
@@ -67,38 +68,12 @@
       datetime createAt
       }
 
-      Session {
-      string id PK
-      string userId FK
-      }
-
-      Authenticator {
-      string id PK
-      string userId FK
-      }
-
-      Account {
-      string provider PK
-      string providerAccountId PK
-      string type
-      int userId FK
-      }
-
-      Verification {
-      string id PK
-      }
-
       App {
       int id PK
       string name
       string description
       int userId FK
       int storageId FK
-      }
-
-      ApiKey {
-      string id PK
-      string key
       }
 
       File {
@@ -133,17 +108,43 @@
       int userId FK
       }
 
-      User ||--o{ Session : "创建"
-      User ||--o{ Authenticator : "绑定"
-      User ||--o{ Account : "拥有"
-      User ||--o{ Verification : "验证"
+      ApiKey {
+      string id PK
+      string key
+      }
+
+      Session {
+      string id PK
+      string userId FK
+      }
+
+      Account {
+      string provider PK
+      string providerAccountId PK
+      string type
+      int userId FK
+      }
+
+      Authenticator {
+      string id PK
+      string userId FK
+      }
+
+      Verification {
+      string id PK
+      }
+
       User ||--o{ App : "管理"
-      App ||--o{ ApiKey : "颁发"
       App ||--o{ File : "上传"
       App }o--|| Storage : "配置"
+      App ||--o{ ApiKey : "颁发"
       File ||--o{ Files_Tags : "标记"
       Tag ||--o{ Files_Tags : "应用"
       Tag ||--o{ Tag : "父子层级"
+      User ||--o{ Session : "创建"
+      User ||--o{ Account : "拥有"
+      User ||--o{ Authenticator : "绑定"
+      User ||--o{ Verification : "验证"
     </pre>
   </div>
   <div id="actions">
@@ -158,10 +159,10 @@
       theme: "base",
       er: {
         useMaxWidth: false,
-        fontSize: 35,
+        fontSize: 60,
       },
       themeVariables: {
-        fontSize: '35px',
+        fontSize: '60px',
         fontFamily: '"SimSun", "宋体", serif',
         primaryColor: '#E3F2FD',
         primaryTextColor: '#333',
@@ -195,7 +196,7 @@
       cloned.setAttribute("height",svgHeight);
       cloned.setAttribute("xmlns","http://www.w3.org/2000/svg");
       const styleEl = document.createElement("style");
-      styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 35px; }';
+      styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 60px; }';
       cloned.insertBefore(styleEl,cloned.firstChild);
 
       const svgData = new XMLSerializer().serializeToString(cloned);
