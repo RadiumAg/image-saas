@@ -18,7 +18,7 @@
     }
 
     .edgeLabel {
-      font-size: 60px;
+      font-size: 50px;
     }
 
 
@@ -53,10 +53,10 @@
 <body>
   <div id="diagram">
     <pre class="mermaid">
-      %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '60px',
+      %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '50px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       erDiagram
-      direction RL
+      direction LR
 
 
       User {
@@ -174,10 +174,10 @@
       theme: "base",
       er: {
         useMaxWidth: false,
-        fontSize: 60,
+        fontSize: 50,
       },
       themeVariables: {
-        fontSize: '60px',
+        fontSize: '50px',
         fontFamily: '"SimSun", "宋体", serif',
         primaryColor: '#E3F2FD',
         primaryTextColor: '#333',
@@ -211,7 +211,7 @@
       cloned.setAttribute("height",svgHeight);
       cloned.setAttribute("xmlns","http://www.w3.org/2000/svg");
       const styleEl = document.createElement("style");
-      styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 60px; }';
+      styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 50px; }';
       cloned.insertBefore(styleEl,cloned.firstChild);
 
       const svgData = new XMLSerializer().serializeToString(cloned);
