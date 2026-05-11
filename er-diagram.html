@@ -56,95 +56,111 @@
       %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '60px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       erDiagram
-      direction LR
+      direction RL
+
 
       User {
-      int id PK
-      string name
-      string email
-      string plan
-      string image
+      text id PK
+      text name
+      text email
+      text plan
+      text image
       boolean emailVerified
-      datetime createAt
-      }
-
-      App {
-      int id PK
-      string name
-      string description
-      int userId FK
-      int storageId FK
-      }
-
-      File {
-      int id PK
-      string name
-      string type
-      string url
-      string path
-      string contentType
-      int userId FK
-      int appId FK
-      }
-
-      Tag {
-      int id PK
-      string name
-      string color
-      string categoryType
-      int parentId FK
-      int appId FK
-      int userId FK
-      }
-
-      Files_Tags {
-      int fileId PK,FK
-      int tagId PK,FK
-      datetime createdAt
-      }
-
-      Storage {
-      int id PK
-      int userId FK
-      }
-
-      ApiKey {
-      string id PK
-      string key
+      int usageCount
+      int usageStorage
       }
 
       Session {
-      string id PK
-      string userId FK
-      }
-
-      Account {
-      string provider PK
-      string providerAccountId PK
-      string type
-      int userId FK
+      text sessionToken PK
+      text userId FK
       }
 
       Authenticator {
-      string id PK
-      string userId FK
+      text userId PK,FK
+      text credentialID PK
+      }
+
+      Account {
+      text provider PK
+      text providerAccountId PK
+      text type
+      text userId FK
+      }
+
+      ApiKey {
+      serial id PK
+      varchar key
+      varchar name
+      uuid appId FK
+      }
+
+      App {
+      uuid id PK
+      varchar name
+      varchar description
+      text userId FK
+      int storageId FK
       }
 
       Verification {
-      string id PK
+      text identifier PK
+      text token PK
       }
 
+      File {
+      uuid id PK
+      varchar name
+      varchar type
+      varchar path
+      varchar url
+      varchar contentType
+      text userId FK
+      uuid appId FK
+      }
+
+      Tag {
+      uuid id PK
+      varchar name
+      varchar color
+      varchar categoryType
+      uuid parentId FK
+      uuid appId FK
+      text userId FK
+      }
+
+      Files_Tags {
+      uuid fileId PK,FK
+      uuid tagId PK,FK
+      }
+
+      Image_Features {
+      uuid id PK
+      uuid fileId FK
+      json featureVector
+      int dimension
+      }
+
+      Storage {
+      serial id PK
+      varchar name
+      uuid userId FK
+      json configuration
+      }
+
+      User ||--o{ Session : "创建"
+      User ||--o{ Authenticator : "绑定"
+      User ||--o{ Account : "拥有"
+      User ||--o{ Verification : "验证"
       User ||--o{ App : "管理"
+      App ||--o{ ApiKey : "颁发"
       App ||--o{ File : "上传"
       App }o--|| Storage : "配置"
-      App ||--o{ ApiKey : "颁发"
       File ||--o{ Files_Tags : "标记"
       Tag ||--o{ Files_Tags : "应用"
       Tag ||--o{ Tag : "父子层级"
-      User ||--o{ Session : "创建"
-      User ||--o{ Account : "拥有"
-      User ||--o{ Authenticator : "绑定"
-      User ||--o{ Verification : "验证"
+      File ||--o{ Image_Features : "提取"
+      User ||--o{ Tag : "创建"
+      User ||--o{ Storage : "配置"
     </pre>
   </div>
   <div id="actions">
