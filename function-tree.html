@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image SaaS - ER Diagram</title>
+  <title>Image SaaS - 功能模块图</title>
   <style>
     * {
       margin: 0;
@@ -20,7 +19,6 @@
     .edgeLabel {
       font-size: 35px;
     }
-
 
     #diagram {
       display: flex;
@@ -49,101 +47,34 @@
     }
   </style>
 </head>
-
 <body>
   <div id="diagram">
     <pre class="mermaid">
       %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '35px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
-      erDiagram
-      direction LR
-      User {
-      int id PK
-      string name
-      string email
-      string plan
-      string image
-      boolean emailVerified
-      datetime createAt
-      }
+      flowchart LR
+        A[Image SaaS系统] --> B[用户登录模块]
+        A --> C[空间管理模块]
+        A --> D[图片管理模块]
+        A --> E[系统配置模块]
+        A --> F[智能处理模块]
 
-      Session {
-      string id PK
-      string userId FK
-      }
+        B --> B1[注册/登录]
+        B --> B2[鉴权与会话]
 
-      Authenticator {
-      string id PK
-      string userId FK
-      }
+        C --> C1[创建空间]
+        C --> C2[选择/切换空间]
 
-      Account {
-      string provider PK
-      string providerAccountId PK
-      string type
-      int userId FK
-      }
+        D --> D1[图片上传]
+        D --> D2[图片检索]
+        D --> D3[图片删除与回收站]
+        D --> D4[图片预览与外链压缩]
 
-      Verification {
-      string id PK
-      }
+        E --> E1[OSS配置]
+        E --> E2[标签管理]
 
-      App {
-      int id PK
-      string name
-      string description
-      int userId FK
-      int storageId FK
-      }
-
-      ApiKey {
-      string id PK
-      string key
-      }
-
-      File {
-      int id PK
-      string name
-      string type
-      string url
-      string path
-      string contentType
-      int userId FK
-      int appId FK
-      }
-
-      Tag {
-      int id PK
-      string name
-      string color
-      string categoryType
-      int parentId FK
-      int appId FK
-      int userId FK
-      }
-
-      Files_Tags {
-      int fileId PK,FK
-      int tagId PK,FK
-      datetime createdAt
-      }
-
-      Storage {
-      int id PK
-      int userId FK
-      }
-
-      User ||--o{ Session : "创建"
-      User ||--o{ Authenticator : "绑定"
-      User ||--o{ Account : "拥有"
-      User ||--o{ Verification : "验证"
-      User ||--o{ App : "管理"
-      App ||--o{ ApiKey : "颁发"
-      App ||--o{ File : "上传"
-      App }o--|| Storage : "配置"
-      File ||--o{ Files_Tags : "标记"
-      Tag ||--o{ Files_Tags : "应用"
-      Tag ||--o{ Tag : "父子层级"
+        F --> F1[图片自动分类]
+        F --> F2[标签自动生成]
     </pre>
   </div>
   <div id="actions">
@@ -156,9 +87,10 @@
     mermaid.initialize({
       startOnLoad: true,
       theme: "base",
-      er: {
+      flowchart: {
         useMaxWidth: false,
-        fontSize: 35,
+        nodeSpacing: 30,
+        rankSpacing: 60,
       },
       themeVariables: {
         fontSize: '35px',
@@ -175,10 +107,8 @@
       if (!svgEl) return;
 
       const scale = 2;
-
-      // 获取 SVG 实际尺寸（优先用 viewBox，备选 getBoundingClientRect）
       const viewBox = svgEl.getAttribute("viewBox");
-      let svgWidth,svgHeight;
+      let svgWidth, svgHeight;
       if (viewBox) {
         const parts = viewBox.split(/[\s,]+/);
         svgWidth = parseFloat(parts[2]);
@@ -189,14 +119,13 @@
         svgHeight = rect.height;
       }
 
-      // 克隆 SVG 并注入显式宽高和字体
       const cloned = svgEl.cloneNode(true);
-      cloned.setAttribute("width",svgWidth);
-      cloned.setAttribute("height",svgHeight);
-      cloned.setAttribute("xmlns","http://www.w3.org/2000/svg");
+      cloned.setAttribute("width", svgWidth);
+      cloned.setAttribute("height", svgHeight);
+      cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       const styleEl = document.createElement("style");
       styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 35px; }';
-      cloned.insertBefore(styleEl,cloned.firstChild);
+      cloned.insertBefore(styleEl, cloned.firstChild);
 
       const svgData = new XMLSerializer().serializeToString(cloned);
       const base64 = btoa(unescape(encodeURIComponent(svgData)));
@@ -209,12 +138,12 @@
         canvas.height = svgHeight * scale;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.scale(scale,scale);
-        ctx.drawImage(img,0,0,svgWidth,svgHeight);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
 
         const link = document.createElement("a");
-        link.download = "er-diagram.png";
+        link.download = "function-tree.png";
         link.href = canvas.toDataURL("image/png");
         link.click();
       };
@@ -222,5 +151,4 @@
     };
   </script>
 </body>
-
 </html>
