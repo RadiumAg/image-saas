@@ -123,7 +123,7 @@
       varchar name
       varchar color
       varchar categoryType
-      uuid parentId FK
+      uuid parentId FK "父子层级"
       uuid appId FK
       text userId FK
       }
@@ -152,15 +152,14 @@
       User ||--o{ Account : "拥有"
       User ||--o{ Verification : "验证"
       User ||--o{ App : "管理"
+      User ||--o{ Tag : "创建"
+      User ||--o{ Storage : "配置"
       App ||--o{ ApiKey : "颁发"
       App ||--o{ File : "上传"
       App }o--|| Storage : "配置"
       File ||--o{ Files_Tags : "标记"
-      Tag ||--o{ Files_Tags : "应用"
-      Tag ||--o{ Tag : "父子层级"
       File ||--o{ Image_Features : "提取"
-      User ||--o{ Tag : "创建"
-      User ||--o{ Storage : "配置"
+      Tag ||--o{ Files_Tags : "应用"
     </pre>
   </div>
   <div id="actions">
