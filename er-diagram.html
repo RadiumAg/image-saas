@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image SaaS - ER Diagram</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #fff;
+      font-family: "SimSun", "宋体", serif;
+    }
+
+    .edgeLabel {
+      font-size: 60px;
+    }
+
+    #diagram {
+      display: flex;
+      justify-content: center;
+      padding: 32px;
+      overflow: auto;
+    }
+
+    #actions {
+      text-align: center;
+      padding: 16px;
+    }
+
+    #save-btn {
+      padding: 8px 20px;
+      background: #1565C0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #save-btn:hover {
+      background: #0D47A1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="diagram">
+    <pre class="mermaid">
+      %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '60px',
+      'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
+      erDiagram
+      User {
+      int id PK
+      string name
+      string email
+      string plan
+      string image
+      boolean emailVerified
+      datetime createAt
+      }
+
+      Session {
+      string id PK
+      string userId FK
+      }
+
+      Authenticator {
+      string id PK
+      string userId FK
+      }
+
+      Account {
+      string provider PK
+      string providerAccountId PK
+      string type
+      int userId FK
+      }
+
+      Verification {
+      string id PK
+      }
+
+      App {
+      int id PK
+      string name
+      string description
+      int userId FK
+      int storageId FK
+      }
+
+      ApiKey {
+      string id PK
+      string key
+      }
+
+      File {
+      int id PK
+      string name
+      string type
+      string url
+      string path
+      string contentType
+      int userId FK
+      int appId FK
+      }
+
+      Tag {
+      int id PK
+      string name
+      string color
+      string categoryType
+      int parentId FK
+      int appId FK
+      int userId FK
+      }
+
+      Files_Tags {
+      int fileId PK,FK
+      int tagId PK,FK
+      datetime createdAt
+      }
+
+      Storage {
+      int id PK
+      int userId FK
+      }
+
+      User ||--o{ Session : "创建"
+      User ||--o{ Authenticator : "绑定"
+      User ||--o{ Account : "拥有"
+      User ||--o{ Verification : "验证"
+      User ||--o{ App : "管理"
+      App ||--o{ ApiKey : "颁发"
+      App ||--o{ File : "上传"
+      App }o--|| Storage : "配置"
+      File ||--o{ Files_Tags : "标记"
+      Tag ||--o{ Files_Tags : "应用"
+      Tag ||--o{ Tag : "父子层级"
+    </pre>
+  </div>
+  <div id="actions">
+    <button id="save-btn" onclick="saveAsPng()">💾 保存为 PNG</button>
+  </div>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      er: {
+        useMaxWidth: false,
+        fontSize: 60,
+        layoutDirection: 'LR',
+      },
+      themeVariables: {
+        fontFamily: '"SimSun", "宋体", serif',
+        fontSize: '60px',
+        primaryColor: '#E3F2FD',
+        primaryTextColor: '#333',
+        primaryBorderColor: '#1565C0',
+        lineColor: '#666',
+      },
+    });
+
+    window.saveAsPng = function () {
+      const svgEl = document.querySelector("#diagram svg");
+      if (!svgEl) return;
+
+      const scale = 3;
+      const rect = svgEl.getBoundingClientRect();
+      const svgWidth = rect.width;
+      const svgHeight = rect.height;
+
+      const cloned = svgEl.cloneNode(true);
+      cloned.setAttribute("width",svgWidth);
+      cloned.setAttribute("height",svgHeight);
+      cloned.setAttribute("xmlns","http://www.w3.org/2000/svg");
+
+      // 内联所有样式
+      const styleEl = document.createElement("style");
+      styleEl.textContent = `* { font-family: "SimSun", "宋体", serif; }`;
+      cloned.insertBefore(styleEl,cloned.firstChild);
+
+      const svgData = new XMLSerializer().serializeToString(cloned);
+      const base64 = btoa(unescape(encodeURIComponent(svgData)));
+      const dataUrl = "data:image/svg+xml;base64," + base64;
+
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = svgWidth * scale;
+        canvas.height = svgHeight * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.scale(scale,scale);
+        ctx.drawImage(img,0,0,svgWidth,svgHeight);
+
+        const link = document.createElement("a");
+        link.download = "er-diagram.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      };
+      img.src = dataUrl;
+    };
+  </script>
+</body>
+
+</html>
