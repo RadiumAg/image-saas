@@ -17,6 +17,8 @@ import { v4 as uuid } from 'uuid';
 import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm';
 import { filesCanOrderByColumn } from '../db/validate-schema';
 import { TRPCError } from '@trpc/server';
+import { users } from '../db/schema';
+import { PLAN_CONFIG, type PlanType } from './user';
 
 const filesOrderByColumnSchema = z
   .object({
@@ -56,6 +58,30 @@ const fileOpenRoutes = router({
       if (app.userId !== ctx.user.id) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
+
+      // 按需付费配额校验
+      const planUser = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, ctx.user.id),
+      });
+      if (planUser) {
+        const plan = (planUser.plan || 'free') as PlanType;
+        const config = PLAN_CONFIG[plan];
+        const currentCount = planUser.usageCount ?? 0;
+        if (currentCount >= config.maxFiles) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `上传限制已达上限（${config.maxFiles}个文件）。请升级套餐以继续使用。`,
+          });
+        }
+        const currentStorage = planUser.usageStorage ?? 0;
+        if (currentStorage + input.size > config.maxStorage) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `存储空间不足。当前已用 ${(currentStorage / 1024 / 1024).toFixed(1)}MB，请升级套餐。`,
+          });
+        }
+      }
+
       const storage = app.storage;
 
       const params: PutObjectCommandInput = {
@@ -107,6 +133,14 @@ const fileOpenRoutes = router({
           contentType: input.type,
         })
         .returning();
+
+      // 上传成功后更新用户用量统计
+      await db
+        .update(users)
+        .set({
+          usageCount: sql`COALESCE(${users.usageCount}, 0) + 1`,
+        })
+        .where(eq(users.id, ctx.session.user.id));
 
       return photo[0];
     }),

@@ -33,8 +33,10 @@ export const users = pgTable('user', {
   email: text('email').unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
-  plan: text('plan', { enum: ['free', 'payed'] }),
+  plan: text('plan', { enum: ['free', 'payed'] }).default('free'),
   createAt: date('create_at').defaultNow(),
+  usageCount: integer('usage_count').default(0),
+  usageStorage: integer('usage_storage').default(0),
 });
 
 export const usersRelation = relations(users, ({ many }) => ({
