@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,21 +48,22 @@
     }
   </style>
 </head>
+
 <body>
   <div id="diagram">
     <pre class="mermaid">
       %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '35px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       flowchart TD
-        S([开始]) --> A[用户访问系统]
+        S([开始]) --> A[用户访问<br/>系统]
         A --> B{是否已登录}
-        B -->|否| C[用户注册/<br/>登录]
-        C --> D[身份认证与<br/>权限校验]
-        B -->|是| D
-        D --> E[进入系统首页]
-        E --> F{选择功能模块}
-        F --> G[执行对应功能]
-        G --> H([结束])
+      B -->|否| C[用户注册/<br />登录]
+      C --> D[身份认证与<br />权限校验]
+      B -->|是| D
+      D --> E[进入系统首页]
+      E --> F{选择功能模块}
+      F --> G[执行对应功能]
+      G --> H([结束])
     </pre>
   </div>
   <div id="actions">
@@ -78,6 +80,7 @@
         useMaxWidth: false,
         nodeSpacing: 30,
         rankSpacing: 60,
+        htmlLabels: true,
       },
       themeVariables: {
         fontSize: '35px',
@@ -95,7 +98,7 @@
 
       const scale = 2;
       const viewBox = svgEl.getAttribute("viewBox");
-      let svgWidth, svgHeight;
+      let svgWidth,svgHeight;
       if (viewBox) {
         const parts = viewBox.split(/[\s,]+/);
         svgWidth = parseFloat(parts[2]);
@@ -107,12 +110,12 @@
       }
 
       const cloned = svgEl.cloneNode(true);
-      cloned.setAttribute("width", svgWidth);
-      cloned.setAttribute("height", svgHeight);
-      cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      cloned.setAttribute("width",svgWidth);
+      cloned.setAttribute("height",svgHeight);
+      cloned.setAttribute("xmlns","http://www.w3.org/2000/svg");
       const styleEl = document.createElement("style");
       styleEl.textContent = '* { font-family: "SimSun", "宋体", serif; } .edgeLabel { font-size: 35px; }';
-      cloned.insertBefore(styleEl, cloned.firstChild);
+      cloned.insertBefore(styleEl,cloned.firstChild);
 
       const svgData = new XMLSerializer().serializeToString(cloned);
       const base64 = btoa(unescape(encodeURIComponent(svgData)));
@@ -125,9 +128,9 @@
         canvas.height = svgHeight * scale;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.scale(scale,scale);
+        ctx.drawImage(img,0,0,svgWidth,svgHeight);
 
         const link = document.createElement("a");
         link.download = "flow-chart.png";
@@ -138,4 +141,5 @@
     };
   </script>
 </body>
+
 </html>
