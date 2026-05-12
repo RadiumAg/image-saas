@@ -53,28 +53,28 @@
       %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '30px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       flowchart LR
-        A[Image SaaS系统] --> B[用户登录模块]
-        A --> C[空间管理模块]
-        A --> D[图片管理模块]
-        A --> E[系统配置模块]
-        A --> F[智能处理模块]
+        A[Image SaaS系统] --- B[用户登录模块]
+        A --- C[空间管理模块]
+        A --- D[图片管理模块]
+        A --- E[系统配置模块]
+        A --- F[智能处理模块]
 
-        B --> B1[注册/登录]
-        B --> B2[鉴权与会话]
+        B --- B1[注册/登录]
+        B --- B2[鉴权与会话]
 
-        C --> C1[创建空间]
-        C --> C2[选择/切换空间]
+        C --- C1[创建空间]
+        C --- C2[选择/切换空间]
 
-        D --> D1[图片上传]
-        D --> D2[图片检索]
-        D --> D3[图片删除与回收站]
-        D --> D4[图片预览与外链压缩]
+        D --- D1[图片上传]
+        D --- D2[图片检索]
+        D --- D3[图片删除与回收站]
+        D --- D4[图片预览与外链压缩]
 
-        E --> E1[OSS配置]
-        E --> E2[标签管理]
+        E --- E1[OSS配置]
+        E --- E2[标签管理]
 
-        F --> F1[图片自动分类]
-        F --> F2[标签自动生成]
+        F --- F1[图片自动分类]
+        F --- F2[标签自动生成]
     </pre>
   </div>
   <div id="actions">
