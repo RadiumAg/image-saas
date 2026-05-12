@@ -55,8 +55,7 @@
       %%{init: {'theme': 'base', 'themeVariables': {'fontFamily': '"SimSun", "宋体", serif', 'fontSize': '35px',
       'primaryColor': '#E3F2FD', 'primaryTextColor': '#333', 'primaryBorderColor': '#1565C0', 'lineColor': '#666'}}}%%
       flowchart TD
-        S([开始]) --> A[用户访问<br/>系统]
-        A --> B{是否已登录}
+      S([开始]) --> B{是否已登录}
       B -->|否| C[用户注册/<br />登录]
       C --> D[身份认证与<br />权限校验]
       B -->|是| D
